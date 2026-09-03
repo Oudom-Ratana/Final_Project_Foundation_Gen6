@@ -10,18 +10,9 @@ import './index.css';
 // Layout & Pages
 import RootLayout from './components/layout/RootLayout';
 import HomePage from './pages/HomePage';
-import MoviesPage from './pages/MoviesPage';
-import MovieDetailPage from './pages/MovieDetailPage';
-import StreamWatchPage from './pages/StreamWatchPage';
-import SeatSelectionPage from './pages/booking/SeatSelectionPage';
-import CheckoutPage from './pages/booking/CheckoutPage';
-import BookingSuccessPage from './pages/booking/BookingSuccessPage';
-import MyTicketsPage from './pages/user/MyTicketsPage';
-import WatchlistPage from './pages/user/WatchlistPage';
-import NotFoundPage from './pages/NotFoundPage';
+import AboutUsPage from './pages/AboutUsPage';
 
 const router = createBrowserRouter([
-  // Main Cinema & Streaming Layout
   {
     path: '/',
     element: <RootLayout />,
@@ -31,57 +22,26 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: '/movies',
-        element: <MoviesPage />,
-      },
-      {
-        path: '/movies/:id',
-        element: <MovieDetailPage />,
-      },
-      // Free Movie Streaming
-      {
-        path: '/stream',
-        element: <StreamWatchPage />,
-      },
-      {
-        path: '/stream/:id',
-        element: <StreamWatchPage />,
-      },
-      // Cinema Ticket Booking Flow
-      {
-        path: '/booking/seats',
-        element: <SeatSelectionPage />,
-      },
-      {
-        path: '/booking/checkout',
-        element: <CheckoutPage />,
-      },
-      {
-        path: '/booking/success',
-        element: <BookingSuccessPage />,
-      },
-      // User Tickets & Watchlist
-      {
-        path: '/my-tickets',
-        element: <MyTicketsPage />,
-      },
-      {
-        path: '/watchlist',
-        element: <WatchlistPage />,
+        path: '/about',
+        element: <AboutUsPage />,
       },
     ],
   },
-  // 404 Not Found Page
   {
     path: '*',
-    element: <NotFoundPage />,
+    element: (
+      <div className="py-20 text-center text-white">
+        <h1 className="text-4xl font-black text-[#B90101]">404</h1>
+        <p className="text-neutral-400 mt-2">Page Not Found</p>
+      </div>
+    ),
   },
 ]);
 
 const root = document.getElementById('root');
 
 ReactDOM.createRoot(root).render(
-
+  <StrictMode>
     <Provider store={store}>
       <RouterProvider router={router} />
       <ToastContainer
@@ -97,5 +57,5 @@ ReactDOM.createRoot(root).render(
         theme="dark"
       />
     </Provider>
-    
+  </StrictMode>
 );
