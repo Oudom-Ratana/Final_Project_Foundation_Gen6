@@ -1,1 +1,83 @@
 @import "tailwindcss";
+
+@theme {
+  --color-primary: #B90101;
+  --color-primary-dark: #8b0101;
+  --color-accent-gold: #FFD700;
+  --font-sans: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  :root {
+    --primary-red: #B90101;
+    --accent-gold: #FFD700;
+  }
+
+  html {
+    font-size: 18px; 
+  }
+
+  body {
+    background: radial-gradient(ellipse at left, rgba(109, 8, 8, 0.7) 0%, #0d0304 100%), #000000;
+    color: #ffffff;
+    font-family: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 18px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  p, span, a, button, input, label {
+    font-family: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, sans-serif;
+  }
+}
+
+/* Custom Utilities for Project Colors & Theme */
+.bg-primary-red {
+  background-color: #B90101 !important;
+}
+
+.text-primary-red {
+  color: #B90101 !important;
+}
+
+.border-primary-red {
+  border-color: #B90101 !important;
+}
+
+.text-accent-gold {
+  color: #FFD700 !important;
+}
+
+.bg-accent-gold {
+  background-color: #FFD700 !important;
+}
+
+.fill-accent-gold {
+  fill: #FFD700 !important;
+}
+
+.bg-cinema-radial {
+  /* background: radial-gradient(ellipse at center, rgba(109, 8, 8, 0.7) 0%, #0d0304 100%), #000000; */
+  background: radial-gradient(ellipse at center, rgba(109, 8, 8, 0.7) 0%, #0d0304 70%, #000000 100%),
+    #000000;
+}
+
+/* Custom scrollbar utility */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d0304;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #B90101;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e60000;
+}
