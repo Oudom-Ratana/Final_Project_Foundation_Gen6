@@ -9,6 +9,7 @@ import './index.css';
 
 // Layout & Pages
 import RootLayout from './components/layout/RootLayout';
+import HomePage from './pages/HomePage';
 import AboutUsPage from './pages/AboutUsPage';
 
 const router = createBrowserRouter([
@@ -18,7 +19,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: null, // Empty for homepage until your team builds it
+        element: <HomePage />,
       },
       {
         path: '/about',

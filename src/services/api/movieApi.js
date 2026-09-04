@@ -4,7 +4,7 @@ export const movieApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // 1. Upcoming Movies (/movie/upcoming)
     getUpcomingMovies: builder.query({
-      query: (page = 1) => `/movie/upcoming?page=${page}`,
+      query: (page = 2) => `/movie/upcoming?page=${page}`,
       transformResponse: (response) => response?.results || response,
       providesTags: (result) =>
         result && Array.isArray(result)
