@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router';
+import { Link, NavLink } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  Search,
   User,
-  Ticket,
+  Bell,
+  Sun,
   Moon,
-  ChevronDown,
   Menu,
   X,
   LogOut,
@@ -16,101 +15,76 @@ import {
   selectIsAuthenticated,
   logout,
 } from '../../redux/slices/authSlice';
+import { selectTheme, toggleTheme } from '../../redux/slices/uiSlice';
 
 export default function Navbar() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const user = useSelector(selectCurrentUser);
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const theme = useSelector(selectTheme);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/movies?q=${encodeURIComponent(searchTerm.trim())}`);
-    }
-  };
-
-  const navLinkStyle = ({ isActive }) =>
-    `text-[18px] font-semibold transition px-3.5 py-1.5 rounded-full ${
+  // Active state: Primary red with red underline indicator bar
+  // Inactive state: Golden yellow text
+  const navLinkClass = ({ isActive }) =>
+    `relative text-[18px] font-bold transition-all px-1 pb-1.5 ${
       isActive
-        ? 'text-[#B90101] font-black'
-        : 'text-white/90 hover:text-[#B90101] hover:bg-white/10'
+        ? 'text-[#B90101] font-black after:content-[""] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2.5px] after:bg-[#B90101] after:rounded-full'
+        : 'text-[#EAB308] hover:text-[#B90101]'
     }`;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-black/85 backdrop-blur-md border-b border-white/10 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-22 flex items-center justify-between gap-4">
-        {/* Brand Logo: FLIX ZONE */}
-        <Link to="/" className="flex items-center gap-2 group shrink-0">
-          <div className="flex items-center">
-            <span className="text-2xl sm:text-3xl font-black italic tracking-tighter text-white drop-shadow">
-              FLIX
-            </span>
-            <span
-              className="text-2xl sm:text-3xl font-black italic tracking-tighter ml-1 drop-shadow"
-              style={{ color: '#B90101' }}
-            >
-              ZONE
-            </span>
+    <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-black/85 backdrop-blur-md border-b border-neutral-200/80 dark:border-white/10 shadow-xs transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+        {/* 1. Left: FLIM ZONE Logo with Speed Lines */}
+        <Link to="/" className="flex items-center gap-2 group shrink-0 select-none">
+          <div className="flex flex-col">
+            <div className="flex items-center font-black italic tracking-tighter text-2xl sm:text-3xl leading-none">
+              <span className="text-transparent bg-clip-text bg-gradient-to-b from-neutral-300 via-neutral-500 to-neutral-700 dark:from-white dark:via-neutral-300 dark:to-neutral-500 drop-shadow-sm">
+                FLIM
+              </span>
+              <span
+                className="text-transparent bg-clip-text bg-gradient-to-b from-red-500 via-red-600 to-[#B90101] ml-1 drop-shadow-[0_0_8px_rgba(185,1,1,0.5)]"
+              >
+                ZONE
+              </span>
+            </div>
+            {/* Speed underline effect matching logo */}
+            <div className="flex items-center gap-0.5 mt-0.5">
+              <span className="h-[2px] w-5 bg-gradient-to-r from-transparent to-[#B90101]" />
+              <span className="h-[2px] w-9 bg-[#B90101]" />
+              <span className="h-[2px] w-3 bg-[#B90101]" />
+            </div>
           </div>
         </Link>
 
-        {/* Search Bar Input (Glassmorphic) */}
-        <form
-          onSubmit={handleSearchSubmit}
-          className="hidden md:flex items-center relative w-60 lg:w-80"
-        >
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search here..."
-            className="w-full pl-5 pr-11 py-2.5 bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/20 rounded-full text-[18px] text-white placeholder-white/60 backdrop-blur-md focus:outline-none focus:border-[#B90101] transition shadow-inner"
-          />
-          <button
-            type="submit"
-            className="absolute right-3.5 text-white/70 hover:text-white transition"
-            aria-label="Submit search"
-          >
-            <Search className="w-5 h-5" />
-          </button>
-        </form>
-
-        {/* Center Navigation Links (18px font size) */}
-        <nav className="hidden md:flex items-center gap-3 lg:gap-6">
-          <NavLink to="/" className={navLinkStyle}>
+        {/* 2. Center: Navigation Links (Home, Promo, Stream, About) */}
+        <nav className="hidden md:flex items-center gap-8 lg:gap-12">
+          <NavLink to="/" className={navLinkClass}>
             Home
           </NavLink>
-          <NavLink to="/movies" className={navLinkStyle}>
-            Events
+          <NavLink to="/promo" className={navLinkClass}>
+            Promo
           </NavLink>
-          <NavLink to="/booking/seats" className={navLinkStyle}>
-            Cinema
+          <NavLink to="/stream" className={navLinkClass}>
+            Stream
           </NavLink>
-          <NavLink to="/about" className={navLinkStyle}>
+          <NavLink to="/about" className={navLinkClass}>
             About
           </NavLink>
         </nav>
 
-        {/* Right Action Buttons */}
+        {/* 3. Right: Action Buttons (Red Login Pill, Gold Bell, Sun/Moon) */}
         <div className="hidden sm:flex items-center gap-3">
-          {/* Login / User Pill */}
+          {/* Red Login Pill Button */}
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-2 bg-neutral-900 border border-white/20 rounded-full py-1.5 px-4">
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-7 h-7 rounded-full object-cover"
-              />
-              <span className="text-[18px] font-bold text-white max-w-[90px] truncate">
-                {user.name}
-              </span>
+            <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#B90101] text-white font-bold text-[16px] shadow-md">
+              <User className="w-4 h-4 fill-white" />
+              <span className="max-w-[100px] truncate">{user.name}</span>
               <button
                 onClick={() => dispatch(logout())}
-                className="p-1 text-white/60 hover:text-[#B90101]"
+                className="p-1 hover:text-neutral-200 transition"
                 title="Logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -119,42 +93,51 @@ export default function Navbar() {
           ) : (
             <button
               type="button"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-white border border-white/20 text-[18px] font-bold shadow transition active:scale-95"
+              className="flex items-center gap-2 px-6 py-2 rounded-full text-white font-bold text-[16px] shadow-md hover:brightness-110 active:scale-95 transition"
+              style={{ backgroundColor: '#B90101' }}
             >
-              <User className="w-4 h-4" />
+              <User className="w-4 h-4 fill-white" />
               <span>Login</span>
             </button>
           )}
 
-          {/* Dark Mode Moon Button */}
+          {/* Gold Notification Bell Button (Circular Pill) */}
           <button
-            className="p-2.5 rounded-full bg-neutral-900/90 border border-white/20 text-white/90 hover:text-[#FFD700] transition shadow-xs"
-            aria-label="Theme"
+            type="button"
+            className="w-10 h-10 rounded-full bg-neutral-200/80 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 flex items-center justify-center text-[#EAB308] hover:scale-105 active:scale-95 transition shadow-xs"
+            aria-label="Notifications"
           >
-            <Moon className="w-5 h-5" />
+            <Bell className="w-5 h-5 fill-[#EAB308] text-[#EAB308]" />
           </button>
 
-          {/* Ticket Pill Button */}
-          <Link
-            to="/my-tickets"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-800/90 hover:bg-neutral-700 text-white border border-white/20 text-[18px] font-bold shadow transition active:scale-95"
+          {/* Theme Switcher Toggle Button (Circular Pill) */}
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            className="w-10 h-10 rounded-full bg-neutral-200/80 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 flex items-center justify-center text-[#EAB308] hover:scale-105 active:scale-95 transition shadow-xs"
+            aria-label="Toggle Theme"
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
-            <Ticket className="w-4 h-4" style={{ color: '#FFD700' }} />
-            <span>Ticket</span>
-          </Link>
-
-          {/* Language Selector Pill */}
-          <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-neutral-900/90 border border-white/20 text-[18px] font-bold text-white cursor-pointer hover:bg-neutral-800 transition">
-            <span>EN</span>
-            <ChevronDown className="w-4 h-4 text-white/70" />
-          </div>
+            {theme === 'dark' ? (
+              <Sun className="w-5 h-5 text-[#EAB308] transition-transform rotate-0 hover:rotate-90 duration-300" />
+            ) : (
+              <Sun className="w-5 h-5 text-[#EAB308] transition-transform rotate-0 hover:rotate-90 duration-300" />
+            )}
+          </button>
         </div>
 
         {/* Mobile Hamburger Button */}
         <div className="flex md:hidden items-center gap-2">
           <button
+            onClick={() => dispatch(toggleTheme())}
+            className="w-9 h-9 rounded-full bg-neutral-200/80 dark:bg-white/10 flex items-center justify-center text-[#EAB308]"
+            aria-label="Toggle Theme"
+          >
+            <Sun className="w-4 h-4 text-[#EAB308]" />
+          </button>
+
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2.5 text-white rounded-xl bg-neutral-900 border border-white/20"
+            className="p-2 text-neutral-800 dark:text-white rounded-xl bg-neutral-200/80 dark:bg-white/10"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -164,46 +147,49 @@ export default function Navbar() {
 
       {/* Mobile Dropdown Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-white/10 bg-neutral-950 px-4 py-4 space-y-3">
-          <form onSubmit={handleSearchSubmit} className="relative w-full mb-3">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search here..."
-              className="w-full pl-4 pr-10 py-3 bg-white/10 border border-white/20 rounded-full text-[18px] text-white placeholder-white/60 focus:outline-none"
-            />
-            <Search className="absolute right-3.5 top-3.5 w-5 h-5 text-white/70" />
-          </form>
-
+        <div className="md:hidden border-t border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 px-6 py-4 space-y-3 transition-colors">
           <NavLink
             to="/"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="block text-[18px] font-semibold text-white py-2"
+            className={navLinkClass}
           >
             Home
           </NavLink>
+          <div />
           <NavLink
-            to="/movies"
+            to="/promo"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="block text-[18px] font-semibold text-white py-2"
+            className={navLinkClass}
           >
-            Events
+            Promo
           </NavLink>
+          <div />
           <NavLink
-            to="/booking/seats"
+            to="/stream"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="block text-[18px] font-semibold text-white py-2"
+            className={navLinkClass}
           >
-            Cinema
+            Stream
           </NavLink>
+          <div />
           <NavLink
             to="/about"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="block text-[18px] font-semibold text-white py-2"
+            className={navLinkClass}
           >
             About
           </NavLink>
+
+          <div className="pt-3 border-t border-neutral-200 dark:border-white/10 flex items-center justify-between">
+            <button
+              type="button"
+              className="w-full py-2.5 rounded-full text-white font-bold text-[16px] flex items-center justify-center gap-2 shadow-md"
+              style={{ backgroundColor: '#B90101' }}
+            >
+              <User className="w-4 h-4 fill-white" />
+              <span>Login</span>
+            </button>
+          </div>
         </div>
       )}
     </header>

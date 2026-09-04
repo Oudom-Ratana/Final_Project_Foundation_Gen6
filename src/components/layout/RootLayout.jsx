@@ -1,14 +1,23 @@
 import { Outlet } from 'react-router';
+import { useSelector } from 'react-redux';
+import { selectTheme } from '../../redux/slices/uiSlice';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import MovieTrailerModal from '../movies/MovieTrailerModal';
 
 export default function RootLayout() {
+  const theme = useSelector(selectTheme);
+  const isDark = theme === 'dark';
+
   return (
     <div
-      className="min-h-screen flex flex-col text-white font-sans antialiased selection:bg-[#B90101] selection:text-white"
+      className={`min-h-screen flex flex-col font-sans antialiased transition-colors duration-300 selection:bg-[#B90101] selection:text-white ${
+        isDark ? 'text-white' : 'text-neutral-900'
+      }`}
       style={{
-        background: 'radial-gradient(ellipse at left, rgba(109, 8, 8, 0.7) 0%, #0d0304 100%), #000000',
+        backgroundColor: isDark ? 'transparent' : '#F6F7F9',
+        background: isDark
+          ? 'radial-gradient(ellipse at left, rgba(109, 8, 8, 0.7) 0%, #0d0304 100%), #000000'
+          : '#F6F7F9',
         minHeight: '100vh',
       }}
     >
@@ -17,7 +26,6 @@ export default function RootLayout() {
         <Outlet />
       </main>
       <Footer />
-      <MovieTrailerModal />
     </div>
   );
 }

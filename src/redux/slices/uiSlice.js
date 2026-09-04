@@ -1,31 +1,72 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
+
+const getInitialTheme = () => {
+  if (typeof window !== 'undefined') {
+    const savedTheme = localStorage.getItem('cinema_theme');
+    if (savedTheme) {
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return savedTheme;
+    }
+  }
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.add('dark');
+  }
+  return 'dark';
+};
 
 const initialState = {
+  theme: getInitialTheme(),
   trailerModal: {
     isOpen: false,
     videoKey: null,
-    movieTitle: "",
+    movieTitle: '',
   },
-  searchQuery: "",
+  searchQuery: '',
   selectedGenre: null,
 };
 
 const uiSlice = createSlice({
-  name: "ui",
+  name: 'ui',
   initialState,
   reducers: {
+    toggleTheme: (state) => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cinema_theme', state.theme);
+        if (state.theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    },
+    setTheme: (state, action) => {
+      state.theme = action.payload;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cinema_theme', state.theme);
+        if (state.theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    },
     openTrailerModal: (state, action) => {
       state.trailerModal = {
         isOpen: true,
-        videoKey: action.payload.videoKey || "dQw4w9WgXcQ", // fallback or real key
-        movieTitle: action.payload.title || "Trailer",
+        videoKey: action.payload.videoKey || 'dQw4w9WgXcQ',
+        movieTitle: action.payload.title || 'Trailer',
       };
     },
     closeTrailerModal: (state) => {
       state.trailerModal = {
         isOpen: false,
         videoKey: null,
-        movieTitle: "",
+        movieTitle: '',
       };
     },
     setSearchQuery: (state, action) => {
@@ -38,12 +79,15 @@ const uiSlice = createSlice({
 });
 
 export const {
+  toggleTheme,
+  setTheme,
   openTrailerModal,
   closeTrailerModal,
   setSearchQuery,
   setSelectedGenre,
 } = uiSlice.actions;
 
+export const selectTheme = (state) => state.ui.theme;
 export const selectTrailerModal = (state) => state.ui.trailerModal;
 export const selectSearchQuery = (state) => state.ui.searchQuery;
 export const selectSelectedGenre = (state) => state.ui.selectedGenre;

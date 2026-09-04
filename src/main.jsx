@@ -9,7 +9,6 @@ import './index.css';
 
 // Layout & Pages
 import RootLayout from './components/layout/RootLayout';
-import HomePage from './pages/HomePage';
 import AboutUsPage from './pages/AboutUsPage';
 
 const router = createBrowserRouter([
@@ -18,8 +17,8 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       {
-        path: '/',
-        element: <HomePage />,
+        index: true,
+        element: null, // Empty for homepage until your team builds it
       },
       {
         path: '/about',
@@ -30,7 +29,7 @@ const router = createBrowserRouter([
   {
     path: '*',
     element: (
-      <div className="py-20 text-center text-white">
+      <div className="py-20 text-center text-white font-sans">
         <h1 className="text-4xl font-black text-[#B90101]">404</h1>
         <p className="text-neutral-400 mt-2">Page Not Found</p>
       </div>
