@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 export default function ComingSoonCard({ item }) {
   if (!item) return null;
 
@@ -29,7 +31,10 @@ export default function ComingSoonCard({ item }) {
         : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop&q=80");
 
   return (
-    <div className="group cursor-pointer space-y-3 font-sans select-none">
+    <Link
+      to={item.id ? `/movies/${item.id}` : "#"}
+      className="group block cursor-pointer space-y-3 font-sans select-none"
+    >
       {/* Landscape Banner with smooth rounded corners */}
       <div className="relative aspect-[16/10] w-full rounded-[22px] overflow-hidden bg-neutral-900 shadow-sm group-hover:shadow-lg transition-all duration-300">
         <img
@@ -55,6 +60,6 @@ export default function ComingSoonCard({ item }) {
           {formattedDate}
         </p>
       </div>
-    </div>
+    </Link>
   );
 }

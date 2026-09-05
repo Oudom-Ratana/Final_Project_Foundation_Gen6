@@ -187,8 +187,8 @@ export default function HomeHero() {
               </Link>
 
               {/* Watch Trailer Button - Exact Figma Spec (213x54, Fill #FFFFFF 10%, Stroke #FFFFFF 20%, Radius 30px, Blur 12px) */}
-              <button
-                type="button"
+              <Link
+                to={`/movies/${activeMovie.id}`}
                 className="flex items-center justify-center gap-3 h-[54px] min-w-[213px] px-7 rounded-[30px] border text-white font-bold text-[15px] uppercase tracking-wider transition hover:bg-white/20 active:scale-95 shadow-md group select-none"
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.10)",
@@ -202,7 +202,7 @@ export default function HomeHero() {
                   <Play className="w-3.5 h-3.5 fill-white text-white" />
                 </div>
                 <span>Watch Trailer</span>
-              </button>
+              </Link>
             </div>
           </div>
 
