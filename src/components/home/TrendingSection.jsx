@@ -1,17 +1,15 @@
 import { Link } from "react-router";
 import { useGetTrendingMoviesQuery } from "../../services/api/movieApi";
-import { MOCK_TRENDING_MOVIES } from "../../data/homeData";
 import MovieCard from "./MovieCard";
+import MovieCardSkeleton from "./MovieCardSkeleton";
+import ScrollReveal from "../common/ScrollReveal";
 import { ChevronRight } from "lucide-react";
 
 export default function TrendingSection() {
   const { data: tmdbMovies, isLoading } = useGetTrendingMoviesQuery("day");
 
-  
   const moviesToDisplay =
-    tmdbMovies && tmdbMovies.length > 0
-      ? tmdbMovies.slice(0, 8)
-      : MOCK_TRENDING_MOVIES;
+    tmdbMovies && tmdbMovies.length > 0 ? tmdbMovies.slice(0, 8) : [];
 
   return (
     <section className="space-y-6 font-sans">
@@ -36,11 +34,22 @@ export default function TrendingSection() {
         </Link>
       </div>
 
-      {/* 4-Column Responsive Grid (8 Cards) */}
+      {/* 4-Column Responsive Grid (8 Cards or 8 Skeletons) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {moviesToDisplay.map((movie, index) => (
-          <MovieCard key={movie.id || index} movie={movie} />
-        ))}
+        {isLoading || moviesToDisplay.length === 0
+          ? Array.from({ length: 8 }).map((_, index) => (
+              <MovieCardSkeleton key={`skeleton-trend-${index}`} />
+            ))
+          : moviesToDisplay.map((movie, index) => (
+              <ScrollReveal
+                key={movie.id || index}
+                delay={(index % 4) * 80}
+                duration={700}
+                distance="translate-y-12"
+              >
+                <MovieCard movie={movie} />
+              </ScrollReveal>
+            ))}
       </div>
 
       {/* Big Centered "EXPLORE ALL TRENDING" Pill Button */}

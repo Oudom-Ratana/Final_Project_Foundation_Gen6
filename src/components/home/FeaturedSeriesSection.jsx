@@ -1,15 +1,14 @@
 import { Link } from "react-router";
 import { useGetPopularTVQuery } from "../../services/api/tvApi";
-import { MOCK_FEATURED_SERIES } from "../../data/homeData";
 import MovieCard from "./MovieCard";
+import MovieCardSkeleton from "./MovieCardSkeleton";
+import ScrollReveal from "../common/ScrollReveal";
 import { ChevronRight } from "lucide-react";
 
 export default function FeaturedSeriesSection() {
   const { data: tmdbTV, isLoading } = useGetPopularTVQuery(1);
 
-  // Use TMDB TV series if available (first 8), otherwise fallback to mock series
-  const seriesToDisplay =
-    tmdbTV && tmdbTV.length > 0 ? tmdbTV.slice(0, 8) : MOCK_FEATURED_SERIES;
+  const seriesToDisplay = tmdbTV && tmdbTV.length > 0 ? tmdbTV.slice(0, 8) : [];
 
   return (
     <section className="space-y-6 font-sans">
@@ -34,11 +33,22 @@ export default function FeaturedSeriesSection() {
         </Link>
       </div>
 
-      {/* 4-Column Responsive Grid (8 Cards) */}
+      {/* 4-Column Responsive Grid (8 Cards or 8 Skeletons) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {seriesToDisplay.map((item, index) => (
-          <MovieCard key={item.id || index} movie={item} />
-        ))}
+        {isLoading || seriesToDisplay.length === 0
+          ? Array.from({ length: 8 }).map((_, index) => (
+              <MovieCardSkeleton key={`skeleton-series-${index}`} />
+            ))
+          : seriesToDisplay.map((item, index) => (
+              <ScrollReveal
+                key={item.id || index}
+                delay={(index % 4) * 80}
+                duration={700}
+                distance="translate-y-12"
+              >
+                <MovieCard movie={item} />
+              </ScrollReveal>
+            ))}
       </div>
     </section>
   );

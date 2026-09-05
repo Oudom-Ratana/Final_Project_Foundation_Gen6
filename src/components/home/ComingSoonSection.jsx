@@ -1,15 +1,13 @@
 import { useGetUpcomingMoviesQuery } from "../../services/api/movieApi";
-import { MOCK_COMING_SOON } from "../../data/homeData";
 import ComingSoonCard from "./ComingSoonCard";
+import ComingSoonCardSkeleton from "./ComingSoonCardSkeleton";
+import ScrollReveal from "../common/ScrollReveal";
 
 export default function ComingSoonSection() {
   const { data: tmdbUpcoming, isLoading } = useGetUpcomingMoviesQuery(1);
 
-  // If TMDB upcoming data is available, map the first 3 items or use the curated mock banners
   const upcomingToDisplay =
-    tmdbUpcoming && tmdbUpcoming.length >= 3
-      ? tmdbUpcoming.slice(0, 3)
-      : MOCK_COMING_SOON;
+    tmdbUpcoming && tmdbUpcoming.length > 0 ? tmdbUpcoming.slice(0, 3) : [];
 
   return (
     <section className="space-y-6 font-sans">
@@ -24,11 +22,22 @@ export default function ComingSoonSection() {
         </h2>
       </div>
 
-      {/* 3 Landscape Banners Grid */}
+      {/* 3 Landscape Banners Grid (3 Cards or 3 Skeletons) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {upcomingToDisplay.map((item, index) => (
-          <ComingSoonCard key={item.id || index} item={item} />
-        ))}
+        {isLoading || upcomingToDisplay.length === 0
+          ? Array.from({ length: 3 }).map((_, index) => (
+              <ComingSoonCardSkeleton key={`skeleton-coming-${index}`} />
+            ))
+          : upcomingToDisplay.map((item, index) => (
+              <ScrollReveal
+                key={item.id || index}
+                delay={index * 120}
+                duration={750}
+                distance="translate-y-12"
+              >
+                <ComingSoonCard item={item} />
+              </ScrollReveal>
+            ))}
       </div>
     </section>
   );

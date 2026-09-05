@@ -2,16 +2,16 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import { Ticket, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { useGetTrendingMoviesQuery } from "../../services/api/movieApi";
-import { MOCK_HERO_SLIDES } from "../../data/homeData";
+import SpidermanLoader from "../common/SpidermanLoader";
 
 export default function HomeHero() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Fetch trending movies from TMDB API
-  const { data: tmdbMovies } = useGetTrendingMoviesQuery("day");
+  // Fetch trending movies directly from TMDB API
+  const { data: tmdbMovies, isLoading } = useGetTrendingMoviesQuery("day");
 
-  // Build slides from TMDB data if available, or use rich fallback slides
+  // Build slides strictly from live TMDB data
   const slides =
     tmdbMovies && tmdbMovies.length > 0
       ? tmdbMovies
@@ -44,7 +44,7 @@ export default function HomeHero() {
                 : "2026",
             };
           })
-      : MOCK_HERO_SLIDES;
+      : [];
 
   const totalSlides = slides.length;
 
@@ -66,6 +66,15 @@ export default function HomeHero() {
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % totalSlides);
   };
+
+  // 1. Spider-Man Themed Loading State
+  if (isLoading || totalSlides === 0) {
+    return (
+      <section className="relative w-full min-h-[620px] sm:min-h-[700px] lg:min-h-[760px] overflow-hidden bg-neutral-950 font-sans flex flex-col items-center justify-center pt-20 pb-8 px-4 sm:px-6 lg:px-8 border-b border-white/10">
+        <SpidermanLoader size="lg" text="SWINGING INTO FLIM ZONE..." />
+      </section>
+    );
+  }
 
   const activeMovie = slides[currentIndex] || slides[0];
 

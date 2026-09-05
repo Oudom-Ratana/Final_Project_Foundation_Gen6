@@ -41,7 +41,7 @@ const router = createBrowserRouter([
 const root = document.getElementById('root');
 
 ReactDOM.createRoot(root).render(
-  <StrictMode>
+  
     <Provider store={store}>
       <RouterProvider router={router} />
       <ToastContainer
@@ -57,5 +57,5 @@ ReactDOM.createRoot(root).render(
         theme="dark"
       />
     </Provider>
-  </StrictMode>
+
 );
