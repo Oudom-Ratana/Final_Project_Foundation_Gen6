@@ -10,6 +10,8 @@ import './index.css';
 // Layout & Pages
 import RootLayout from './components/layout/RootLayout';
 import AboutUsPage from './pages/AboutUsPage';
+import PromotionPage from './pages/promotions/PromotionPage';
+import DetailPage from './pages/promotions/DetailPage';
 
 const router = createBrowserRouter([
   {
@@ -23,6 +25,16 @@ const router = createBrowserRouter([
       {
         path: '/about',
         element: <AboutUsPage />,
+      },
+      {
+        path: '/promo',
+        element: <PromotionPage/>,
+        children: [
+          {
+            path: ':id',
+            element: <DetailPage/>,
+          },
+        ],
       },
     ],
   },
