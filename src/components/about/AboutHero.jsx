@@ -1,5 +1,7 @@
-import { Link } from 'react-router';
+ 
+ import { Link } from 'react-router';
 import { ArrowRight, Film, Sparkles } from 'lucide-react';
+import cinemaImage from '../../assets/image.png';
 
 export default function AboutHero() {
   return (
@@ -10,7 +12,7 @@ export default function AboutHero() {
           <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-neutral-900 dark:text-white leading-tight">
             About{' '}
             <span style={{ color: '#B90101' }} className="drop-shadow-sm">
-              DigiFilm
+              FilmZone
             </span>
           </h1>
 
@@ -41,9 +43,9 @@ export default function AboutHero() {
           <div className="relative w-full max-w-md aspect-square rounded-3xl p-4 flex flex-col items-center justify-center">
             <div className="relative w-full h-full flex items-center justify-center">
               <img
-                src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=700&auto=format&fit=crop&q=80"
+                src={cinemaImage}
                 alt="Cinema 3D Popcorn & Experience"
-                className="w-full h-full object-cover rounded-3xl shadow-2xl border border-neutral-200 dark:border-white/10 filter brightness-90"
+                className="w-full h-full object-contain filter drop-shadow-2xl"
               />
               <div className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-black/80 backdrop-blur-md p-4 rounded-2xl border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-between">
                 <div className="flex items-center gap-3">

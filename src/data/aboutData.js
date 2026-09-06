@@ -1,10 +1,20 @@
+import BunvarnImg from "../assets/mentors_and_member/image/Bunvarn.png";
+import ChingseanImg from "../assets/mentors_and_member/image/Chingsean.png";
+import KhemaImg from "../assets/mentors_and_member/image/Khema.png";
+import LeaknaImg from "../assets/mentors_and_member/image/Leakna.png";
+import LyzhiaImg from "../assets/mentors_and_member/image/Lyzhia.png";
+import OudomImg from "../assets/mentors_and_member/image/Oudom.png";
+import PanhaleapImg from "../assets/mentors_and_member/image/Panhaleap.png";
+import ReaksmeyImg from "../assets/mentors_and_member/image/reaksmey.jpg";
+import SithaImg from "../assets/mentors_and_member/image/Sitha.png";
+import ThanuImg from "../assets/mentors_and_member/image/Thanu.png";
+
 export const MENTORS = [
   {
     id: 1,
     name: "Eung Lyzhia",
     role: "Mentor",
-    image:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80",
+    image: LyzhiaImg,
     telegram: "https://t.me/eunglyzhia",
     github: "https://github.com/eunglyzhia",
     portfolio: "#",
@@ -13,8 +23,7 @@ export const MENTORS = [
     id: 2,
     name: "Rin Bunvarn",
     role: "Mentor",
-    image:
-      "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80",
+    image: BunvarnImg,
     telegram: "https://t.me/rinbunvarn",
     github: "https://github.com/rinbunvarn",
     portfolio: "#",
@@ -26,8 +35,7 @@ export const TEAM_MEMBERS = [
     id: 1,
     name: "Ratana Oudom",
     role: "Frontend",
-    image:
-      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&auto=format&fit=crop&q=80",
+    image: OudomImg,
     telegram: "https://t.me/ratanaoudom",
     github: "https://github.com/Oudom-Ratana",
     portfolio: "#",
@@ -36,48 +44,43 @@ export const TEAM_MEMBERS = [
     id: 2,
     name: "Heng Soleakna",
     role: "Frontend",
-    image:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+    image: LeaknaImg,
     telegram: "#",
     github: "#",
     portfolio: "#",
   },
   {
     id: 3,
-    name: "Sen Sengtheng",
+    name: "Sen Sengthanu",
     role: "Frontend",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+    image: ThanuImg, // Replace with Sengtheng's image once added
     telegram: "#",
     github: "#",
     portfolio: "#",
   },
   {
     id: 4,
-    name: "Seng Silikhena",
+    name: "Seng SilKhema",
     role: "Frontend",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
+    image: KhemaImg,
     telegram: "#",
     github: "#",
     portfolio: "#",
   },
   {
     id: 5,
-    name: "Chhom Chanreaksmey",
+    name: "Chanreaksmey",
     role: "Frontend",
-    image:
-      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&auto=format&fit=crop&q=80",
+    image: ReaksmeyImg,
     telegram: "#",
     github: "#",
     portfolio: "#",
   },
   {
     id: 6,
-    name: "Song Chingseang",
+    name: "Song Chingsean",
     role: "Frontend",
-    image:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80",
+    image: ChingseanImg,
     telegram: "#",
     github: "#",
     portfolio: "#",
@@ -86,8 +89,7 @@ export const TEAM_MEMBERS = [
     id: 7,
     name: "Pen Panhaleap",
     role: "Frontend",
-    image:
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&auto=format&fit=crop&q=80",
+    image: PanhaleapImg,
     telegram: "#",
     github: "#",
     portfolio: "#",
@@ -96,8 +98,7 @@ export const TEAM_MEMBERS = [
     id: 8,
     name: "Hean Sitha",
     role: "Frontend",
-    image:
-      "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&auto=format&fit=crop&q=80",
+    image: SithaImg,
     telegram: "#",
     github: "#",
     portfolio: "#",
