@@ -1,12 +1,11 @@
 
-
 import { Send, Globe } from 'lucide-react';
 
 export default function MemberCard({ member }) {
   const { name, role, image, telegram, github, portfolio } = member;
 
   return (
-    <div className="relative group p-6 pt-7 pb-6 rounded-[28px] bg-[#EFEFEF] shadow-sm flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[260px] mx-auto">
+    <div className="relative group p-6 pt-7 pb-6 rounded-[28px] bg-[#EFEFEF] dark:bg-black/50 border border-transparent dark:border-white/10 shadow-sm dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[260px] mx-auto transition-colors duration-300">
       
       {/* Red Frame Container with Two Dots on Top */}
       <div className="absolute inset-3.5 rounded-2xl border border-[#9E0000] pointer-events-none">
@@ -16,7 +15,7 @@ export default function MemberCard({ member }) {
         <span className="absolute -top-[5px] right-8 h-2.5 w-2.5 rounded-full bg-[#9E0000]" />
       </div>
 
-      {/* Avatar Photo (Clean Circular Image) */}
+      {/* Avatar Photo */}
       <div className="relative z-10 w-28 h-28 my-1 rounded-full overflow-hidden bg-white shadow-xs">
         <img
           src={image}
@@ -28,7 +27,7 @@ export default function MemberCard({ member }) {
 
       {/* Name and Role Info Container */}
       <div className="relative z-10 flex flex-col items-center my-auto">
-        <h3 className="text-[18px] font-bold text-[#9E0000] tracking-tight mb-2 leading-tight px-2">
+        <h3 className="text-[18px] font-bold text-[#9E0000] dark:text-white tracking-tight mb-2 leading-tight px-2 transition-colors">
           {name}
         </h3>
 
@@ -45,7 +44,7 @@ export default function MemberCard({ member }) {
           href={telegram || '#'}
           target="_blank"
           rel="noreferrer"
-          className="w-7 h-7 rounded-full bg-white text-[#9E0000] hover:bg-[#9E0000] hover:text-white flex items-center justify-center transition-colors shadow-xs"
+          className="w-7 h-7 rounded-full bg-white dark:bg-black/60 text-[#9E0000] dark:text-white hover:bg-[#9E0000] dark:hover:bg-[#9E0000] hover:text-white flex items-center justify-center transition-colors shadow-xs"
           aria-label={`${name}'s Telegram`}
         >
           <Send className="w-3.5 h-3.5 -ml-0.5" />
@@ -56,7 +55,7 @@ export default function MemberCard({ member }) {
           href={github || '#'}
           target="_blank"
           rel="noreferrer"
-          className="w-7 h-7 rounded-full bg-white text-[#9E0000] hover:bg-[#9E0000] hover:text-white flex items-center justify-center transition-colors shadow-xs"
+          className="w-7 h-7 rounded-full bg-white dark:bg-black/60 text-[#9E0000] dark:text-white hover:bg-[#9E0000] dark:hover:bg-[#9E0000] hover:text-white flex items-center justify-center transition-colors shadow-xs"
           aria-label={`${name}'s GitHub`}
         >
           <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -69,7 +68,7 @@ export default function MemberCard({ member }) {
           href={portfolio || '#'}
           target="_blank"
           rel="noreferrer"
-          className="w-7 h-7 rounded-full bg-white text-[#9E0000] hover:bg-[#9E0000] hover:text-white flex items-center justify-center transition-colors shadow-xs"
+          className="w-7 h-7 rounded-full bg-white dark:bg-black/60 text-[#9E0000] dark:text-white hover:bg-[#9E0000] dark:hover:bg-[#9E0000] hover:text-white flex items-center justify-center transition-colors shadow-xs"
           aria-label={`${name}'s Portfolio`}
         >
           <Globe className="w-3.5 h-3.5" />

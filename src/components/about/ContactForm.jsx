@@ -44,12 +44,12 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="p-8 rounded-2xl bg-[#EFEFEF] space-y-6 font-sans">
+    <div className="p-8 rounded-2xl bg-[#EFEFEF] dark:bg-black/60 border border-transparent dark:border-white/10 shadow-sm dark:shadow-2xl space-y-6 font-sans">
       <div>
-        <h3 className="text-2xl font-bold text-black">
+        <h3 className="text-2xl font-bold text-black dark:text-white">
           Send Us a Message
         </h3>
-        <p className="text-xs text-neutral-400 mt-1">
+        <p className="text-xs text-neutral-400 dark:text-neutral-400 mt-1">
           Our support team will respond as soon as possible
         </p>
       </div>
@@ -58,8 +58,8 @@ export default function ContactForm() {
         {/* Name & Email Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-black mb-2">
-              Full Name <span className="text-[#9E0000]">*</span>
+            <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
+              Full Name <span className="text-[#9E0000] dark:text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -68,13 +68,13 @@ export default function ContactForm() {
               value={formData.name}
               onChange={handleChange}
               placeholder="Ratana Oudom"
-              className="w-full px-4 py-2.5 bg-white rounded-full text-xs text-neutral-700 placeholder-neutral-300 border-none focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-black mb-2">
-              Email Address <span className="text-[#9E0000]">*</span>
+            <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
+              Email Address <span className="text-[#9E0000] dark:text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -83,7 +83,7 @@ export default function ContactForm() {
               value={formData.email}
               onChange={handleChange}
               placeholder="Ratana Oudom"
-              className="w-full px-4 py-2.5 bg-white rounded-full text-xs text-neutral-700 placeholder-neutral-300 border-none focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
             />
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function ContactForm() {
         {/* Phone & Subject Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-black mb-2">
+            <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
               Phone Number
             </label>
             <input
@@ -100,12 +100,12 @@ export default function ContactForm() {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Ratana Oudom"
-              className="w-full px-4 py-2.5 bg-white rounded-full text-xs text-neutral-700 placeholder-neutral-300 border-none focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-black mb-2">
+            <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
               Subject
             </label>
             <input
@@ -114,15 +114,15 @@ export default function ContactForm() {
               value={formData.subject}
               onChange={handleChange}
               placeholder="Select a subject"
-              className="w-full px-4 py-2.5 bg-white rounded-full text-xs text-neutral-700 placeholder-neutral-300 border-none focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
             />
           </div>
         </div>
 
         {/* Message Textarea */}
         <div>
-          <label className="block text-xs font-semibold text-black mb-2">
-            Message <span className="text-[#9E0000]">*</span>
+          <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
+            Message <span className="text-[#9E0000] dark:text-red-500">*</span>
           </label>
           <textarea
             name="message"
@@ -131,7 +131,7 @@ export default function ContactForm() {
             value={formData.message}
             onChange={handleChange}
             placeholder="Write any message here"
-            className="w-full p-4 bg-white rounded-2xl text-xs text-neutral-700 placeholder-neutral-300 border-none focus:outline-none resize-none"
+            className="w-full p-4 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-2xl text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000] resize-none"
           />
         </div>
 
@@ -147,7 +147,7 @@ export default function ContactForm() {
           />
           <label
             htmlFor="agree"
-            className="text-[11px] text-neutral-500 cursor-pointer select-none"
+            className="text-[11px] text-neutral-500 dark:text-neutral-400 cursor-pointer select-none"
           >
             I agree that ISTAD AngkorCine may use my information to this request.
           </label>
