@@ -1,5 +1,4 @@
 
-
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import mapImg from '../../assets/mentors_and_member/image01.png';
 
@@ -28,7 +27,7 @@ export default function ContactInfo({ mapImage }) {
             <Phone className="w-4 h-4 text-[#9E0000] dark:text-red-500 shrink-0 mt-0.5" />
             <div>
               <h4 className="text-xs font-bold text-black dark:text-white">Phone</h4>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">+885 12 44 55 66</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">+855 12 44 55 66</p>
             </div>
           </div>
 

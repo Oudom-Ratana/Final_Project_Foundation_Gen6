@@ -4,7 +4,7 @@ import MemberCard from "./MemberCard";
 
 export default function MentorSection() {
   return (
-    <section className="space-y-8 py-6">
+    <section className="space-y-8 py-6 font-sans">
       <div className="text-center space-y-2">
         <h2 className="text-2xl sm:text-3xl font-black text-[#B90101] dark:text-white tracking-wider uppercase">
           OUR MENTORS

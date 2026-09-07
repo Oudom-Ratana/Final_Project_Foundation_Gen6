@@ -82,7 +82,7 @@ export default function ContactForm() {
               required
               value={formData.email}
               onChange={handleChange}
-              placeholder="Ratana Oudom"
+              placeholder="oudom@example.com"
               className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
             />
           </div>
@@ -99,7 +99,7 @@ export default function ContactForm() {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="Ratana Oudom"
+              placeholder="+855 12 345 678"
               className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
             />
           </div>
@@ -149,7 +149,7 @@ export default function ContactForm() {
             htmlFor="agree"
             className="text-[11px] text-neutral-500 dark:text-neutral-400 cursor-pointer select-none"
           >
-            I agree that ISTAD AngkorCine may use my information to this request.
+            I agree that ISTAD AngkorCine may use my information to respond to this request.
           </label>
         </div>
 

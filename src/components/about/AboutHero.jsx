@@ -1,5 +1,5 @@
- 
- import { Link } from 'react-router';
+
+import { Link } from 'react-router';
 import { ArrowRight, Film, Sparkles } from 'lucide-react';
 import cinemaImage from '../../assets/image.png';
 

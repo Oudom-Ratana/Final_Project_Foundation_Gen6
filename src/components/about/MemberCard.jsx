@@ -5,7 +5,7 @@ export default function MemberCard({ member }) {
   const { name, role, image, telegram, github, portfolio } = member;
 
   return (
-    <div className="relative group p-6 pt-7 pb-6 rounded-[28px] bg-[#EFEFEF] dark:bg-black/50 border border-transparent dark:border-white/10 shadow-sm dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[260px] mx-auto transition-colors duration-300">
+    <div className="relative group p-6 pt-7 pb-6 rounded-[28px] bg-[#EFEFEF] dark:bg-black/50 border border-transparent dark:border-white/10 shadow-sm dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[260px] mx-auto transition-colors duration-300 font-sans">
       
       {/* Red Frame Container with Two Dots on Top */}
       <div className="absolute inset-3.5 rounded-2xl border border-[#9E0000] pointer-events-none">
