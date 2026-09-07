@@ -10,7 +10,6 @@ export const HERO_PROMOTION = {
   ctaLink: "/promo/flash-sale-double-impact",
   image:
     "https://i.pinimg.com/736x/64/62/c8/6462c89704629e0bdda892fe224f1f62.jpg",
-  offerTag: "BUY 1 GET 1",
   endsAt: "Midnight",
   // Shown on the detail modal only.
   dateRange: "From 5 Sep to 10 Sep",
