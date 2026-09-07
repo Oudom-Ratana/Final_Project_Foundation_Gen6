@@ -10,6 +10,9 @@ import './index.css';
 // Layout & Pages
 import RootLayout from './components/layout/RootLayout';
 import AboutUsPage from './pages/AboutUsPage';
+import ForgotPassword from './components/auth/ForgotPassword';
+import SignUpComponent from './components/auth/SignUpComponent';
+import LoginComponent from './components/auth/LoginComponent';
 
 const router = createBrowserRouter([
   {
@@ -19,6 +22,18 @@ const router = createBrowserRouter([
       {
         index: true,
         element: null, // Empty for homepage until your team builds it
+      },
+      {
+        path: '/ForgotPassword',
+        element: <ForgotPassword />,
+      },
+      {
+        path: '/SignUp',
+        element: <SignUpComponent />,
+      },
+       {
+        path: '/Login',
+        element: <LoginComponent />,
       },
       {
         path: '/about',
