@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
@@ -10,9 +10,11 @@ import "./index.css";
 // Layout & Pages
 import RootLayout from "./components/layout/RootLayout";
 import HomePage from "./pages/HomePage";
-import AboutUsPage from "./pages/AboutUsPage";
 import StreamPage from "./pages/StreamPage";
 import MovieDetailPage from "./pages/MovieDetailPage";
+import AboutUsPage from './pages/AboutUsPage';
+import PromotionPage from './pages/promotions/PromotionPage';
+import DetailPage from './pages/promotions/DetailPage';
 
 const router = createBrowserRouter([
   {
@@ -38,6 +40,14 @@ const router = createBrowserRouter([
       {
         path: "/stream/:id",
         element: <MovieDetailPage />,
+        path: '/promo',
+        element: <PromotionPage/>,
+        children: [
+          {
+            path: ':id',
+            element: <DetailPage/>,
+          },
+        ],
       },
     ],
   },
