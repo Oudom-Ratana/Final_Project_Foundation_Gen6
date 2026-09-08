@@ -1,4 +1,5 @@
 
+
 import { MENTORS } from "../../data/aboutData";
 import MemberCard from "./MemberCard";
 
@@ -12,7 +13,7 @@ export default function MentorSection() {
         <div className="w-16 h-1 mx-auto rounded-full bg-[#B90101]" />
       </div>
 
-      <div className="max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+      <div className="max-w-xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 justify-items-center">
         {MENTORS.map((mentor) => (
           <MemberCard key={mentor.id} member={mentor} />
         ))}

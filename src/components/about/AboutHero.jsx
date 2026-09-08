@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router';
-import { ArrowRight, Film, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import cinemaImage from '../../assets/image.png';
 
 export default function AboutHero() {
@@ -27,7 +27,7 @@ export default function AboutHero() {
           <div className="pt-2">
             <Link
               to="/"
-              className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full text-white font-black text-[18px] shadow-xl shadow-red-950/40 hover:brightness-110 active:scale-95 transition-all"
+              className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full text-white font-black text-[18px]  shadow-red-950/40 hover:brightness-110 active:scale-95 transition-all"
               style={{ backgroundColor: '#B90101' }}
             >
               <span>Explore movies</span>
@@ -47,25 +47,6 @@ export default function AboutHero() {
                 alt="Cinema 3D Popcorn & Experience"
                 className="w-full h-full object-contain filter drop-shadow-2xl"
               />
-              <div className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-black/80 backdrop-blur-md p-4 rounded-2xl border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
-                    style={{ backgroundColor: '#B90101' }}
-                  >
-                    <Film className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-neutral-900 dark:text-white text-sm">
-                      Next-Gen Cinema
-                    </h4>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                      IMAX 3D & Free Streaming
-                    </p>
-                  </div>
-                </div>
-                <Sparkles className="w-5 h-5 text-[#FFD700]" />
-              </div>
             </div>
           </div>
         </div>
