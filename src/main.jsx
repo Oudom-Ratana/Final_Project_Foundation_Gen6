@@ -13,6 +13,7 @@ import HomePage from "./pages/HomePage";
 import AboutUsPage from "./pages/AboutUsPage";
 import StreamPage from "./pages/StreamPage";
 import MovieDetailPage from "./pages/MovieDetailPage";
+import StreamMovieDetailPage from "./pages/StreamMovieDetailPage";
 
 const router = createBrowserRouter([
   {
@@ -37,7 +38,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/stream/:id",
-        element: <MovieDetailPage />,
+        element: <StreamMovieDetailPage />,
       },
     ],
   },
