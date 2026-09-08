@@ -38,8 +38,6 @@ const router = createBrowserRouter([
         element: <MovieDetailPage />,
       },
       {
-        path: "/stream/:id",
-        element: <MovieDetailPage />,
         path: '/promo',
         element: <PromotionPage/>,
         children: [
