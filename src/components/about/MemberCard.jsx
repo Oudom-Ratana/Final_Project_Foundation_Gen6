@@ -5,27 +5,27 @@ export default function MemberCard({ member }) {
   const { name, role, image, telegram, github, portfolio, email } = member;
 
   return (
-    <div className="relative group p-6 pt-7 pb-6 rounded-[32px] bg-[#EBECEE] dark:bg-black/60 border border-transparent dark:border-white/10 shadow-sm dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[240px] mx-auto transition-colors duration-300 font-sans">
+    <div className="relative group p-6 pt-7 pb-6 rounded-[24px] bg-[#EFEFEF] dark:bg-[#1A1F25]/40 border border-neutral-200/80 dark:border-white/20 shadow-sm dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[240px] mx-auto transition-colors duration-300 font-sans">
       
       {/* Red Outer Frame with Gap between Dots */}
       <div className="absolute inset-3.5 pointer-events-none">
         {/* Continuous Border Box with Gap in Center Top */}
         <div 
-          className="absolute inset-0 rounded-[22px] border-2 border-[#B90101]"
+          className="absolute inset-0 rounded-[18px] border-2 border-[var(--primary-red)]"
           style={{
             clipPath: 'polygon(0 0, 28% 0, 28% 12px, 72% 12px, 72% 0, 100% 0, 100% 100%, 0 100%)'
           }}
         />
 
         {/* Left Red Dot */}
-        <span className="absolute -top-[5px] left-[28%] -translate-x-1/2 h-3 w-3 rounded-full bg-[#B90101]" />
+        <span className="absolute -top-[5px] left-[28%] -translate-x-1/2 h-3 w-3 rounded-full bg-[var(--primary-red)]" />
 
         {/* Right Red Dot */}
-        <span className="absolute -top-[5px] left-[72%] -translate-x-1/2 h-3 w-3 rounded-full bg-[#B90101]" />
+        <span className="absolute -top-[5px] left-[72%] -translate-x-1/2 h-3 w-3 rounded-full bg-[var(--primary-red)]" />
       </div>
 
       {/* Profile Image */}
-      <div className="relative z-10 w-36 h-36 mt-1 rounded-full overflow-hidden bg-white shadow-xs shrink-0">
+      <div className="relative z-10 w-36 h-36 mt-1 rounded-full overflow-hidden bg-white dark:bg-neutral-800 shadow-sm shrink-0 border border-neutral-200 dark:border-transparent">
         <img
           src={image}
           alt={name}
@@ -35,25 +35,26 @@ export default function MemberCard({ member }) {
       </div>
 
       {/* Name and Role Badge */}
-      <div className="relative z-10 flex flex-col items-center gap-2.5 my-auto">
-        <h3 className="text-[20px] font-bold text-[#9E0000] dark:text-white tracking-tight leading-tight px-1">
+      <div className="relative z-10 flex flex-col items-center gap-2 my-auto">
+        {/* Name with crisp dark contrast in Light Mode */}
+        <h3 className="text-h4 font-bold text-neutral-900 dark:text-white tracking-tight leading-tight px-1">
           {name}
         </h3>
 
-        {/* Role Pill Badge */}
-        <span className="px-7 py-1.5 rounded-full text-white font-medium text-[13px] capitalize bg-[#B90101] shadow-xs">
+        {/* Role Pill Badge matching red tag accent from image */}
+        <span className="px-6 py-1 rounded-full text-white font-bold text-[12px] uppercase tracking-wider bg-[var(--primary-red)] shadow-xs">
           {role || "Frontend"}
         </span>
       </div>
 
-      {/* Social Icons Container with Dark & Light Mode */}
-      <div className="relative z-10 flex items-center justify-center gap-3 mb-1">
+      {/* Social Icons Container */}
+      <div className="relative z-10 flex items-center justify-center gap-2.5 mb-1">
         {/* Telegram */}
         <a
           href={telegram || '#'}
           target="_blank"
           rel="noreferrer"
-          className="w-9 h-9 rounded-full bg-white dark:bg-[#1a1a1a] text-[#B90101] hover:bg-[#B90101] dark:hover:bg-[#B90101] hover:text-white dark:hover:text-white flex items-center justify-center transition-all shadow-xs"
+          className="w-9 h-9 rounded-full bg-white dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
           aria-label={`${name}'s Telegram`}
         >
           <Send className="w-4 h-4 -ml-0.5" />
@@ -64,7 +65,7 @@ export default function MemberCard({ member }) {
           href={github || '#'}
           target="_blank"
           rel="noreferrer"
-          className="w-9 h-9 rounded-full bg-white dark:bg-[#1a1a1a] text-[#B90101] hover:bg-[#B90101] dark:hover:bg-[#B90101] hover:text-white dark:hover:text-white flex items-center justify-center transition-all shadow-xs"
+          className="w-9 h-9 rounded-full bg-white dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
           aria-label={`${name}'s GitHub`}
         >
           <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -77,7 +78,7 @@ export default function MemberCard({ member }) {
           href={email ? `mailto:${email}` : (portfolio || '#')}
           target="_blank"
           rel="noreferrer"
-          className="w-9 h-9 rounded-full bg-white dark:bg-[#1a1a1a] text-[#B90101] hover:bg-[#B90101] dark:hover:bg-[#B90101] hover:text-white dark:hover:text-white flex items-center justify-center transition-all shadow-xs"
+          className="w-9 h-9 rounded-full bg-white dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
           aria-label={`${name}'s Email`}
         >
           <Mail className="w-4 h-4" />
