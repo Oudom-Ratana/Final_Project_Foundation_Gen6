@@ -8,6 +8,9 @@
   --color-accent-gold: #FFD700;
   --color-bg-light: #F6F7F9;
 
+  --text-light: #828282;
+  --text-black: rgba(255, 255, 255, 0.7);
+
    /* Typography */
   --font-sans: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, -apple-system, sans-serif;
 
@@ -37,7 +40,22 @@
 
     /* Glassmorphism - Light Mode */
     --primary-color-5: rgba(39, 42, 48, 0.05);
-    
+    --border-light-mode: rgba(39, 42, 48, 0.05);        /*[#272A30]/5*/
+
+    /* Glassmorphism - dark  Mode */
+    --primary-color-30: rgba(39, 42, 48, 0.3);
+    --border-dark-mode: rgba(255, 255, 255, 0.2);
+
+    /* ======= Dark mode ======
+      For title's color: White (FFFFF)  or  --color-primary: #B90101;
+       for description's : [#FFFFFF]/70 or  --text-black: rgba(255, 255, 255, 0.7);
+    */
+
+
+      /* ======= Light mode ======
+      For title's color: black (00000)  or  --color-primary: #B90101;
+       for description's : [#828282]  or   --text-light: #828282;
+    */
 
   }
 

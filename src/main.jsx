@@ -1,33 +1,53 @@
-import { StrictMode } from 'react';
-import ReactDOM from 'react-dom/client';
-import { Provider } from 'react-redux';
-import { createBrowserRouter, RouterProvider } from 'react-router';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { store } from './redux/store';
-import './index.css';
+import { StrictMode } from "react";
+import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
+import { createBrowserRouter, RouterProvider } from "react-router";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { store } from "./redux/store";
+import "./index.css";
 
 // Layout & Pages
-import RootLayout from './components/layout/RootLayout';
-import AboutUsPage from './pages/AboutUsPage';
+import RootLayout from "./components/layout/RootLayout";
+import HomePage from "./pages/HomePage";
+import AboutUsPage from "./pages/AboutUsPage";
+import StreamPage from "./pages/StreamPage";
+import MovieDetailPage from "./pages/MovieDetailPage";
+import FavouritePage from "./pages/FavouritePage";
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <RootLayout />,
     children: [
       {
         index: true,
-        element: null, // Empty for homepage until your team builds it
+        element: <HomePage />,
       },
       {
-        path: '/about',
+        path: "/about",
         element: <AboutUsPage />,
+      },
+      {
+        path: "/stream",
+        element: <StreamPage />,
+      },
+      {
+        path: "/favourite",
+        element: <FavouritePage />,
+      },
+      {
+        path: "/movies/:id",
+        element: <MovieDetailPage />,
+      },
+      {
+        path: "/stream/:id",
+        element: <MovieDetailPage />,
       },
     ],
   },
   {
-    path: '*',
+    path: "*",
     element: (
       <div className="py-20 text-center text-white font-sans">
         <h1 className="text-4xl font-black text-[#B90101]">404</h1>
@@ -37,24 +57,22 @@ const router = createBrowserRouter([
   },
 ]);
 
-const root = document.getElementById('root');
+const root = document.getElementById("root");
 
 ReactDOM.createRoot(root).render(
-  <StrictMode>
-    <Provider store={store}>
-      <RouterProvider router={router} />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
-      />
-    </Provider>
-  </StrictMode>
+  <Provider store={store}>
+    <RouterProvider router={router} />
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="dark"
+    />
+  </Provider>,
 );
