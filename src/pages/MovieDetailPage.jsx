@@ -236,18 +236,6 @@ export default function MovieDetailPage() {
         </div>
       </div>
 
-      {/* 2. Top Cast (Actors) Section with Real Profile Photos from TMDB */}
-      {topActors.length > 0 && (
-        <div className="max-w-6xl mx-auto px-2 sm:px-4 space-y-5">
-          <div className="flex items-center gap-3">
-            <span
-              className="w-1.5 h-7 rounded-full inline-block"
-              style={{ backgroundColor: "#B90101" }}
-            />
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
-              Top Cast
-            </h2>
-          </div>
       {/* 2. Top Cast (Actors) Section with Real Profile Photos from TMDB (Auto-Loop Left to Right) */}
       {topActors.length > 0 &&
         (() => {
@@ -259,8 +247,6 @@ export default function MovieDetailPage() {
                 ? [...topActors, ...topActors]
                 : topActors;
 
-          <div className="flex items-center gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 select-none scrollbar-thin">
-            {topActors.map((actor) => (
           const renderActorCard = (actor, indexPrefix) => (
             <div
               key={`${indexPrefix}-${actor.id}`}
@@ -333,8 +319,6 @@ export default function MovieDetailPage() {
 
               {/* Seamless Auto-Scrolling Carousel Track with Edge Fades */}
               <div
-                key={actor.id}
-                className="min-w-[110px] max-w-[110px] sm:min-w-[130px] sm:max-w-[130px] flex flex-col items-center text-center space-y-2 group shrink-0"
                 className="relative w-full overflow-hidden py-2 select-none"
                 style={{
                   maskImage:
@@ -343,18 +327,6 @@ export default function MovieDetailPage() {
                     "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
                 }}
               >
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-neutral-800 border-2 border-neutral-300 dark:border-white/15 shadow-md group-hover:border-[#B90101] transition-all">
-                  {actor.profilePath ? (
-                    <img
-                      src={actor.profilePath}
-                      alt={actor.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-neutral-400 font-black text-xl">
-                      {actor.name.charAt(0)}
-                    </div>
-                  )}
                 <div className="flex w-max cast-ticker-track">
                   {/* First Half */}
                   <div className="flex items-center gap-4 sm:gap-6 shrink-0 pr-4 sm:pr-6">
@@ -372,19 +344,7 @@ export default function MovieDetailPage() {
                     )}
                   </div>
                 </div>
-                <div className="w-full">
-                  <h4 className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white truncate">
-                    {actor.name}
-                  </h4>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
-                    {actor.character}
-                  </p>
-                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
             </div>
           );
         })()}
