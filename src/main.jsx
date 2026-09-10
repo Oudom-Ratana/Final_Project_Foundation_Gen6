@@ -15,6 +15,7 @@ import MovieDetailPage from "./pages/MovieDetailPage";
 import AboutUsPage from './pages/AboutUsPage';
 import PromotionPage from './pages/promotions/PromotionPage';
 import DetailPage from './pages/promotions/DetailPage';
+import FavouritePage from './pages/FavouritePage';
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
       {
         path: "/stream",
         element: <StreamPage />,
+      },
+      {
+        path: "/favourite",
+        element: <FavouritePage />,
       },
       {
         path: "/movies/:id",
