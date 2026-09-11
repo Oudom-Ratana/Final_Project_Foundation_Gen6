@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import {
   useDiscoverMoviesQuery,
   useSearchMoviesQuery,
-} from '../services/api/movieApi';
-import MovieCard from '../components/home/MovieCard';
-import MovieCardSkeleton from '../components/home/MovieCardSkeleton';
-import ScrollReveal from '../components/common/ScrollReveal';
-import StreamHero from '../components/stream/StreamHero';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+} from "../services/api/movieApi";
+import MovieCard from "../components/home/MovieCard";
+import MovieCardSkeleton from "../components/home/MovieCardSkeleton";
+import ScrollReveal from "../components/common/ScrollReveal";
+import StreamHero from "../components/stream/StreamHero";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 export default function StreamPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const queryParam = searchParams.get('q') || '';
-  const pageParam = parseInt(searchParams.get('page') || '1', 10);
+  const queryParam = searchParams.get("q") || "";
+  const pageParam = parseInt(searchParams.get("page") || "1", 10);
 
   const [currentPage, setCurrentPage] = useState(pageParam);
 
@@ -25,13 +25,13 @@ export default function StreamPage() {
   // Fetch either search query or discover stream movies (16 items)
   const { data: discoverData, isLoading: isDiscoverLoading } =
     useDiscoverMoviesQuery(
-      { page: currentPage, sort_by: 'popularity.desc' },
-      { skip: Boolean(queryParam) }
+      { page: currentPage, sort_by: "popularity.desc" },
+      { skip: Boolean(queryParam) },
     );
 
   const { data: searchData, isLoading: isSearchLoading } = useSearchMoviesQuery(
     { query: queryParam, page: currentPage },
-    { skip: !queryParam }
+    { skip: !queryParam },
   );
 
   const isLoading = queryParam ? isSearchLoading : isDiscoverLoading;
@@ -42,15 +42,15 @@ export default function StreamPage() {
     if (newPage < 1 || newPage > 12) return;
     setCurrentPage(newPage);
     const newParams = new URLSearchParams(searchParams);
-    newParams.set('page', newPage.toString());
+    newParams.set("page", newPage.toString());
     setSearchParams(newParams);
-    window.scrollTo({ top: 400, behavior: 'smooth' });
+    window.scrollTo({ top: 400, behavior: "smooth" });
   };
 
   const handleHeroSearch = (term) => {
     const newParams = new URLSearchParams();
-    if (term) newParams.set('q', term);
-    newParams.set('page', '1');
+    if (term) newParams.set("q", term);
+    newParams.set("page", "1");
     setSearchParams(newParams);
   };
 
@@ -66,10 +66,12 @@ export default function StreamPage() {
           <div className="flex items-center gap-3">
             <span
               className="w-1.5 h-7 rounded-full inline-block"
-              style={{ backgroundColor: '#B90101' }}
+              style={{ backgroundColor: "#B90101" }}
             />
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
-              {queryParam ? `Search Results for "${queryParam}"` : 'Free Movies here'}
+              {queryParam
+                ? `Search Results for "${queryParam}"`
+                : "Free Movies here"}
             </h2>
           </div>
 
@@ -98,7 +100,7 @@ export default function StreamPage() {
                   duration={700}
                   distance="translate-y-10"
                 >
-                  <MovieCard movie={movie} />
+                  <MovieCard basePath="/stream" movie={movie} />
                 </ScrollReveal>
               ))}
         </div>
@@ -122,8 +124,8 @@ export default function StreamPage() {
               onClick={() => handlePageChange(pageNumber)}
               className={`w-10 h-10 rounded-full font-black text-sm flex items-center justify-center transition-all ${
                 currentPage === pageNumber
-                  ? 'bg-[#B90101] text-white shadow-md'
-                  : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+                  ? "bg-[#B90101] text-white shadow-md"
+                  : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
               }`}
             >
               {pageNumber}
@@ -137,8 +139,8 @@ export default function StreamPage() {
             onClick={() => handlePageChange(12)}
             className={`w-10 h-10 rounded-full font-black text-sm flex items-center justify-center transition-all ${
               currentPage === 12
-                ? 'bg-[#B90101] text-white shadow-md'
-                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+                ? "bg-[#B90101] text-white shadow-md"
+                : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
             }`}
           >
             12

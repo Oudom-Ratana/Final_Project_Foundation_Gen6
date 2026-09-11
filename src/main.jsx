@@ -1,4 +1,3 @@
-
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
@@ -12,9 +11,11 @@ import RootLayout from "./components/layout/RootLayout";
 import HomePage from "./pages/HomePage";
 import StreamPage from "./pages/StreamPage";
 import MovieDetailPage from "./pages/MovieDetailPage";
-import AboutUsPage from './pages/AboutUsPage';
-import PromotionPage from './pages/promotions/PromotionPage';
-import DetailPage from './pages/promotions/DetailPage';
+import StreamMovieDetailPage from "./pages/StreamMovieDetailPage";
+import AboutUsPage from "./pages/AboutUsPage";
+import PromotionPage from "./pages/promotions/PromotionPage";
+import DetailPage from "./pages/promotions/DetailPage";
+import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
 
 const router = createBrowserRouter([
   {
@@ -38,16 +39,62 @@ const router = createBrowserRouter([
         element: <MovieDetailPage />,
       },
       {
-        path: '/promo',
-        element: <PromotionPage/>,
+        path: "/stream/:id",
+        element: <StreamMovieDetailPage />,
+      },
+      {
+        path: "/booking/seats",
+        element: <SeatSelectionPage />,
+      },
+      {
+        path: "/promo",
+        element: <PromotionPage />,
         children: [
           {
-            path: ':id',
-            element: <DetailPage/>,
+            path: ":id",
+            element: <DetailPage />,
           },
         ],
       },
     ],
+    // path: "/admin",
+    // element: <RootLayout />,
+    // children: [
+    //   {
+    //     index: true,
+    //     element: <HomePage />,
+    //   },
+    //   {
+    //     path: "/about",
+    //     element: <AboutUsPage />,
+    //   },
+    //   {
+    //     path: "/stream",
+    //     element: <StreamPage />,
+    //   },
+    //   {
+    //     path: "/movies/:id",
+    //     element: <MovieDetailPage />,
+    //   },
+    //   {
+    //     path: "/stream/:id",
+    //     element: <StreamMovieDetailPage />,
+    //   },
+    //   {
+    //     path: "/booking/seats",
+    //     element: <SeatSelectionPage />,
+    //   },
+    //   {
+    //     path: "/promo",
+    //     element: <PromotionPage />,
+    //     children: [
+    //       {
+    //         path: ":id",
+    //         element: <DetailPage />,
+    //       },
+    //     ],
+    //   },
+    // ],
   },
   {
     path: "*",

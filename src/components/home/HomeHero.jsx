@@ -79,9 +79,9 @@ export default function HomeHero() {
   const activeMovie = slides[currentIndex] || slides[0];
 
   return (
-    <section className="relative w-full min-h-[620px] sm:min-h-[700px] lg:min-h-[760px] overflow-hidden select-none font-sans flex flex-col justify-between">
+    <section className="relative w-full min-h-[620px] sm:min-h-[700px] lg:min-h-[850px] overflow-hidden select-none font-sans flex flex-col justify-between">
       {/* 1. Full-Width Background Slides Layer with Smooth Cross-Fade */}
-      <div className="absolute inset-0 z-0 bg-black">
+      <div className="absolute inset-0 z-0 bg-black ">
         {slides.map((slide, index) => {
           const isActive = index === currentIndex;
           return (
@@ -152,15 +152,15 @@ export default function HomeHero() {
           {/* Left Side: Headline, Description & Action Buttons */}
           <div
             key={`content-${activeMovie.id || currentIndex}`}
-            className="lg:col-span-7 space-y-4 max-w-xl transition-all duration-700"
+            className="lg:col-span-8 space-y-4 max-w-2xl lg:max-w-3xl transition-all px-5 duration-700"
           >
-            {/* Split Colored Dynamic Headline */}
-            <div>
-              <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tighter leading-none drop-shadow-md">
+            {/* Split Colored Dynamic Headline (Strictly 2 Rows) */}
+            <div className="overflow-hidden">
+              <h1 className="text-4xl sm:text-7xl lg:text-7xl font-black text-white tracking-tighter leading-none drop-shadow-md truncate">
                 {activeMovie.displayTitleLine1}
               </h1>
               <h2
-                className="text-4xl sm:text-6xl font-black tracking-tighter leading-none mt-1 drop-shadow-md"
+                className="text-4xl sm:text-7xl lg:text-7xl font-black tracking-tighter leading-none mt-1 sm:mt-2 drop-shadow-md truncate"
                 style={{ color: "#B90101" }}
               >
                 {activeMovie.displayTitleLine2}
@@ -218,12 +218,12 @@ export default function HomeHero() {
           key={`brand-${activeMovie.id || currentIndex}`}
           className="flex flex-col items-center justify-center transition-all duration-700"
         >
-          <div className="inline-flex items-center px-3 py-0.5 bg-[#B90101] text-white text-[11px] font-black uppercase tracking-widest rounded shadow-md mb-1">
+          {/* <div className="inline-flex items-center px-3 py-0.5 bg-[#B90101] text-white text-[11px] font-black uppercase tracking-widest rounded shadow-md mb-1">
             <span>{activeMovie.studioBadge}</span>
-          </div>
+          </div> */}
 
           {/* 3D Metallic Title */}
-          <div className="relative">
+          {/* <div className="relative">
             <h2
               className="text-3xl sm:text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-red-500 via-blue-600 to-blue-900 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] max-w-3xl truncate"
               style={{
@@ -232,15 +232,15 @@ export default function HomeHero() {
             >
               {activeMovie.brandTitle}
             </h2>
-          </div>
+          </div> */}
 
           {/* Glowing Subtitle */}
-          <span
+          {/* <span
             className="text-[14px] sm:text-[20px] font-black tracking-[0.25em] uppercase drop-shadow-[0_0_12px_rgba(204,255,0,0.8)]"
             style={{ color: "#CCFF00" }}
           >
             {activeMovie.brandSubtitle}
-          </span>
+          </span> */}
         </div>
 
         {/* Slide Pagination Dots / Progress Indicators */}
