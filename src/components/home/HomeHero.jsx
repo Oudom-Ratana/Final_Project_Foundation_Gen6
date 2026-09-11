@@ -79,7 +79,7 @@ export default function HomeHero() {
   const activeMovie = slides[currentIndex] || slides[0];
 
   return (
-    <section className="relative w-full min-h-[620px] sm:min-h-[700px] lg:min-h-[850px] overflow-hidden select-none font-sans flex flex-col justify-between">
+    <section className="relative w-full min-h-[720px] sm:min-h-[700px] lg:min-h-[850px] overflow-hidden select-none font-sans flex flex-col justify-between">
       {/* 1. Full-Width Background Slides Layer with Smooth Cross-Fade */}
       <div className="absolute inset-0 z-0 bg-black ">
         {slides.map((slide, index) => {
@@ -129,10 +129,10 @@ export default function HomeHero() {
       </button>
 
       {/* 3. Top Controls Floating Row (Ticket Button) */}
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28">
-        <div className="flex items-center justify-end w-full">
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 invisible">
+        <div className="flex items-center justify-end w-full"> 
           {/* Floating Ticket Pill Button */}
-          <Link
+           <Link
             to="/my-tickets"
             className="flex items-center gap-2 px-5 py-2 rounded-[35px] border backdrop-blur-md text-white font-bold text-[15px] shadow-sm hover:scale-105 active:scale-95 transition"
             style={{
@@ -144,7 +144,7 @@ export default function HomeHero() {
             <span>Ticket</span>
           </Link>
         </div>
-      </div>
+      </div> 
 
       {/* 4. Middle Content Area (Headline, Overview, Action Buttons) */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-auto py-6 sm:py-8">

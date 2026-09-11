@@ -1,7 +1,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { FileText, Clock, Calendar, ShieldAlert } from "lucide-react";
-import { useGetMovieDetailsQuery } from "../services/api/movieApi";
+import {
+  FileText,
+  Clock,
+  Calendar,
+  ShieldAlert,
+  Play,
+  ArrowLeft,
+} from "lucide-react";
+import {
+  useGetMovieDetailsQuery,
+  useGetMovieTrailersQuery,
+} from "../services/api/movieApi";
 import ShowtimeSection from "../components/booking/ShowtimeSection";
 import BookingTypeModal from "../components/booking/BookingTypeModal";
 import SpidermanLoader from "../components/common/SpidermanLoader";
@@ -17,7 +27,9 @@ export default function MovieDetailPage() {
 
   // Fetch movie details from TMDB
   const { data: movie, isLoading, isError } = useGetMovieDetailsQuery(id);
+  const { data: trailersData } = useGetMovieTrailersQuery(id);
 
+  const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
@@ -141,6 +153,27 @@ export default function MovieDetailPage() {
   // Up to 6 real contributors for the 3 columns (2 rows each)
   const heroPeople = keyContributors.slice(0, 6);
 
+  // Extract official trailer key from TMDB videos or trailers query
+  const trailerKey =
+    movie.videos?.results?.find(
+      (v) =>
+        v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"),
+    )?.key ||
+    trailersData?.find(
+      (v) =>
+        v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"),
+    )?.key ||
+    movie.videos?.results?.find((v) => v.site === "YouTube")?.key ||
+    trailersData?.find((v) => v.site === "YouTube")?.key;
+
+  const handleWatchTrailer = () => {
+    setIsPlayingTrailer(true);
+  };
+
+  const handleStopTrailer = () => {
+    setIsPlayingTrailer(false);
+  };
+
   const handleShowtimeSelect = (sessionData) => {
     setSelectedSession({
       ...sessionData,
@@ -152,24 +185,81 @@ export default function MovieDetailPage() {
 
   return (
     <div className="relative w-full pb-24 font-sans select-none space-y-12">
-      {/* 1. Cinematic Dark Hero Banner matching exact reference design */}
-      <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-neutral-950 border border-neutral-800/80 shadow-2xl min-h-[460px]">
-        {/* Atmospheric Backdrop Poster Image Layer */}
+      {/* 1. Cinematic Dark Hero Banner (Fits poster background stably) */}
+      <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-neutral-950 border border-neutral-800/80 shadow-2xl min-h-[460px] md:min-h-[500px]">
+        {/* Layer 1: Atmospheric Backdrop Poster Image Layer */}
         {backdropUrl && (
-          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <div
+            className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-[1500ms] ease-out ${
+              isPlayingTrailer ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
+          >
             <img
               src={backdropUrl}
               alt={title}
-              className="w-full h-full object-cover object-center opacity-70 sm:opacity-80 scale-105 transition-opacity duration-700"
+              className="w-full h-full object-cover object-center opacity-70 sm:opacity-80 scale-105"
             />
-            {/* Cinematic Gradient Overlays: keeps background poster clearly visible while maintaining text readability */}
+            {/* Cinematic Gradient Overlays */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/35" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/30" />
           </div>
         )}
 
-        {/* Hero Content Grid */}
-        <div className="relative z-10 p-6 sm:p-10 lg:p-12">
+        {/* Layer 2: Full Auto-Playing Trailer Video Layer (1.5s smooth ease-out transition) */}
+        <div
+          className={`absolute inset-0 z-20 bg-black transition-opacity duration-[1500ms] ease-out ${
+            isPlayingTrailer
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          }`}
+        >
+          {isPlayingTrailer && (
+            <>
+              {/* The ONLY Arrow Button to stop the trailer and return */}
+              <button
+                type="button"
+                onClick={handleStopTrailer}
+                className="absolute top-4 left-4 sm:top-6 sm:left-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#B90101] text-white flex items-center justify-center shadow-2xl hover:brightness-110 active:scale-95 transition cursor-pointer border border-white/20"
+                aria-label="Stop trailer and return"
+                title="Stop trailer and return"
+              >
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+
+              {trailerKey ? (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&playsinline=1`}
+                  title={`${title} Official Trailer`}
+                  className="w-full h-full border-0 absolute inset-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="w-full h-full min-h-[460px] flex flex-col items-center justify-center text-center p-6 space-y-4">
+                  <p className="text-white text-lg font-bold">
+                    No official trailer found for {title}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleStopTrailer}
+                    className="px-6 py-2.5 rounded-full bg-[#B90101] text-white font-bold text-sm hover:brightness-110 active:scale-95 transition"
+                  >
+                    Return to Movie Details
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Layer 3: Content Detail Section (Fades out / morphs with 1.5s ease-out transition) */}
+        <div
+          className={`relative z-10 p-6 sm:p-10 lg:p-12 transition-all duration-[1500ms] ease-out ${
+            isPlayingTrailer
+              ? "opacity-0 -translate-y-4 scale-95 pointer-events-none"
+              : "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+          }`}
+        >
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Left: Movie Poster with Rounded 25px Corners */}
             <div className="md:col-span-5 lg:col-span-4 flex justify-center md:justify-start">
@@ -216,9 +306,22 @@ export default function MovieDetailPage() {
                 </div>
               </div>
 
+              {/* Watch Trailer Button (Primary Color Red with White Text) */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleWatchTrailer}
+                  className="inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 rounded-full text-white font-black text-sm sm:text-base uppercase tracking-wider shadow-lg shadow-red-950/60 hover:brightness-110 active:scale-95 transition cursor-pointer"
+                  style={{ backgroundColor: "#B90101" }}
+                >
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-white" />
+                  <span>Watch Trailer</span>
+                </button>
+              </div>
+
               {/* 3-Column Real Contributors Grid (Directors, Writers, Lead Actors) */}
               {heroPeople.length > 0 && (
-                <div className="pt-6 sm:pt-8 grid grid-cols-2 sm:grid-cols-3 gap-x-8 sm:gap-x-12 lg:gap-x-16 gap-y-6">
+                <div className="pt-4 sm:pt-6 grid grid-cols-2 sm:grid-cols-3 gap-x-8 sm:gap-x-12 lg:gap-x-16 gap-y-6">
                   {heroPeople.map((person, idx) => (
                     <div key={idx} className="space-y-0.5">
                       <h4 className="font-bold text-sm sm:text-base text-white leading-tight line-clamp-1">
@@ -290,7 +393,6 @@ export default function MovieDetailPage() {
               }
               .cast-ticker-track {
                 animation: cast-loop-ltr 35s linear infinite;
-                will-change: transform;
               }
               .cast-ticker-track:hover {
                 animation-play-state: paused;
