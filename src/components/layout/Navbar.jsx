@@ -137,39 +137,20 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Glass Favorite Movie Button (Directly after Login button) */}
+          {/* Glass Notification Bell Button — navigates to /my-tickets */}
           <Link
-            to="/stream"
-            className="relative w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm group"
+            to="/my-tickets"
+            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#FFD700] hover:scale-105 active:scale-95 transition shadow-sm"
             style={{
               backgroundColor: "rgba(26, 31, 37, 0.10)",
               borderColor: "rgba(255, 255, 255, 0.20)",
               borderRadius: "35px",
             }}
-            aria-label="Favorite Movies"
-            title="Favorite Movies"
+            aria-label="My Tickets"
+            title="My Tickets"
           >
-            <Heart className="w-5 h-5 text-[#B90101] group-hover:fill-[#B90101] transition-colors" />
-            {favoriteCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#B90101] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-xs border border-white dark:border-neutral-900">
-                {favoriteCount}
-              </span>
-            )}
+            <Bell className="w-5 h-5 fill-primary text-primary" />
           </Link>
-
-          {/* Glass Notification Bell Button (Red primary color #B90101) */}
-          <button
-            type="button"
-            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm"
-            style={{
-              backgroundColor: "rgba(26, 31, 37, 0.10)",
-              borderColor: "rgba(255, 255, 255, 0.20)",
-              borderRadius: "35px",
-            }}
-            aria-label="Notifications"
-          >
-            <Bell className="w-5 h-5 fill-[#B90101] text-[#B90101]" />
-          </button>
 
           {/* Glass Theme Switcher Toggle Button (Red primary color #B90101) */}
           <button
