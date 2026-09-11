@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
-import { User, Bell, Sun, Moon, Menu, X, LogOut } from "lucide-react";
+import { User, Bell, Sun, Moon, Menu, X, LogOut, Heart } from "lucide-react";
 import {
   selectCurrentUser,
   selectIsAuthenticated,
   logout,
 } from "../../redux/slices/authSlice";
 import { selectTheme, toggleTheme } from "../../redux/slices/uiSlice";
+import { selectWatchlist } from "../../redux/slices/watchlistSlice";
 
 export default function Navbar() {
   const dispatch = useDispatch();
@@ -15,6 +16,8 @@ export default function Navbar() {
   const user = useSelector(selectCurrentUser);
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const theme = useSelector(selectTheme);
+  const watchlist = useSelector(selectWatchlist);
+  const favoriteCount = watchlist?.length || 0;
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -97,11 +100,11 @@ export default function Navbar() {
           <NavLink to="/" className={navLinkClass}>
             Home
           </NavLink>
-          <NavLink to="/promo" className={navLinkClass}>
+          {/* <NavLink to="/promo" className={navLinkClass}>
             Promo
-          </NavLink>
+          </NavLink> */}
           <NavLink to="/stream" className={navLinkClass}>
-            Stream
+            Movies
           </NavLink>
           <NavLink to="/about" className={navLinkClass}>
             About
@@ -134,10 +137,30 @@ export default function Navbar() {
             </button>
           )}
 
-          {/* Glass Notification Bell Button (Figma: Fill #1A1F25 10%, Stroke #FFFFFF 20%, Radius 35px, Glass Blur) */}
+          {/* Glass Favorite Movie Button (Directly after Login button) */}
+          <Link
+            to="/stream"
+            className="relative w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm group"
+            style={{
+              backgroundColor: "rgba(26, 31, 37, 0.10)",
+              borderColor: "rgba(255, 255, 255, 0.20)",
+              borderRadius: "35px",
+            }}
+            aria-label="Favorite Movies"
+            title="Favorite Movies"
+          >
+            <Heart className="w-5 h-5 text-[#B90101] group-hover:fill-[#B90101] transition-colors" />
+            {favoriteCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#B90101] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-xs border border-white dark:border-neutral-900">
+                {favoriteCount}
+              </span>
+            )}
+          </Link>
+
+          {/* Glass Notification Bell Button (Red primary color #B90101) */}
           <button
             type="button"
-            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#FFD700] hover:scale-105 active:scale-95 transition shadow-sm"
+            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm"
             style={{
               backgroundColor: "rgba(26, 31, 37, 0.10)",
               borderColor: "rgba(255, 255, 255, 0.20)",
@@ -145,13 +168,13 @@ export default function Navbar() {
             }}
             aria-label="Notifications"
           >
-            <Bell className="w-5 h-5 fill-[#FFD700] text-[#FFD700]" />
+            <Bell className="w-5 h-5 fill-[#B90101] text-[#B90101]" />
           </button>
 
-          {/* Glass Theme Switcher Toggle Button (Figma: Fill #1A1F25 10%, Stroke #FFFFFF 20%, Radius 35px, Glass Blur) */}
+          {/* Glass Theme Switcher Toggle Button (Red primary color #B90101) */}
           <button
             onClick={() => dispatch(toggleTheme())}
-            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#FFD700] hover:scale-105 active:scale-95 transition shadow-sm"
+            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm"
             style={{
               backgroundColor: "rgba(26, 31, 37, 0.10)",
               borderColor: "rgba(255, 255, 255, 0.20)",
@@ -163,21 +186,49 @@ export default function Navbar() {
             }
           >
             {theme === "dark" ? (
-              <Sun className="w-5 h-5 text-[#FFD700] transition-transform rotate-0 hover:rotate-90 duration-300" />
+              <Sun className="w-5 h-5 text-[#B90101] transition-transform rotate-0 hover:rotate-90 duration-300" />
             ) : (
-              <Sun className="w-5 h-5 text-[#FFD700] transition-transform rotate-0 hover:rotate-90 duration-300" />
+              <Moon className="w-5 h-5 text-[#B90101] fill-[#B90101] transition-transform duration-300" />
             )}
           </button>
+
+          {/* Admin Portal Switcher */}
+          <Link
+            to="/admin"
+            className="px-3.5 py-2 rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#B90101] hover:text-white border border-white/20 backdrop-blur-md text-xs font-black text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm flex items-center justify-center"
+          >
+            Admin
+          </Link>
         </div>
 
         {/* Mobile Hamburger Button */}
         <div className="flex md:hidden items-center gap-2">
+          {/* Mobile Favorite Button */}
+          <Link
+            to="/stream"
+            className="relative w-[40px] h-[40px] rounded-[35px] bg-[#1A1F25]/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101]"
+            aria-label="Favorite Movies"
+            title="Favorite Movies"
+          >
+            <Heart className="w-4 h-4 text-[#B90101]" />
+            {favoriteCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-0.5 bg-[#B90101] text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                {favoriteCount}
+              </span>
+            )}
+          </Link>
+
+          {/* Mobile Theme Switcher (Red primary color #B90101) */}
           <button
             onClick={() => dispatch(toggleTheme())}
-            className="w-[40px] h-[40px] rounded-[35px] bg-[#1A1F25]/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#FFD700]"
+            className="w-[40px] h-[40px] rounded-[35px] bg-[#1A1F25]/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101]"
             aria-label="Toggle Theme"
           >
-            <Sun className="w-4 h-4 text-[#FFD700]" />
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4 text-[#B90101]" />
+            ) : (
+              <Moon className="w-4 h-4 text-[#B90101] fill-[#B90101]" />
+            )}
           </button>
 
           <button
@@ -208,20 +259,20 @@ export default function Navbar() {
             Home
           </NavLink>
           <div />
-          <NavLink
+          {/* <NavLink
             to="/promo"
             onClick={() => setIsMobileMenuOpen(false)}
             className={navLinkClass}
           >
             Promo
-          </NavLink>
+          </NavLink> */}
           <div />
           <NavLink
             to="/stream"
             onClick={() => setIsMobileMenuOpen(false)}
             className={navLinkClass}
           >
-            Stream
+            Movies
           </NavLink>
           <div />
           <NavLink
@@ -230,6 +281,14 @@ export default function Navbar() {
             className={navLinkClass}
           >
             About
+          </NavLink>
+          <div />
+          <NavLink
+            to="/admin"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={navLinkClass}
+          >
+            Admin Dashboard
           </NavLink>
 
           <div

@@ -1,8 +1,8 @@
-import { Outlet, useLocation } from "react-router";
+import { Outlet, useLocation, ScrollRestoration } from "react-router";
 import { useSelector } from "react-redux";
-import { selectTheme } from "../../redux/slices/uiSlice";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
+import { selectTheme } from "../redux/slices/uiSlice";
+import Navbar from "../components/layout/Navbar";
+import Footer from "../components/layout/Footer";
 
 export default function RootLayout() {
   const location = useLocation();
@@ -34,6 +34,8 @@ export default function RootLayout() {
         <Outlet />
       </main>
       <Footer />
+      <ScrollRestoration />
     </div>
   );
 }
+

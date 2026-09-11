@@ -1,15 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router';
-import { Search, ChevronLeft, ChevronRight, ArrowRight, Star } from 'lucide-react';
-import { useGetTrendingMoviesQuery } from '../../services/api/movieApi';
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Star,
+} from "lucide-react";
+import { useGetTrendingMoviesQuery } from "../../services/api/movieApi";
 
 export default function StreamHero({ onSearch }) {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Fetch trending movies for featured streaming banner
-  const { data: trendingMovies, isLoading } = useGetTrendingMoviesQuery('day');
+  const { data: trendingMovies, isLoading } = useGetTrendingMoviesQuery("day");
 
   const bannerSlides =
     trendingMovies && trendingMovies.length > 0
@@ -70,8 +76,8 @@ export default function StreamHero({ onSearch }) {
                 key={slide.id || index}
                 className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
                   isActive
-                    ? 'opacity-100 scale-100 z-10'
-                    : 'opacity-0 scale-105 pointer-events-none z-0'
+                    ? "opacity-100 scale-100 z-10"
+                    : "opacity-0 scale-105 pointer-events-none z-0"
                 }`}
               >
                 <img
@@ -97,8 +103,8 @@ export default function StreamHero({ onSearch }) {
                 placeholder="Search Movies..."
                 className="w-full pl-5 pr-12 py-2.5 sm:py-3 rounded-full border backdrop-blur-md text-[15px] text-white placeholder-white/70 focus:outline-none focus:border-[#B90101] transition shadow-inner"
                 style={{
-                  backgroundColor: 'rgba(26, 31, 37, 0.35)',
-                  borderColor: 'rgba(255, 255, 255, 0.25)',
+                  backgroundColor: "rgba(26, 31, 37, 0.35)",
+                  borderColor: "rgba(255, 255, 255, 0.25)",
                 }}
               />
               <button
@@ -117,7 +123,7 @@ export default function StreamHero({ onSearch }) {
           type="button"
           onClick={handlePrev}
           className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-white/20 backdrop-blur-md flex items-center justify-center text-white hover:text-white hover:border-[#B90101] hover:scale-110 active:scale-95 transition-all shadow-xl"
-          style={{ backgroundColor: 'rgba(26, 31, 37, 0.45)' }}
+          style={{ backgroundColor: "rgba(26, 31, 37, 0.45)" }}
           aria-label="Previous Slide"
         >
           <ChevronLeft className="w-6 h-6" />
@@ -127,7 +133,7 @@ export default function StreamHero({ onSearch }) {
           type="button"
           onClick={handleNext}
           className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-white/20 backdrop-blur-md flex items-center justify-center text-white hover:text-white hover:border-[#B90101] hover:scale-110 active:scale-95 transition-all shadow-xl"
-          style={{ backgroundColor: 'rgba(26, 31, 37, 0.45)' }}
+          style={{ backgroundColor: "rgba(26, 31, 37, 0.45)" }}
           aria-label="Next Slide"
         >
           <ChevronRight className="w-6 h-6" />
@@ -136,7 +142,7 @@ export default function StreamHero({ onSearch }) {
         {/* 4. Bottom Slide Indicator / Title Preview */}
         <div className="relative z-20 flex items-center justify-between gap-4">
           <Link
-            to={`/movies/${activeMovie.id}`}
+            to={`/stream/${activeMovie.id}`}
             className="group/title flex items-center gap-2 max-w-lg truncate"
           >
             <span className="text-lg sm:text-2xl font-black text-white drop-shadow group-hover/title:text-[#B90101] transition-colors truncate">
@@ -156,8 +162,8 @@ export default function StreamHero({ onSearch }) {
                 onClick={() => setCurrentIndex(dotIdx)}
                 className={`h-2 transition-all duration-300 rounded-full ${
                   dotIdx === currentIndex
-                    ? 'w-6 bg-[#B90101]'
-                    : 'w-2 bg-white/40 hover:bg-white/80'
+                    ? "w-6 bg-[#B90101]"
+                    : "w-2 bg-white/40 hover:bg-white/80"
                 }`}
                 aria-label={`Slide ${dotIdx + 1}`}
               />
@@ -171,7 +177,7 @@ export default function StreamHero({ onSearch }) {
         <Link
           to="/stream?filter=favourite"
           className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-white font-bold text-[14px] shadow-lg hover:brightness-110 active:scale-95 transition"
-          style={{ backgroundColor: '#B90101' }}
+          style={{ backgroundColor: "#B90101" }}
         >
           <span>Favourite Movies</span>
           <ArrowRight className="w-4 h-4" />

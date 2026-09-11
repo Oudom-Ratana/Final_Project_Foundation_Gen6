@@ -1,4 +1,3 @@
-
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
@@ -8,11 +7,24 @@ import { store } from "./redux/store";
 import "./index.css";
 
 // Layout & Pages
-import RootLayout from "./components/layout/RootLayout";
+
 import AboutUsPage from './pages/AboutUsPage';
 import ForgotPassword from './components/auth/ForgotPassword';
 import SignUpComponent from './components/auth/SignUpComponent';
 import LoginComponent from './components/auth/LoginComponent';
+import RootLayout from "./layout/RootLayout";
+import HomePage from "./pages/HomePage";
+import StreamPage from "./pages/StreamPage";
+import MovieDetailPage from "./pages/MovieDetailPage";
+import StreamMovieDetailPage from "./pages/StreamMovieDetailPage";
+import PromotionPage from "./pages/promotions/PromotionPage";
+import DetailPage from "./pages/promotions/DetailPage";
+import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
+
+import AdminLayout from "./layout/AdminLayout";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminMovieLibraryPage from "./pages/admin/AdminMovieLibraryPage";
+import AdminUserAnalyticsPage from "./pages/admin/AdminUserAnalyticsPage";
 
 const router = createBrowserRouter([
   {
@@ -21,7 +33,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: null, // Empty for homepage until your team builds it
+        element: <HomePage />,
       },
       {
         path: '/ForgotPassword',
@@ -38,6 +50,54 @@ const router = createBrowserRouter([
       {
         path: '/about',
         element: <AboutUsPage />,
+      },
+      {
+        path: "/stream",
+        element: <StreamPage />,
+      },
+      {
+        path: "/movies/:id",
+        element: <MovieDetailPage />,
+      },
+      {
+        path: "/stream/:id",
+        element: <StreamMovieDetailPage />,
+      },
+      {
+        path: "/booking/seats",
+        element: <SeatSelectionPage />,
+      },
+      {
+        path: "/promo",
+        element: <PromotionPage />,
+        children: [
+          {
+            path: ":id",
+            element: <DetailPage />,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
+      {
+        index: true,
+        element: <AdminDashboardPage />,
+      },
+      {
+        path: "dashboard",
+        element: <AdminDashboardPage />,
+      },
+      {
+        path: "movies",
+        element: <AdminMovieLibraryPage />,
+      },
+      {
+        path: "analytics",
+        element: <AdminUserAnalyticsPage />,
       },
     ],
   },

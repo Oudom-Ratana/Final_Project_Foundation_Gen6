@@ -1,54 +1,37 @@
-import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
 import {
-  ArrowLeft,
-  Play,
   FileText,
   Clock,
   Calendar,
   ShieldAlert,
-  Heart,
-  Edit3,
-  Film,
-  BookOpen,
-  Clapperboard,
-  Sparkles,
-} from 'lucide-react';
+  Play,
+  ArrowLeft,
+} from "lucide-react";
 import {
   useGetMovieDetailsQuery,
   useGetMovieTrailersQuery,
-} from '../services/api/movieApi';
-import { useGetTVDetailsQuery } from '../services/api/tvApi';
-import StreamPlayerModal from '../components/stream/StreamPlayerModal';
-import SpidermanLoader from '../components/common/SpidermanLoader';
+} from "../services/api/movieApi";
+import ShowtimeSection from "../components/booking/ShowtimeSection";
+import BookingTypeModal from "../components/booking/BookingTypeModal";
+import SpidermanLoader from "../components/common/SpidermanLoader";
 
 export default function MovieDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Try fetching movie details first
-  const {
-    data: movieData,
-    isLoading: isMovieLoading,
-    isError: isMovieError,
-  } = useGetMovieDetailsQuery(id);
+  // Scroll to top immediately when opened
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
-  // If movie details fails or if it is a TV series, fetch TV details
-  const {
-    data: tvData,
-    isLoading: isTVLoading,
-  } = useGetTVDetailsQuery(id, { skip: !isMovieError && Boolean(movieData) });
+  // Fetch movie details from TMDB
+  const { data: movie, isLoading, isError } = useGetMovieDetailsQuery(id);
+  const { data: trailersData } = useGetMovieTrailersQuery(id);
 
-  const { data: trailers } = useGetMovieTrailersQuery(id);
-
-  const [isFavourite, setIsFavourite] = useState(false);
-  const [selectedEpisode, setSelectedEpisode] = useState(1);
-  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
-  const [playerMode, setPlayerMode] = useState('full_movie'); // 'full_movie' | 'trailer'
-
-  const data = movieData || tvData;
-  const isTV = Boolean(tvData && !movieData);
-  const isLoading = isMovieLoading || (isMovieError && isTVLoading);
+  const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -58,11 +41,13 @@ export default function MovieDetailPage() {
     );
   }
 
-  if (!data) {
+  if (isError || !movie) {
     return (
       <div className="w-full py-20 text-center space-y-4">
         <h2 className="text-3xl font-black text-[#B90101]">Movie Not Found</h2>
-        <p className="text-neutral-400">The requested movie could not be loaded from TMDB.</p>
+        <p className="text-neutral-400">
+          The requested movie could not be loaded from TMDB.
+        </p>
         <button
           onClick={() => navigate(-1)}
           className="px-6 py-2.5 rounded-full bg-[#B90101] text-white font-bold"
@@ -73,275 +58,412 @@ export default function MovieDetailPage() {
     );
   }
 
-  // Extract movie/TV metadata
-  const title = data.title || data.name || 'Untitled';
-  const genres = data.genres?.map((g) => g.name).join(', ') || 'Action, Adventure, Drama';
-  const duration = data.runtime
-    ? `${Math.floor(data.runtime / 60)}h ${data.runtime % 60}min`
-    : data.episode_run_time?.[0]
-    ? `${data.episode_run_time[0]}min`
-    : '2h 15min';
+  // Extract 100% real movie metadata from TMDB API
+  const title = movie.title || movie.original_title || "Untitled Movie";
+  const genres =
+    movie.genres && movie.genres.length > 0
+      ? movie.genres.map((g) => g.name).join(", ")
+      : "Genre unavailable";
 
-  const rawDate = data.release_date || data.first_air_date || '2026-07-30';
-  const releaseDate = new Date(rawDate).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+  const duration =
+    movie.runtime && movie.runtime > 0
+      ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}min`
+      : "Duration unavailable";
 
-  const classification = data.adult ? 'R18+' : 'NC15';
-  const backdropUrl = data.backdrop_path
-    ? `https://image.tmdb.org/t/p/original${data.backdrop_path}`
-    : data.poster_path
-    ? `https://image.tmdb.org/t/p/original${data.poster_path}`
-    : '';
+  const releaseDate = movie.release_date
+    ? new Date(movie.release_date).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "Release date unavailable";
 
-  const posterUrl = data.poster_path
-    ? `https://image.tmdb.org/t/p/w500${data.poster_path}`
-    : backdropUrl;
+  const backdropUrl = movie.backdrop_path
+    ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
+    : movie.poster_path
+      ? `https://image.tmdb.org/t/p/original${movie.poster_path}`
+      : "";
 
-  const trailerKey = trailers?.[0]?.key || (data.videos?.results?.[0]?.key);
-  const totalEpisodes = data.number_of_episodes || 8;
+  const posterUrl = movie.poster_path
+    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    : backdropUrl || "/placeholder-poster.png";
 
-  // Extract Cast & Crew (Writers, Producers, Directors)
-  const crewList = data.credits?.crew || [];
-  const castList = data.credits?.cast || [];
+  // Extract 100% real Cast & Crew from TMDB credits
+  const castList = movie.credits?.cast || [];
+  const crewList = movie.credits?.crew || [];
 
-  const writer =
-    crewList.find((c) => c.job === 'Screenplay' || c.job === 'Writer')?.name ||
-    'George R. R. Martin';
-  const producer =
-    crewList.find((c) => c.job === 'Producer' || c.job === 'Executive Producer')?.name ||
-    'D. B. Weiss';
-  const creator =
-    data.created_by?.[0]?.name ||
-    crewList.find((c) => c.job === 'Story' || c.job === 'Creator')?.name ||
-    'David Friedman';
-  const director =
-    crewList.find((c) => c.job === 'Director')?.name || 'Alan Taylor';
-  const secondaryDirector =
-    crewList.filter((c) => c.job === 'Director')?.[1]?.name ||
-    castList?.[0]?.name ||
-    'Alex Graves';
+  // 1. Real Directors
+  const directors = crewList
+    .filter((c) => c.job === "Director")
+    .map((c) => ({ name: c.name, role: "Director" }));
 
-  const crewCards = [
-    { name: writer, role: 'Writer', icon: Edit3 },
-    { name: producer, role: 'Producer', icon: Film },
-    { name: creator, role: 'Created by', icon: BookOpen },
-    { name: director, role: 'Director', icon: Clapperboard },
-    { name: secondaryDirector, role: 'Director', icon: Edit3 },
-  ];
+  // 2. Real Writers & Creators
+  const creators = crewList
+    .filter(
+      (c) =>
+        c.job === "Characters" ||
+        c.job === "Comic Book" ||
+        c.job === "Novel" ||
+        c.job === "Original Story",
+    )
+    .map((c) => ({ name: c.name, role: "Characters" }));
 
-  const handleOpenTrailer = () => {
-    setPlayerMode('trailer');
-    setIsPlayerOpen(true);
+  const writers = crewList
+    .filter(
+      (c) =>
+        c.job === "Screenplay" ||
+        c.job === "Writer" ||
+        c.job === "Story" ||
+        c.job === "Author",
+    )
+    .map((c) => ({ name: c.name, role: "Writer" }));
+
+  // 3. Real Lead Cast (Actors)
+  const topActors = castList.slice(0, 12).map((actor) => ({
+    id: actor.id,
+    name: actor.name,
+    character: actor.character || "Actor",
+    profilePath: actor.profile_path
+      ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
+      : null,
+  }));
+
+  // Build the 3-Column Key Contributors list dynamically from real API data
+  const keyContributors = [];
+  const seenNames = new Set();
+
+  const addPerson = (person) => {
+    if (person?.name && !seenNames.has(person.name)) {
+      seenNames.add(person.name);
+      keyContributors.push(person);
+    }
   };
 
-  const handleOpenFullMovie = (ep = selectedEpisode) => {
-    setSelectedEpisode(ep);
-    setPlayerMode('full_movie');
-    setIsPlayerOpen(true);
+  // Add real key figures in order: Directors -> Creators -> Writers -> Lead Actors
+  directors.forEach(addPerson);
+  creators.forEach(addPerson);
+  writers.forEach(addPerson);
+  topActors.forEach((actor) => {
+    addPerson({
+      name: actor.name,
+      role: actor.character ? actor.character : "Cast",
+    });
+  });
+
+  // Up to 6 real contributors for the 3 columns (2 rows each)
+  const heroPeople = keyContributors.slice(0, 6);
+
+  // Extract official trailer key from TMDB videos or trailers query
+  const trailerKey =
+    movie.videos?.results?.find(
+      (v) =>
+        v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"),
+    )?.key ||
+    trailersData?.find(
+      (v) =>
+        v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"),
+    )?.key ||
+    movie.videos?.results?.find((v) => v.site === "YouTube")?.key ||
+    trailersData?.find((v) => v.site === "YouTube")?.key;
+
+  const handleWatchTrailer = () => {
+    setIsPlayingTrailer(true);
+  };
+
+  const handleStopTrailer = () => {
+    setIsPlayingTrailer(false);
+  };
+
+  const handleShowtimeSelect = (sessionData) => {
+    setSelectedSession({
+      ...sessionData,
+      movieId: movie.id,
+      movieTitle: title,
+    });
+    setIsBookingModalOpen(true);
   };
 
   return (
-    <div className="relative w-full -mt-6 sm:-mt-8 pb-20 font-sans select-none">
-      {/* 1. Atmospheric Backdrop Background Layer */}
-      <div className="absolute inset-0 -top-24 z-0 pointer-events-none overflow-hidden">
+    <div className="relative w-full pb-24 font-sans select-none space-y-12">
+      {/* 1. Cinematic Dark Hero Banner (Fits poster background stably) */}
+      <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-neutral-950 border border-neutral-800/80 shadow-2xl min-h-[460px] md:min-h-[500px]">
+        {/* Layer 1: Atmospheric Backdrop Poster Image Layer */}
         {backdropUrl && (
-          <img
-            src={backdropUrl}
-            alt={title}
-            className="w-full h-[650px] object-cover object-center filter blur-xs opacity-25 dark:opacity-35 scale-105"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#F6F7F9] dark:from-[#080203] via-[#F6F7F9]/80 dark:via-black/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#F6F7F9] dark:from-black via-transparent to-[#F6F7F9] dark:to-black" />
-      </div>
-
-      <div className="relative z-10 space-y-12 pt-6">
-        {/* 2. Top Navigation (Back Button) */}
-        <div className="flex items-center">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#B90101] text-white flex items-center justify-center shadow-lg shadow-red-950/50 hover:brightness-110 active:scale-95 transition"
-            aria-label="Go Back"
+          <div
+            className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-[1500ms] ease-out ${
+              isPlayingTrailer ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+            <img
+              src={backdropUrl}
+              alt={title}
+              className="w-full h-full object-cover object-center opacity-70 sm:opacity-80 scale-105"
+            />
+            {/* Cinematic Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/35" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/30" />
+          </div>
+        )}
+
+        {/* Layer 2: Full Auto-Playing Trailer Video Layer (1.5s smooth ease-out transition) */}
+        <div
+          className={`absolute inset-0 z-20 bg-black transition-opacity duration-[1500ms] ease-out ${
+            isPlayingTrailer
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          }`}
+        >
+          {isPlayingTrailer && (
+            <>
+              {/* The ONLY Arrow Button to stop the trailer and return */}
+              <button
+                type="button"
+                onClick={handleStopTrailer}
+                className="absolute top-4 left-4 sm:top-6 sm:left-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#B90101] text-white flex items-center justify-center shadow-2xl hover:brightness-110 active:scale-95 transition cursor-pointer border border-white/20"
+                aria-label="Stop trailer and return"
+                title="Stop trailer and return"
+              >
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+
+              {trailerKey ? (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&playsinline=1`}
+                  title={`${title} Official Trailer`}
+                  className="w-full h-full border-0 absolute inset-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="w-full h-full min-h-[460px] flex flex-col items-center justify-center text-center p-6 space-y-4">
+                  <p className="text-white text-lg font-bold">
+                    No official trailer found for {title}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleStopTrailer}
+                    className="px-6 py-2.5 rounded-full bg-[#B90101] text-white font-bold text-sm hover:brightness-110 active:scale-95 transition"
+                  >
+                    Return to Movie Details
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
-        {/* 3. Main Detail Grid (Poster on Left + Metadata & Controls on Right) */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
-          {/* Left: Large Movie Poster Card */}
-          <div className="md:col-span-5 lg:col-span-4 flex justify-center md:justify-start">
-            <div className="relative aspect-[2/3] w-full max-w-[340px] rounded-[25px] overflow-hidden shadow-2xl bg-neutral-900 border border-neutral-200/80 dark:border-white/15">
-              <img
-                src={posterUrl}
-                alt={title}
-                className="w-full h-full object-cover"
-              />
+        {/* Layer 3: Content Detail Section (Fades out / morphs with 1.5s ease-out transition) */}
+        <div
+          className={`relative z-10 p-6 sm:p-10 lg:p-12 transition-all duration-[1500ms] ease-out ${
+            isPlayingTrailer
+              ? "opacity-0 -translate-y-4 scale-95 pointer-events-none"
+              : "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+          }`}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
+            {/* Left: Movie Poster with Rounded 25px Corners */}
+            <div className="md:col-span-5 lg:col-span-4 flex justify-center md:justify-start">
+              <div className="relative aspect-[2/3] w-full max-w-[280px] sm:max-w-[320px] rounded-[25px] overflow-hidden shadow-2xl bg-neutral-900 border border-white/10">
+                <img
+                  src={posterUrl}
+                  alt={title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
+            {/* Right: Movie Title, Real Metadata, and Real Cast/Crew Grid */}
+            <div className="md:col-span-7 lg:col-span-8 space-y-6 pt-2">
+              {/* Real Movie Title */}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+                {title}
+              </h1>
+
+              {/* Real Metadata List with Red Outline Icons */}
+              <div className="space-y-2.5 pt-1 text-sm sm:text-base text-neutral-300 font-medium">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[#B90101] shrink-0" />
+                  <span>
+                    Genre:{" "}
+                    <span className="text-white font-semibold">{genres}</span>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#B90101] shrink-0" />
+                  <span>
+                    Duration:{" "}
+                    <span className="text-white font-semibold">{duration}</span>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#B90101] shrink-0" />
+                  <span>
+                    Release:{" "}
+                    <span className="text-white font-bold">{releaseDate}</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Watch Trailer Button (Primary Color Red with White Text) */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleWatchTrailer}
+                  className="inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 rounded-full text-white font-black text-sm sm:text-base uppercase tracking-wider shadow-lg shadow-red-950/60 hover:brightness-110 active:scale-95 transition cursor-pointer"
+                  style={{ backgroundColor: "#B90101" }}
+                >
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-white" />
+                  <span>Watch Trailer</span>
+                </button>
+              </div>
+
+              {/* 3-Column Real Contributors Grid (Directors, Writers, Lead Actors) */}
+              {heroPeople.length > 0 && (
+                <div className="pt-4 sm:pt-6 grid grid-cols-2 sm:grid-cols-3 gap-x-8 sm:gap-x-12 lg:gap-x-16 gap-y-6">
+                  {heroPeople.map((person, idx) => (
+                    <div key={idx} className="space-y-0.5">
+                      <h4 className="font-bold text-sm sm:text-base text-white leading-tight line-clamp-1">
+                        {person.name}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-neutral-400 font-medium line-clamp-1">
+                        {person.role}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Right: Title, Metadata, Action Buttons & Episode Picker */}
-          <div className="md:col-span-7 lg:col-span-8 space-y-6">
-            {/* Title */}
-            <h1 className="text-3xl sm:text-5xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">
-              {title}
-            </h1>
+      {/* 2. Top Cast (Actors) Section with Real Profile Photos from TMDB (Auto-Loop Left to Right) */}
+      {topActors.length > 0 &&
+        (() => {
+          // Ensure sufficient items for seamless full-width infinite loop
+          const baseActors =
+            topActors.length < 4
+              ? [...topActors, ...topActors, ...topActors, ...topActors]
+              : topActors.length < 8
+                ? [...topActors, ...topActors]
+                : topActors;
 
-            {/* Metadata List with Red Outline Icons */}
-            <div className="space-y-3 pt-1 text-sm sm:text-base font-semibold text-neutral-700 dark:text-neutral-200">
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-[#B90101] shrink-0" />
-                <span>
-                  <strong className="text-neutral-900 dark:text-white">Genre:</strong> {genres}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-[#B90101] shrink-0" />
-                <span>
-                  <strong className="text-neutral-900 dark:text-white">Duration:</strong> {duration}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-[#B90101] shrink-0" />
-                <span>
-                  <strong className="text-neutral-900 dark:text-white">Release:</strong> {releaseDate}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <ShieldAlert className="w-5 h-5 text-[#B90101] shrink-0" />
-                <span>
-                  <strong className="text-neutral-900 dark:text-white">Classification:</strong> {classification}
-                </span>
-              </div>
-
-              {/* Clickable Favourite Button */}
-              <button
-                type="button"
-                onClick={() => setIsFavourite(!isFavourite)}
-                className="flex items-center gap-3 text-neutral-700 dark:text-neutral-200 hover:text-[#B90101] transition"
-              >
-                <Heart
-                  className={`w-5 h-5 transition-colors ${
-                    isFavourite
-                      ? 'fill-[#B90101] text-[#B90101]'
-                      : 'text-[#B90101]'
-                  }`}
-                />
-                <span className="font-bold">Favourite</span>
-              </button>
-            </div>
-
-            {/* Action Buttons: Watch Trailer & Full Movie */}
-            <div className="flex flex-wrap items-center gap-4 pt-3">
-              {/* Watch Trailer Button (Red Pill) */}
-              <button
-                type="button"
-                onClick={handleOpenTrailer}
-                className="flex items-center gap-2.5 px-6 py-2.5 rounded-full text-white font-black text-sm uppercase tracking-wider shadow-xl shadow-red-950/50 hover:brightness-110 active:scale-95 transition"
-                style={{ backgroundColor: '#B90101' }}
-              >
-                <Play className="w-4 h-4 fill-white" />
-                <span>Watch Trailer</span>
-              </button>
-
-              {/* Full Movie Button (Glassmorphic Pill) */}
-              <button
-                type="button"
-                onClick={() => handleOpenFullMovie(1)}
-                className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-neutral-300 dark:border-white/20 bg-white/40 dark:bg-white/10 backdrop-blur-md text-neutral-900 dark:text-white font-bold text-sm uppercase tracking-wider hover:bg-white/60 dark:hover:bg-white/20 active:scale-95 transition shadow-sm"
-              >
-                <Play className="w-4 h-4 fill-current" />
-                <span>Full Movie</span>
-              </button>
-            </div>
-
-            {/* Episode Selector (Figma Style) */}
-            <div className="space-y-3 pt-4">
-              <div className="space-y-0.5">
-                <h3 className="text-xl font-black text-neutral-900 dark:text-white">
-                  Episode
-                </h3>
-                <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">
-                  Total {totalEpisodes}
-                </p>
-              </div>
-
-              {/* Numbered Episode Buttons in Golden Border (1 to 8) */}
-              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                {Array.from({ length: Math.min(totalEpisodes, 8) }, (_, idx) => idx + 1).map(
-                  (epNumber) => {
-                    const isSelected = selectedEpisode === epNumber;
-                    return (
-                      <button
-                        key={epNumber}
-                        type="button"
-                        onClick={() => handleOpenFullMovie(epNumber)}
-                        className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl font-black text-base sm:text-lg flex items-center justify-center transition-all border ${
-                          isSelected
-                            ? 'bg-[#B90101] text-white border-[#B90101] shadow-lg shadow-red-950/50 scale-105'
-                            : 'bg-transparent text-[#EAB308] border-[#EAB308] hover:bg-[#EAB308]/10'
-                        }`}
-                      >
-                        {epNumber}
-                      </button>
-                    );
-                  }
+          const renderActorCard = (actor, indexPrefix) => (
+            <div
+              key={`${indexPrefix}-${actor.id}`}
+              className="min-w-[110px] max-w-[110px] sm:min-w-[130px] sm:max-w-[130px] flex flex-col items-center text-center space-y-2 group shrink-0"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-neutral-800 border-2 border-neutral-300 dark:border-white/15 shadow-md group-hover:border-[#B90101] group-hover:scale-105 transition-all duration-300">
+                {actor.profilePath ? (
+                  <img
+                    src={actor.profilePath}
+                    alt={actor.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-neutral-400 font-black text-xl">
+                    {actor.name.charAt(0)}
+                  </div>
                 )}
               </div>
+              <div className="w-full">
+                <h4 className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white truncate">
+                  {actor.name}
+                </h4>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+                  {actor.character}
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
+          );
 
-        {/* 4. Bottom Row: 5 Glassmorphic Cast & Crew Cards */}
-        <div className="pt-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {crewCards.map((crew, index) => {
-              const IconComp = crew.icon;
-              return (
-                <div
-                  key={index}
-                  className="rounded-2xl border border-neutral-200/80 dark:border-white/15 bg-white/70 dark:bg-black/40 backdrop-blur-md p-4 sm:p-5 text-center flex flex-col items-center justify-center gap-2 shadow-sm dark:shadow-xl hover:scale-105 transition-transform"
-                >
-                  {/* Red Circle Icon */}
-                  <div className="w-10 h-10 rounded-full bg-[#B90101] flex items-center justify-center text-white shadow-md">
-                    <IconComp className="w-5 h-5" />
+          return (
+            <div className="max-w-6xl mx-auto px-2 sm:px-4 space-y-5">
+              <style>{`
+              @keyframes cast-loop-ltr {
+                0% {
+                  transform: translateX(-50%);
+                }
+                100% {
+                  transform: translateX(0%);
+                }
+              }
+              .cast-ticker-track {
+                animation: cast-loop-ltr 35s linear infinite;
+              }
+              .cast-ticker-track:hover {
+                animation-play-state: paused;
+              }
+              @media (prefers-reduced-motion: reduce) {
+                .cast-ticker-track {
+                  animation: none;
+                }
+              }
+            `}</style>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="w-1.5 h-7 rounded-full inline-block"
+                    style={{ backgroundColor: "#B90101" }}
+                  />
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
+                    Top Cast
+                  </h2>
+                </div>
+                <span className="text-xs font-semibold text-neutral-400 hidden sm:inline-block">
+                  Hover to pause
+                </span>
+              </div>
+
+              {/* Seamless Auto-Scrolling Carousel Track with Edge Fades */}
+              <div
+                className="relative w-full overflow-hidden py-2 select-none"
+                style={{
+                  maskImage:
+                    "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
+                }}
+              >
+                <div className="flex w-max cast-ticker-track">
+                  {/* First Half */}
+                  <div className="flex items-center gap-4 sm:gap-6 shrink-0 pr-4 sm:pr-6">
+                    {baseActors.map((actor, idx) =>
+                      renderActorCard(actor, `h1-${idx}`),
+                    )}
                   </div>
-                  {/* Name & Role */}
-                  <div className="space-y-0.5">
-                    <h4 className="font-black text-sm sm:text-base text-neutral-900 dark:text-white line-clamp-1">
-                      {crew.name}
-                    </h4>
-                    <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
-                      {crew.role}
-                    </p>
+                  {/* Second Half (duplicate for seamless loop) */}
+                  <div
+                    className="flex items-center gap-4 sm:gap-6 shrink-0 pr-4 sm:pr-6"
+                    aria-hidden="true"
+                  >
+                    {baseActors.map((actor, idx) =>
+                      renderActorCard(actor, `h2-${idx}`),
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              </div>
+            </div>
+          );
+        })()}
+
+      {/* 3. Showtime Section (Locations, Date Selector, Branch Cards) */}
+      <div className="max-w-6xl mx-auto px-2 sm:px-4">
+        <ShowtimeSection onSelectShowtime={handleShowtimeSelect} />
       </div>
 
-      {/* 5. Stream Video Player Modal (VidSrc + TMDB YouTube Trailer) */}
-      <StreamPlayerModal
-        isOpen={isPlayerOpen}
-        onClose={() => setIsPlayerOpen(false)}
-        tmdbId={id}
-        mediaType={isTV ? 'tv' : 'movie'}
-        title={title}
-        trailerKey={trailerKey}
-        initialMode={playerMode}
-        season={1}
-        episode={selectedEpisode}
-        totalEpisodes={totalEpisodes}
-        onEpisodeChange={(ep) => setSelectedEpisode(ep)}
+      {/* 4. "How are you watching today?" Modal */}
+      <BookingTypeModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        session={selectedSession}
+        onSelectBookingType={(type) => {
+          console.log("Selected booking type:", type, selectedSession);
+        }}
       />
     </div>
   );

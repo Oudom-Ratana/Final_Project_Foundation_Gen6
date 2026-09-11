@@ -4,7 +4,7 @@ import ComingSoonCardSkeleton from "./ComingSoonCardSkeleton";
 import ScrollReveal from "../common/ScrollReveal";
 
 export default function ComingSoonSection() {
-  const { data: tmdbUpcoming, isLoading } = useGetUpcomingMoviesQuery(1);
+  const { data: tmdbUpcoming, isLoading } = useGetUpcomingMoviesQuery(2);
 
   const upcomingToDisplay =
     tmdbUpcoming && tmdbUpcoming.length > 0 ? tmdbUpcoming.slice(0, 3) : [];
