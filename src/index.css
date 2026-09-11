@@ -9,7 +9,24 @@
   --color-bg-light: #F6F7F9;
 
    /* Typography */
+
+   /* Typography */
   --font-sans: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, -apple-system, sans-serif;
+
+  --text-h1: 96px;
+  --text-h2: 44px;
+  --text-h3: 32px;
+  --text-h4: 20px;
+  --text-btn: 24px;
+
+  /* for card */
+  --card-detail-title: 48px;
+  --card-title: 28px;
+  --card-description: 18px;
+  --text-btn-card: 16px;
+ 
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
 
   --text-h1: 96px;
   --text-h2: 44px;
@@ -76,6 +93,16 @@
   box-shadow: 0 8px 32px rgba(39, 42, 48, 0.08);
 }
 
+/* Glassmorphism - Light Mode */
+.glass {
+  background: var(--primary-color-5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border: 2px solid #DDE1E7;
+  box-shadow: 0 8px 32px rgba(39, 42, 48, 0.08);
+}
+
 /* Custom Utilities for Project Colors & Theme */
 .bg-primary-red {
   background-color: #B90101 !important;
@@ -93,6 +120,10 @@
   color: #FFD700 !important;
 }
 
+.text-dark {
+  color: #FFFFFF !important;
+}
+
 .bg-accent-gold {
   background-color: #FFD700 !important;
 }
@@ -102,7 +133,7 @@
 }
 
 .bg-light-theme {
-  background-color: #F6F7F9 !important;
+  background-color: #f5f5f5 !important;
 }
 
 .bg-cinema-radial {
@@ -131,4 +162,9 @@ html:not(.dark) ::-webkit-scrollbar-track {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #e60000;
+}
+
+.form-panel {
+  border: 1px solid #54574f;  /* subtle light grey */
+  border-radius: 8px;          /* optional, softens corners */
 }

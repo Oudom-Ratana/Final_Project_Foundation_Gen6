@@ -35,19 +35,21 @@ const ForgotPassword = () => {
       </div>
 
       {/* Right Form Section */}
-      <div className="flex w-full items-center justify-center bg-light-theme px-6 md:w-1/2">
+      <div className="flex w-full items-center justify-center px-6 md:w-1/2">
         <div className="w-full max-w-md py-12">
           {/* Tabs */}
           <div className="mb-8 flex items-center gap-3">
             <Link
-              to="/login"
+               to="/login"
               className="text-h4 font-family: 'google-sans', text-neutral-400 transition-colors hover:text-neutral-600"
             >
               Log In
             </Link>
             <span className="h-6 w-px bg-primary-red" />
-            <span className="text-h4 font-family: 'google-sans', text-primary-red">
-              Forgot Password
+            <span >
+              <Link className="text-h4 font-family: 'google-sans', text-dark:color:white transition-colors hover:text-neutral-600">
+                Forgot Password
+              </Link>
             </span>
           </div>
 
@@ -78,12 +80,14 @@ const ForgotPassword = () => {
               />
             </div>
 
-            <button
-              type="submit"
-              className="w-full rounded-full bg-primary-red py-3.5 font-family: 'google-sans', text-white transition-colors hover:bg-primary-dark"
+            <Link type="submit"
+              className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-primary-red py-3.5 font-family: 'google-sans', text-white transition-colors hover:bg-primary-dark"
             >
-              Send Reset Link
-            </button>
+
+               <span aria-hidden="true">&larr;</span> Send Reset Link
+            
+            </Link>
+        
           </form>
 
           <div className="my-6 flex items-center gap-4">

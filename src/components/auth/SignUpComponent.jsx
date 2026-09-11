@@ -30,7 +30,7 @@ const SignUpComponent = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
         <div className="relative flex h-full flex-col justify-start px-12 pt-6 pb-12">
-          <h2 className="text-h3 font-bold leading-tight text-white">
+          <h2 className="text-h3 font-family: 'google-sans', leading-tight text-white">
             Your next
             <br />
             movie experience
@@ -44,43 +44,56 @@ const SignUpComponent = () => {
       </div>
 
       {/* Right Form Section */}
-      <div className="flex w-full items-center justify-center bg-light-theme px-6 md:w-1/2">
+      <div className="flex w-full items-center justify-center bg-blend-darken px-6 md:w-1/2">
         <div className="w-full max-w-md py-12">
           {/* Tabs */}
           <div className="mb-8 flex items-center gap-3">
             <Link
               to="/login"
-              className="text-h4 font-bold text-neutral-400 transition-colors hover:text-neutral-600"
+              className="text-h4 font-family: 'google-sans', text-neutral-400 transition-colors hover:text-neutral-600"
             >
               Log In
+
             </Link>
+
             <span className="h-6 w-px bg-primary-red " />
-            <span className="text-h4 font-bold text-primary-red ">
-              Sign Up
+            <span className="text-h4 font-family: 'google-sans', text-dark:color:white transition-colors hover:text-neutral-600">
+              <Link
+              to="/signup">
+               Sign Up
+              </Link>
+             
             </span>
+
           </div>
 
           {/* Social Auth */}
           <div className="flex gap-4">
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 py-3.5 font-semibold text-neutral-900 transition-colors hover:bg-neutral-200"
+              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 py-3.5 font-family: 'google-sans', text-neutral-900 transition-colors hover:bg-neutral-200"
             >
               <GoogleIcon />
-              Google
+              <Link
+              to="/google">
+               Google
+              </Link>
             </button>
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 py-3.5 font-semibold text-neutral-900 transition-colors hover:bg-neutral-200"
+              className="flex flex-1 items-center text-center justify-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 py-3.5 font-family: 'google-sans', text-neutral-900 transition-colors hover:bg-neutral-200"
             >
               <FacebookIcon />
-              Facebook
+              <Link
+              to="/facebook">
+               Facebook
+              </Link>
             </button>
           </div>
 
           <div className="my-6 flex items-center gap-4">
             <span className="h-px flex-1 bg-neutral-200" />
-            <span className="text-sm text-primary-red">Or</span>
+            <span className="text-sm font-family: 'google-sans', text-primary-red">Or</span>
             <span className="h-px flex-1 bg-neutral-200" />
           </div>
 
@@ -88,7 +101,7 @@ const SignUpComponent = () => {
             <div>
               <label
                 htmlFor="fullName"
-                className="mb-2 block font-semibold text-neutral-900"
+                className="mb-2 block font-family: 'google-sans', text-dark:color:white"
               >
                 Full Name
               </label>
@@ -107,7 +120,7 @@ const SignUpComponent = () => {
             <div>
               <label
                 htmlFor="email"
-                className="mb-2 block font-semibold text-neutral-900"
+                className="mb-2 block font-family: 'google-sans', text-dark:color:white"
               >
                 Email Address
               </label>
@@ -126,7 +139,7 @@ const SignUpComponent = () => {
             <div>
               <label
                 htmlFor="password"
-                className="mb-2 block font-semibold text-neutral-900"
+                className="mb-2 block font-family: 'google-sans', text-dark:color:white"
               >
                 Password
               </label>
@@ -155,15 +168,20 @@ const SignUpComponent = () => {
 
             <button
               type="submit"
-              className="w-full rounded-full bg-primary-red py-3.5 font-bold text-white transition-colors hover:bg-primary-dark"
+              className="w-full rounded-full bg-primary-red py-3.5 font-family: 'google-sans', text-white transition-colors hover:bg-primary-dark"
             >
-              Create Account
+              <Link
+              to="/signup">
+               Create Account
+              </Link>
             </button>
           </form>
+        
+    
 
           <p className="mt-10 text-center text-sm text-neutral-500">
             Already have an account?{' '}
-            <Link to="/login" className="font-semibold text-primary-red underline">
+            <Link to="/login" className="font-family: 'google-sans', text-primary-red underline">
               Log In
             </Link>
           </p>

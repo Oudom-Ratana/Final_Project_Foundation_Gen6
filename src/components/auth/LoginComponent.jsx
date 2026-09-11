@@ -19,7 +19,7 @@ const LoginComponent = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full ">
       {/* Left Hero Section */}
       <div className="relative hidden w-1/2 md:block">
         <img
@@ -27,7 +27,7 @@ const LoginComponent = () => {
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent " />
         <div className="relative flex h-full flex-col justify-start px-12 pt-6 pb-12">
           <h2 className="text-h3 font-family: 'google-sans', leading-tight text-white">
             Your next
@@ -43,23 +43,35 @@ const LoginComponent = () => {
       </div>
 
       {/* Right Form Section */}
-      <div className="flex w-full items-center justify-center bg-light-theme px-6 md:w-1/2">
+      <div className="flex w-full items-center justify-center px-6 md:w-1/2">
         <div className="w-full max-w-md py-12">
           {/* Tabs */}
           <div className="mb-8 flex items-center gap-3">
-            <span className="text-h4 font-family: 'google-sans', text-primary-red">
-              Log In
+            <span className="text-h4 font-family: 'google-sans', text-neutral-400 transition-colors">
+              <Link to="/login" className="hover:text-neutral-600">
+                Log In
+              </Link>
             </span>
             <span className="h-6 w-px bg-primary-red" />
+
+             <span className="text-h4 font-family: 'google-sans', text-dark:color:white transition-colors">
+              <Link to="/signup" className="hover:text-neutral-600">
+                Sign Up
+              </Link>
+            </span>
+            {/* <span className="h-6 w-px bg-primary-red" /> */}
+
+            {/* <span  className="text-h4 font-family: 'google-sans', text-neutral-400 transition-colors"/>
             <Link
-              to="/signup"
-              className="text-h4 font-family: 'google-sans', text-neutral-400 transition-colors hover:text-neutral-600"
-            >
+              to="/signup"className="hover:text-neutral-600">
+            
               Sign Up
-            </Link>
+            </Link> */}
+
+            
           </div>
 
-          <h1 className="text-h3 font-family: 'google-sans', text-neutral-900">
+          <h1 className="text-h3 font-family: 'google-sans', text-dark:color:white">
             Welcome back!
           </h1>
           <p className="mt-2 text-neutral-500">
@@ -70,7 +82,7 @@ const LoginComponent = () => {
             <div>
               <label
                 htmlFor="email"
-                className="mb-2 block font-family: 'google-sans', text-neutral-900"
+                className="mb-2 block font-family: 'google-sans', text-dark:color:white"
               >
                 Email Address
               </label>
@@ -89,7 +101,7 @@ const LoginComponent = () => {
             <div>
               <label
                 htmlFor="password"
-                className="mb-2 block font-family: 'google-sans', text-neutral-900"
+                className="mb-2 block font-family: 'google-sans', text-dark:color:white"
               >
                 Password
               </label>
@@ -128,8 +140,16 @@ const LoginComponent = () => {
               type="submit"
               className="w-full rounded-full bg-primary-red py-3.5 font-family: 'google-sans', text-white transition-colors hover:bg-primary-dark"
             >
-              Login
+              <Link>
+                 Login
+              </Link>
+             
             </button>
+            <Link>
+              <button>
+                
+              </button>
+            </Link>
           </form>
 
           <div className="my-6 flex items-center gap-4">
@@ -142,8 +162,11 @@ const LoginComponent = () => {
             type="button"
             className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 py-3.5 font-family: 'google-sans', text-neutral-900 transition-colors hover:bg-neutral-200"
           >
+            <Link to="google" >
+                Login with Google
+            </Link>
             <GoogleIcon />
-            Login with Google
+            
           </button>
 
           <p className="mt-6 text-center text-sm text-neutral-500">
