@@ -47,28 +47,16 @@ const LoginComponent = () => {
         <div className="w-full max-w-md py-12">
           {/* Tabs */}
           <div className="mb-8 flex items-center gap-3">
-            <span className="text-h4 font-family: 'google-sans', text-neutral-400 transition-colors">
-              <Link to="/login" className="hover:text-neutral-600">
-                Log In
-              </Link>
+            <span className="text-xl font-bold text-neutral-900 dark:text-white">
+              Log In
             </span>
             <span className="h-6 w-px bg-primary-red" />
-
-             <span className="text-h4 font-family: 'google-sans', text-dark:color:white transition-colors">
-              <Link to="/signup" className="hover:text-neutral-600">
-                Sign Up
-              </Link>
-            </span>
-            {/* <span className="h-6 w-px bg-primary-red" /> */}
-
-            {/* <span  className="text-h4 font-family: 'google-sans', text-neutral-400 transition-colors"/>
             <Link
-              to="/signup"className="hover:text-neutral-600">
-            
+              to="/signup"
+              className="text-xl font-medium text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
+            >
               Sign Up
-            </Link> */}
-
-            
+            </Link>
           </div>
 
           <h1 className="text-h3 font-family: 'google-sans', text-dark:color:white">
@@ -138,18 +126,10 @@ const LoginComponent = () => {
 
             <button
               type="submit"
-              className="w-full rounded-full bg-primary-red py-3.5 font-family: 'google-sans', text-white transition-colors hover:bg-primary-dark"
+              className="w-full rounded-full bg-primary-red py-3.5 font-bold text-white transition-colors hover:brightness-110 active:scale-95"
             >
-              <Link>
-                 Login
-              </Link>
-             
+              Login
             </button>
-            <Link>
-              <button>
-                
-              </button>
-            </Link>
           </form>
 
           <div className="my-6 flex items-center gap-4">

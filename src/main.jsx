@@ -36,16 +36,28 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "/ForgotPassword",
-        element: <ForgotPassword />,
+        path: "/login",
+        element: <LoginComponent />,
+      },
+      {
+        path: "/Login",
+        element: <LoginComponent />,
+      },
+      {
+        path: "/signup",
+        element: <SignUpComponent />,
       },
       {
         path: "/SignUp",
         element: <SignUpComponent />,
       },
       {
-        path: "/Login",
-        element: <LoginComponent />,
+        path: "/forgot-password",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "/ForgotPassword",
+        element: <ForgotPassword />,
       },
       {
         path: "/about",

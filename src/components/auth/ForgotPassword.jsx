@@ -80,13 +80,12 @@ const ForgotPassword = () => {
               />
             </div>
 
-            <Link type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-primary-red py-3.5 font-family: 'google-sans', text-white transition-colors hover:bg-primary-dark"
+            <button
+              type="submit"
+              className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-primary-red py-3.5 font-bold text-white transition-colors hover:brightness-110 active:scale-95"
             >
-
-               <span aria-hidden="true">&larr;</span> Send Reset Link
-            
-            </Link>
+              Send Reset Link
+            </button>
         
           </form>
 
