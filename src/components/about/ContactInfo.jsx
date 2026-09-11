@@ -1,6 +1,6 @@
 
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
-import mapImg from '../../assets/mentors_and_member/image01.png';
+import mapImg from '../../assets/others/map.png';
 
 export default function ContactInfo({ mapImage }) {
   // Replace this link with your actual Google Maps URL

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router";
-import heroImage from "../../assets/image.png";
+import heroImage from "../../assets/others/cinema.png";
 
 const SignUpComponent = () => {
   const [showPassword, setShowPassword] = useState(false);

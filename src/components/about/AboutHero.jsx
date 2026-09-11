@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router';
 import { ArrowRight } from 'lucide-react';
-import cinemaImage from '../../assets/image.png';
+import cinemaImage from '../../assets/others/imageAboutUs.png';
 
 export default function AboutHero() {
   return (

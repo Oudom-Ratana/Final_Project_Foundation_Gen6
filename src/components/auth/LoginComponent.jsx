@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router";
-import heroImage from "../../assets/image.png";
+import heroImage from "../../assets/others/cinema.png";
 
 const LoginComponent = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -116,7 +116,7 @@ const LoginComponent = () => {
 
               <div className="mt-3 text-right">
                 <Link
-                  to="/ForgotPassword"
+                  to="/forgot-password"
                   className="text-sm font-family: 'google-sans', text-primary-red hover:underline"
                 >
                   Forgot password?
