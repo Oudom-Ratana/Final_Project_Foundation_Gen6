@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router';
-import heroImage from '../../assets/image.png';
+import React, { useState } from "react";
+import { Link } from "react-router";
+import heroImage from "../../assets/image.png";
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Sending reset link to:', email);
+    console.log("Sending reset link to:", email);
   };
 
   return (
@@ -40,13 +40,13 @@ const ForgotPassword = () => {
           {/* Tabs */}
           <div className="mb-8 flex items-center gap-3">
             <Link
-               to="/login"
+              to="/login"
               className="text-h4 font-family: 'google-sans', text-neutral-400 transition-colors hover:text-neutral-600"
             >
               Log In
             </Link>
             <span className="h-6 w-px bg-primary-red" />
-            <span >
+            <span>
               <Link className="text-h4 font-family: 'google-sans', text-dark:color:white transition-colors hover:text-neutral-600">
                 Forgot Password
               </Link>
@@ -80,14 +80,12 @@ const ForgotPassword = () => {
               />
             </div>
 
-            <Link type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-primary-red py-3.5 font-family: 'google-sans', text-white transition-colors hover:bg-primary-dark"
+            <button
+              type="submit"
+              className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-primary-red py-3.5 font-bold text-white transition-colors hover:brightness-110 active:scale-95"
             >
-
-               <span aria-hidden="true">&larr;</span> Send Reset Link
-            
-            </Link>
-        
+              Send Reset Link
+            </button>
           </form>
 
           <div className="my-6 flex items-center gap-4">
@@ -104,8 +102,11 @@ const ForgotPassword = () => {
           </Link>
 
           <p className="mt-6 text-center text-sm text-neutral-500">
-            Remember your password?{' '}
-            <Link to="/login" className="font-semibold text-primary-red underline">
+            Remember your password?{" "}
+            <Link
+              to="/login"
+              className="font-semibold text-primary-red underline"
+            >
               Log In
             </Link>
           </p>

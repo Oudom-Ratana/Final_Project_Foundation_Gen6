@@ -127,14 +127,14 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <button
-              type="button"
+            <Link
+              to="/login"
               className="flex items-center gap-2 px-6 py-2.5 rounded-[35px] text-white font-bold text-[16px] shadow-md hover:brightness-110 active:scale-95 transition"
               style={{ backgroundColor: "#B90101" }}
             >
               <User className="w-4 h-4 fill-white" />
               <span>Login</span>
-            </button>
+            </Link>
           )}
 
           {/* Glass Favorite Movie Button (Directly after Login button) */}
@@ -295,14 +295,15 @@ export default function Navbar() {
             className="pt-3 border-t flex items-center justify-between"
             style={{ borderColor: "rgba(158, 5, 5, 0.20)" }}
           >
-            <button
-              type="button"
+            <Link
+              to="/login"
+              onClick={() => setIsMobileMenuOpen(false)}
               className="w-full py-2.5 rounded-[35px] text-white font-bold text-[16px] flex items-center justify-center gap-2 shadow-md"
               style={{ backgroundColor: "#B90101" }}
             >
               <User className="w-4 h-4 fill-white" />
               <span>Login</span>
-            </button>
+            </Link>
           </div>
         </div>
       )}

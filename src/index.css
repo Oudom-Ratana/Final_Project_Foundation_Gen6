@@ -7,6 +7,9 @@
   --color-primary: #b90101;
   --color-primary-dark: #8b0101;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8ff6588a5d4047b65317ffad30ba0c3cac40ac5
   --color-accent-gold: #FFD700;
   --color-bg-light: #F6F7F9;
 
@@ -15,6 +18,7 @@
 
    /* Typography */
   --font-sans: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, -apple-system, sans-serif;
+<<<<<<< HEAD
 =======
   --color-accent-gold: #ffd700;
   --color-bg-light: #f6f7f9;
@@ -24,6 +28,8 @@
     "Google Sans", "Product Sans", "Open Sans", system-ui, -apple-system,
     sans-serif;
 >>>>>>> 210b3dd25458541bfa07c262d969e0e7a5a41bc5
+=======
+>>>>>>> c8ff6588a5d4047b65317ffad30ba0c3cac40ac5
 
   --text-h1: 96px;
   --text-h2: 44px;
@@ -37,9 +43,13 @@
   --card-description: 18px;
   --text-btn-card: 16px;
 <<<<<<< HEAD
+<<<<<<< HEAD
  
 =======
 >>>>>>> 210b3dd25458541bfa07c262d969e0e7a5a41bc5
+=======
+ 
+>>>>>>> c8ff6588a5d4047b65317ffad30ba0c3cac40ac5
   --font-weight-regular: 400;
   --font-weight-bold: 700;
 }
@@ -47,6 +57,9 @@
 @layer base {
   :root {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8ff6588a5d4047b65317ffad30ba0c3cac40ac5
     --primary-red: #B90101;
     --accent-gold: #FFD700;
     --bg-light: #F6F7F9;
@@ -72,6 +85,7 @@
        for description's : [#828282]  or   --text-light: #828282;
     */
 
+<<<<<<< HEAD
 =======
     --primary-red: #b90101;
     --accent-gold: #ffd700;
@@ -85,6 +99,8 @@
     /* Glassmorphism - dark  Mode */
     --primary-color-30: rgba(39, 42, 48, 0.3);
 >>>>>>> 210b3dd25458541bfa07c262d969e0e7a5a41bc5
+=======
+>>>>>>> c8ff6588a5d4047b65317ffad30ba0c3cac40ac5
   }
 
   html {
@@ -138,10 +154,14 @@
   -webkit-backdrop-filter: blur(12px);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   border: 2px solid #DDE1E7;
 =======
   border: 2px solid #dde1e7;
 >>>>>>> 210b3dd25458541bfa07c262d969e0e7a5a41bc5
+=======
+  border: 2px solid #DDE1E7;
+>>>>>>> c8ff6588a5d4047b65317ffad30ba0c3cac40ac5
   box-shadow: 0 8px 32px rgba(39, 42, 48, 0.08);
 }
 
