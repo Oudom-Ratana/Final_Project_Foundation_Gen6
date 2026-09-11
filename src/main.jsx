@@ -1,4 +1,3 @@
-
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
@@ -12,9 +11,10 @@ import RootLayout from "./components/layout/RootLayout";
 import HomePage from "./pages/HomePage";
 import StreamPage from "./pages/StreamPage";
 import MovieDetailPage from "./pages/MovieDetailPage";
-import AboutUsPage from './pages/AboutUsPage';
-import PromotionPage from './pages/promotions/PromotionPage';
-import DetailPage from './pages/promotions/DetailPage';
+import AboutUsPage from "./pages/AboutUsPage";
+import PromotionPage from "./pages/promotions/PromotionPage";
+import DetailPage from "./pages/promotions/DetailPage";
+import MyTicketsPage from "./pages/MyTicketsPage";
 
 const router = createBrowserRouter([
   {
@@ -38,14 +38,18 @@ const router = createBrowserRouter([
         element: <MovieDetailPage />,
       },
       {
-        path: '/promo',
-        element: <PromotionPage/>,
+        path: "/promo",
+        element: <PromotionPage />,
         children: [
           {
-            path: ':id',
-            element: <DetailPage/>,
+            path: ":id",
+            element: <DetailPage />,
           },
         ],
+      },
+      {
+        path: "/my-tickets",
+        element: <MyTicketsPage />,
       },
     ],
   },

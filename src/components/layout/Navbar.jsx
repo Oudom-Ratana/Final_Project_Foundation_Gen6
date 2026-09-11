@@ -134,19 +134,20 @@ export default function Navbar() {
             </button>
           )}
 
-          {/* Glass Notification Bell Button (Figma: Fill #1A1F25 10%, Stroke #FFFFFF 20%, Radius 35px, Glass Blur) */}
-          <button
-            type="button"
+          {/* Glass Notification Bell Button — navigates to /my-tickets */}
+          <Link
+            to="/my-tickets"
             className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#FFD700] hover:scale-105 active:scale-95 transition shadow-sm"
             style={{
               backgroundColor: "rgba(26, 31, 37, 0.10)",
               borderColor: "rgba(255, 255, 255, 0.20)",
               borderRadius: "35px",
             }}
-            aria-label="Notifications"
+            aria-label="My Tickets"
+            title="My Tickets"
           >
             <Bell className="w-5 h-5 fill-[#FFD700] text-[#FFD700]" />
-          </button>
+          </Link>
 
           {/* Glass Theme Switcher Toggle Button (Figma: Fill #1A1F25 10%, Stroke #FFFFFF 20%, Radius 35px, Glass Blur) */}
           <button
