@@ -19,7 +19,7 @@ import MovieDetailPage from "./pages/MovieDetailPage";
 import StreamMovieDetailPage from "./pages/StreamMovieDetailPage";
 import PromotionPage from "./pages/promotions/PromotionPage";
 import DetailPage from "./pages/promotions/DetailPage";
-import MyTicketsPage from "./pages/MyTicketsPage";
+import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
 
 import AdminLayout from "./layout/AdminLayout";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
@@ -60,6 +60,14 @@ const router = createBrowserRouter([
         element: <MovieDetailPage />,
       },
       {
+        path: "/stream/:id",
+        element: <StreamMovieDetailPage />,
+      },
+      {
+        path: "/booking/seats",
+        element: <SeatSelectionPage />,
+      },
+      {
         path: "/promo",
         element: <PromotionPage />,
         children: [
@@ -68,10 +76,6 @@ const router = createBrowserRouter([
             element: <DetailPage />,
           },
         ],
-      },
-      {
-        path: "/my-tickets",
-        element: <MyTicketsPage />,
       },
     ],
   },
