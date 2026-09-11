@@ -4,8 +4,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-primary: #B90101;
+  --color-primary: #b90101;
   --color-primary-dark: #8b0101;
+<<<<<<< HEAD
   --color-accent-gold: #FFD700;
   --color-bg-light: #F6F7F9;
 
@@ -14,6 +15,15 @@
 
    /* Typography */
   --font-sans: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, -apple-system, sans-serif;
+=======
+  --color-accent-gold: #ffd700;
+  --color-bg-light: #f6f7f9;
+
+  /* Typography */
+  --font-sans:
+    "Google Sans", "Product Sans", "Open Sans", system-ui, -apple-system,
+    sans-serif;
+>>>>>>> 210b3dd25458541bfa07c262d969e0e7a5a41bc5
 
   --text-h1: 96px;
   --text-h2: 44px;
@@ -26,13 +36,17 @@
   --card-title: 28px;
   --card-description: 18px;
   --text-btn-card: 16px;
+<<<<<<< HEAD
  
+=======
+>>>>>>> 210b3dd25458541bfa07c262d969e0e7a5a41bc5
   --font-weight-regular: 400;
   --font-weight-bold: 700;
 }
 
 @layer base {
   :root {
+<<<<<<< HEAD
     --primary-red: #B90101;
     --accent-gold: #FFD700;
     --bg-light: #F6F7F9;
@@ -58,30 +72,62 @@
        for description's : [#828282]  or   --text-light: #828282;
     */
 
+=======
+    --primary-red: #b90101;
+    --accent-gold: #ffd700;
+    --bg-light: #f6f7f9;
+    --bg-pop-up-light-mode: rgba(39, 42, 48, 0.25); /*[#272A30]/25*/
+    --bg-pop-up-dark-mode: rgba(26, 31, 37, 0.4); /*[#1A1F25]/40*/
+
+    /* Glassmorphism - Light Mode */
+    --primary-color-5: rgba(39, 42, 48, 0.05);
+
+    /* Glassmorphism - dark  Mode */
+    --primary-color-30: rgba(39, 42, 48, 0.3);
+>>>>>>> 210b3dd25458541bfa07c262d969e0e7a5a41bc5
   }
 
   html {
-    font-size: 18px; 
+    font-size: 18px;
   }
 
   body {
-    background-color: #F6F7F9;
+    background-color: #f6f7f9;
     color: #171717;
-    font-family: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      "Google Sans",
+      "Product Sans",
+      "Open Sans",
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
     font-size: 18px;
     line-height: 1.6;
     min-height: 100vh;
     overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 
   html.dark body {
-    background: radial-gradient(ellipse at left, rgba(109, 8, 8, 0.7) 0%, #0d0304 100%), #000000;
+    background:
+      radial-gradient(ellipse at left, rgba(109, 8, 8, 0.7) 0%, #0d0304 100%),
+      #000000;
     color: #ffffff;
   }
 
-  p, span, a, button, input, label {
-    font-family: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, sans-serif;
+  p,
+  span,
+  a,
+  button,
+  input,
+  label {
+    font-family:
+      "Google Sans", "Product Sans", "Open Sans", system-ui, sans-serif;
   }
 }
 
@@ -91,63 +137,65 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
+<<<<<<< HEAD
   border: 2px solid #DDE1E7;
+=======
+  border: 2px solid #dde1e7;
+>>>>>>> 210b3dd25458541bfa07c262d969e0e7a5a41bc5
   box-shadow: 0 8px 32px rgba(39, 42, 48, 0.08);
 }
 
 /* Custom Utilities for Project Colors & Theme */
 .bg-primary-red {
-  background-color: #B90101 !important;
+  background-color: #b90101 !important;
 }
 
 .text-primary-red {
-  color: #B90101 !important;
+  color: #b90101 !important;
 }
 
 .border-primary-red {
-  border-color: #B90101 !important;
+  border-color: #b90101 !important;
 }
 
 .text-accent-gold {
-  color: #FFD700 !important;
+  color: #ffd700 !important;
+}
+
+.text-dark {
+  color: #ffffff !important;
 }
 
 .bg-accent-gold {
-  background-color: #FFD700 !important;
+  background-color: #ffd700 !important;
 }
 
 .fill-accent-gold {
-  fill: #FFD700 !important;
+  fill: #ffd700 !important;
 }
 
 .bg-light-theme {
-  background-color: #F6F7F9 !important;
+  background-color: #f6f7f9 !important;
 }
 
 .bg-cinema-radial {
-  background: radial-gradient(ellipse at center, rgba(109, 8, 8, 0.7) 0%, #0d0304 70%, #000000 100%),
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(109, 8, 8, 0.7) 0%,
+      #0d0304 70%,
+      #000000 100%
+    ),
     #000000;
 }
 
-/* Custom scrollbar utility */
+/* Hide scrollbars while preserving scrolling functionality */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: #0d0304;
-}
-
-html:not(.dark) ::-webkit-scrollbar-track {
-  background: #F6F7F9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #B90101;
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #e60000;
+html,
+body {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
