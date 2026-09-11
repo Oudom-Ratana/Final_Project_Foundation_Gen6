@@ -7,7 +7,7 @@ import { store } from "./redux/store";
 import "./index.css";
 
 // Layout & Pages
-import RootLayout from "./components/layout/RootLayout";
+import RootLayout from "./layout/RootLayout";
 import HomePage from "./pages/HomePage";
 import StreamPage from "./pages/StreamPage";
 import MovieDetailPage from "./pages/MovieDetailPage";
@@ -16,6 +16,11 @@ import AboutUsPage from "./pages/AboutUsPage";
 import PromotionPage from "./pages/promotions/PromotionPage";
 import DetailPage from "./pages/promotions/DetailPage";
 import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
+
+import AdminLayout from "./layout/AdminLayout";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminMovieLibraryPage from "./pages/admin/AdminMovieLibraryPage";
+import AdminUserAnalyticsPage from "./pages/admin/AdminUserAnalyticsPage";
 
 const router = createBrowserRouter([
   {
@@ -57,44 +62,28 @@ const router = createBrowserRouter([
         ],
       },
     ],
-    // path: "/admin",
-    // element: <RootLayout />,
-    // children: [
-    //   {
-    //     index: true,
-    //     element: <HomePage />,
-    //   },
-    //   {
-    //     path: "/about",
-    //     element: <AboutUsPage />,
-    //   },
-    //   {
-    //     path: "/stream",
-    //     element: <StreamPage />,
-    //   },
-    //   {
-    //     path: "/movies/:id",
-    //     element: <MovieDetailPage />,
-    //   },
-    //   {
-    //     path: "/stream/:id",
-    //     element: <StreamMovieDetailPage />,
-    //   },
-    //   {
-    //     path: "/booking/seats",
-    //     element: <SeatSelectionPage />,
-    //   },
-    //   {
-    //     path: "/promo",
-    //     element: <PromotionPage />,
-    //     children: [
-    //       {
-    //         path: ":id",
-    //         element: <DetailPage />,
-    //       },
-    //     ],
-    //   },
-    // ],
+  },
+  {
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
+      {
+        index: true,
+        element: <AdminDashboardPage />,
+      },
+      {
+        path: "dashboard",
+        element: <AdminDashboardPage />,
+      },
+      {
+        path: "movies",
+        element: <AdminMovieLibraryPage />,
+      },
+      {
+        path: "analytics",
+        element: <AdminUserAnalyticsPage />,
+      },
+    ],
   },
   {
     path: "*",

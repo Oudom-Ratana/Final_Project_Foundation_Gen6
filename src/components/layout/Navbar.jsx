@@ -100,11 +100,11 @@ export default function Navbar() {
           <NavLink to="/" className={navLinkClass}>
             Home
           </NavLink>
-          <NavLink to="/promo" className={navLinkClass}>
+          {/* <NavLink to="/promo" className={navLinkClass}>
             Promo
-          </NavLink>
+          </NavLink> */}
           <NavLink to="/stream" className={navLinkClass}>
-            Stream
+            Movies
           </NavLink>
           <NavLink to="/about" className={navLinkClass}>
             About
@@ -191,6 +191,14 @@ export default function Navbar() {
               <Moon className="w-5 h-5 text-[#B90101] fill-[#B90101] transition-transform duration-300" />
             )}
           </button>
+
+          {/* Admin Portal Switcher */}
+          <Link
+            to="/admin"
+            className="px-3.5 py-2 rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#B90101] hover:text-white border border-white/20 backdrop-blur-md text-xs font-black text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm flex items-center justify-center"
+          >
+            Admin
+          </Link>
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -251,20 +259,20 @@ export default function Navbar() {
             Home
           </NavLink>
           <div />
-          <NavLink
+          {/* <NavLink
             to="/promo"
             onClick={() => setIsMobileMenuOpen(false)}
             className={navLinkClass}
           >
             Promo
-          </NavLink>
+          </NavLink> */}
           <div />
           <NavLink
             to="/stream"
             onClick={() => setIsMobileMenuOpen(false)}
             className={navLinkClass}
           >
-            Stream
+            Movies
           </NavLink>
           <div />
           <NavLink
@@ -273,6 +281,14 @@ export default function Navbar() {
             className={navLinkClass}
           >
             About
+          </NavLink>
+          <div />
+          <NavLink
+            to="/admin"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={navLinkClass}
+          >
+            Admin Dashboard
           </NavLink>
 
           <div

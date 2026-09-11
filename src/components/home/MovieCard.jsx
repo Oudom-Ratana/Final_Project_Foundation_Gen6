@@ -88,7 +88,10 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
         {/* Dark Blur Hover Overlay with Description Pop-up (Active for both Light & Dark modes) */}
         <div className="absolute  inset-0 bg-black/75 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-center p-4 sm:p-5 text-center">
           <div className="transform translate-y-3 mx-auto group-hover:translate-y-0 transition-transform duration-300 space-y-2">
-            <span className="text-[14px] font-black uppercase tracking-widest text-[#B90101] bg-black/60 px-2 py-0.5 rounded inline-block border border-white/15">
+            <span
+              className="inline-flex items-center justify-center px-4 py-1 rounded-full text-white font-black text-[12px] sm:text-[13px] uppercase tracking-wider shadow-md border border-white/20"
+              style={{ backgroundColor: "#B90101" }}
+            >
               {genreName.toUpperCase()}
             </span>
             <p className="text-white text-xs sm:text-[18px] leading-relaxed line-clamp-4 font-normal drop-shadow">
