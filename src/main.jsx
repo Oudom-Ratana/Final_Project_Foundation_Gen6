@@ -1,33 +1,108 @@
-import { StrictMode } from 'react';
-import ReactDOM from 'react-dom/client';
-import { Provider } from 'react-redux';
-import { createBrowserRouter, RouterProvider } from 'react-router';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { store } from './redux/store';
-import './index.css';
+import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
+import { createBrowserRouter, RouterProvider } from "react-router";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { store } from "./redux/store";
+import "./index.css";
 
 // Layout & Pages
-import RootLayout from './components/layout/RootLayout';
-import AboutUsPage from './pages/AboutUsPage';
+
+import AboutUsPage from "./pages/AboutUsPage";
+import ForgotPassword from "./components/auth/ForgotPassword";
+import SignUpComponent from "./components/auth/SignUpComponent";
+import LoginComponent from "./components/auth/LoginComponent";
+import RootLayout from "./layout/RootLayout";
+import HomePage from "./pages/HomePage";
+import StreamPage from "./pages/StreamPage";
+import MovieDetailPage from "./pages/MovieDetailPage";
+import StreamMovieDetailPage from "./pages/StreamMovieDetailPage";
+import PromotionPage from "./pages/promotions/PromotionPage";
+import DetailPage from "./pages/promotions/DetailPage";
+import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
+
+import AdminLayout from "./layout/AdminLayout";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminMovieLibraryPage from "./pages/admin/AdminMovieLibraryPage";
+import AdminUserAnalyticsPage from "./pages/admin/AdminUserAnalyticsPage";
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <RootLayout />,
     children: [
       {
         index: true,
-        element: null, // Empty for homepage until your team builds it
+        element: <HomePage />,
       },
       {
-        path: '/about',
+        path: "/ForgotPassword",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "/SignUp",
+        element: <SignUpComponent />,
+      },
+      {
+        path: "/Login",
+        element: <LoginComponent />,
+      },
+      {
+        path: "/about",
         element: <AboutUsPage />,
+      },
+      {
+        path: "/stream",
+        element: <StreamPage />,
+      },
+      {
+        path: "/movies/:id",
+        element: <MovieDetailPage />,
+      },
+      {
+        path: "/stream/:id",
+        element: <StreamMovieDetailPage />,
+      },
+      {
+        path: "/booking/seats",
+        element: <SeatSelectionPage />,
+      },
+      {
+        path: "/promo",
+        element: <PromotionPage />,
+        children: [
+          {
+            path: ":id",
+            element: <DetailPage />,
+          },
+        ],
       },
     ],
   },
   {
-    path: '*',
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
+      {
+        index: true,
+        element: <AdminDashboardPage />,
+      },
+      {
+        path: "dashboard",
+        element: <AdminDashboardPage />,
+      },
+      {
+        path: "movies",
+        element: <AdminMovieLibraryPage />,
+      },
+      {
+        path: "analytics",
+        element: <AdminUserAnalyticsPage />,
+      },
+    ],
+  },
+  {
+    path: "*",
     element: (
       <div className="py-20 text-center text-white font-sans">
         <h1 className="text-4xl font-black text-[#B90101]">404</h1>
@@ -37,24 +112,22 @@ const router = createBrowserRouter([
   },
 ]);
 
-const root = document.getElementById('root');
+const root = document.getElementById("root");
 
 ReactDOM.createRoot(root).render(
-  <StrictMode>
-    <Provider store={store}>
-      <RouterProvider router={router} />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
-      />
-    </Provider>
-  </StrictMode>
+  <Provider store={store}>
+    <RouterProvider router={router} />
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="dark"
+    />
+  </Provider>,
 );
