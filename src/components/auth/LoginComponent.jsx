@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router';
-import heroImage from '../../assets/image.png';
+import React, { useState } from "react";
+import { Link } from "react-router";
+import heroImage from "../../assets/image.png";
 
 const LoginComponent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const handleChange = (e) => {
@@ -15,7 +15,7 @@ const LoginComponent = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Logging in with:', formData);
+    console.log("Logging in with:", formData);
   };
 
   return (
@@ -95,7 +95,7 @@ const LoginComponent = () => {
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
                   placeholder="Enter your password"
@@ -108,7 +108,7 @@ const LoginComponent = () => {
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeIcon /> : <EyeOffIcon />}
                 </button>
@@ -142,16 +142,16 @@ const LoginComponent = () => {
             type="button"
             className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 py-3.5 font-family: 'google-sans', text-neutral-900 transition-colors hover:bg-neutral-200"
           >
-            <Link to="google" >
-                Login with Google
-            </Link>
+            <Link to="google">Login with Google</Link>
             <GoogleIcon />
-            
           </button>
 
           <p className="mt-6 text-center text-sm text-neutral-500">
-            Don&apos;t have any account?{' '}
-            <Link to="/signup" className="font-family: 'google-sans', text-primary-red underline">
+            Don&apos;t have any account?{" "}
+            <Link
+              to="/signup"
+              className="font-family: 'google-sans', text-primary-red underline"
+            >
               Sign up
             </Link>
           </p>
@@ -162,16 +162,40 @@ const LoginComponent = () => {
 };
 
 const GoogleIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.98-4.33 2.98-7.33Z" fill="#4285F4" />
-    <path d="M10 20c2.7 0 4.96-.9 6.62-2.44l-3.24-2.5c-.9.6-2.06.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H1.06v2.58A10 10 0 0 0 10 20Z" fill="#34A853" />
-    <path d="M4.41 11.9a6 6 0 0 1 0-3.8V5.52H1.06a10 10 0 0 0 0 8.96l3.35-2.58Z" fill="#FBBC05" />
-    <path d="M10 3.98c1.47 0 2.79.5 3.83 1.5l2.87-2.87A9.96 9.96 0 0 0 10 0 10 10 0 0 0 1.06 5.52L4.41 8.1C5.2 5.74 7.4 3.98 10 3.98Z" fill="#EA4335" />
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.98-4.33 2.98-7.33Z"
+      fill="#4285F4"
+    />
+    <path
+      d="M10 20c2.7 0 4.96-.9 6.62-2.44l-3.24-2.5c-.9.6-2.06.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H1.06v2.58A10 10 0 0 0 10 20Z"
+      fill="#34A853"
+    />
+    <path
+      d="M4.41 11.9a6 6 0 0 1 0-3.8V5.52H1.06a10 10 0 0 0 0 8.96l3.35-2.58Z"
+      fill="#FBBC05"
+    />
+    <path
+      d="M10 3.98c1.47 0 2.79.5 3.83 1.5l2.87-2.87A9.96 9.96 0 0 0 10 0 10 10 0 0 0 1.06 5.52L4.41 8.1C5.2 5.74 7.4 3.98 10 3.98Z"
+      fill="#EA4335"
+    />
   </svg>
 );
 
 const EyeIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <path
       d="M10 4c-4.5 0-8.3 3-9.6 6 1.3 3 5.1 6 9.6 6s8.3-3 9.6-6c-1.3-3-5.1-6-9.6-6Z"
       stroke="currentColor"
@@ -182,7 +206,13 @@ const EyeIcon = () => (
 );
 
 const EyeOffIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <path
       d="M2.5 2.5l15 15M8.3 8.5a2.5 2.5 0 0 0 3.4 3.4M6.2 6.3C3.9 7.4 2.1 9.2 1 10c1.3 3 5.1 6 9.6 6 1.4 0 2.7-.3 3.9-.8M15.6 15.7C17.5 14.4 18.9 12.6 19.6 10c-1.1-2.6-4.1-5.2-8-5.9"
       stroke="currentColor"
