@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { X } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { useEffect } from "react";
+import { X } from "lucide-react";
+import { useNavigate } from "react-router";
 
 /**
  * BookingTypeModal
@@ -18,15 +18,15 @@ export default function BookingTypeModal({
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
     }
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
 
@@ -38,7 +38,20 @@ export default function BookingTypeModal({
     }
     onClose();
     if (session?.movieId) {
-      navigate(`/booking/seats?movie=${session.movieId}&type=${bookingType}&time=${encodeURIComponent(session.time || '')}&branch=${encodeURIComponent(session.branchName || '')}`);
+      const isGold = Boolean(
+        session.goldClass ||
+        (session.hall && session.hall.toLowerCase().includes("gold")),
+      );
+      const hallParam = isGold ? "gold" : "standard";
+      const params = new URLSearchParams({
+        movie: session.movieId,
+        hall: hallParam,
+        type: bookingType,
+        time: session.time || "",
+        branch: session.branchName || "",
+        date: session.date || "",
+      });
+      navigate(`/booking/seats?${params.toString()}`);
     }
   };
 
@@ -75,9 +88,9 @@ export default function BookingTypeModal({
             {/* Standard Booking Button */}
             <button
               type="button"
-              onClick={() => handleBookingChoice('standard')}
+              onClick={() => handleBookingChoice("standard")}
               className="w-full sm:w-auto px-6 py-2.5 rounded-full text-white font-bold text-sm tracking-wide shadow-md hover:brightness-110 active:scale-95 transition"
-              style={{ backgroundColor: '#B90101' }}
+              style={{ backgroundColor: "#B90101" }}
             >
               Standard Booking
             </button>
@@ -85,9 +98,9 @@ export default function BookingTypeModal({
             {/* Group Booking Button */}
             <button
               type="button"
-              onClick={() => handleBookingChoice('group')}
+              onClick={() => handleBookingChoice("group")}
               className="w-full sm:w-auto px-6 py-2.5 rounded-full text-white font-bold text-sm tracking-wide shadow-md hover:brightness-110 active:scale-95 transition"
-              style={{ backgroundColor: '#B90101' }}
+              style={{ backgroundColor: "#B90101" }}
             >
               Group Booking
             </button>
@@ -97,4 +110,3 @@ export default function BookingTypeModal({
     </div>
   );
 }
-

@@ -15,6 +15,7 @@ import StreamMovieDetailPage from "./pages/StreamMovieDetailPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import PromotionPage from "./pages/promotions/PromotionPage";
 import DetailPage from "./pages/promotions/DetailPage";
+import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
 
 const router = createBrowserRouter([
   {
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
         element: <StreamMovieDetailPage />,
       },
       {
+        path: "/booking/seats",
+        element: <SeatSelectionPage />,
+      },
+      {
         path: "/promo",
         element: <PromotionPage />,
         children: [
@@ -52,6 +57,44 @@ const router = createBrowserRouter([
         ],
       },
     ],
+    // path: "/admin",
+    // element: <RootLayout />,
+    // children: [
+    //   {
+    //     index: true,
+    //     element: <HomePage />,
+    //   },
+    //   {
+    //     path: "/about",
+    //     element: <AboutUsPage />,
+    //   },
+    //   {
+    //     path: "/stream",
+    //     element: <StreamPage />,
+    //   },
+    //   {
+    //     path: "/movies/:id",
+    //     element: <MovieDetailPage />,
+    //   },
+    //   {
+    //     path: "/stream/:id",
+    //     element: <StreamMovieDetailPage />,
+    //   },
+    //   {
+    //     path: "/booking/seats",
+    //     element: <SeatSelectionPage />,
+    //   },
+    //   {
+    //     path: "/promo",
+    //     element: <PromotionPage />,
+    //     children: [
+    //       {
+    //         path: ":id",
+    //         element: <DetailPage />,
+    //       },
+    //     ],
+    //   },
+    // ],
   },
   {
     path: "*",

@@ -56,7 +56,7 @@ export const movieApi = baseApi.injectEndpoints({
       providesTags: [{ type: "Movie", id: "TOP_RATED" }],
     }),
 
-    // 7. Discover All Movies (with optional filters: page, genres, sort)
+    // 7. Discover All Movies
     discoverMovies: builder.query({
       query: (params = {}) => {
         const queryParams = new URLSearchParams();

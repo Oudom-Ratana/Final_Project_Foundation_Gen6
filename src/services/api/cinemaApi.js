@@ -23,7 +23,7 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
   }),
-  overrideExisting: false,
+  // overrideExisting: false,
 });
 
 export const {

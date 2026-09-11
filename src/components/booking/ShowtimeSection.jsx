@@ -29,6 +29,7 @@ export default function ShowtimeSection({ onSelectShowtime }) {
         branchId: branch.id,
         branchName: branch.branchName,
         hall: branch.hall,
+        goldClass: Boolean(branch.goldClass),
         date: `${selectedDate.month} ${selectedDate.day} ${selectedDate.weekday}`,
         time: time,
         screenType: branch.screenType || branch.hall,
