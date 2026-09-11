@@ -1,3 +1,4 @@
+
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -5,13 +6,14 @@
 @theme {
   --color-primary: #b90101;
   --color-primary-dark: #8b0101;
-  --color-accent-gold: #ffd700;
-  --color-bg-light: #f6f7f9;
+  --color-accent-gold: #FFD700;
+  --color-bg-light: #F6F7F9;
 
-  /* Typography */
-  --font-sans:
-    "Google Sans", "Product Sans", "Open Sans", system-ui, -apple-system,
-    sans-serif;
+  --text-light: #828282;
+  --text-black: rgba(255, 255, 255, 0.7);
+
+   /* Typography */
+  --font-sans: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, -apple-system, sans-serif;
 
   --text-h1: 96px;
   --text-h2: 44px;
@@ -24,23 +26,38 @@
   --card-title: 28px;
   --card-description: 18px;
   --text-btn-card: 16px;
+ 
   --font-weight-regular: 400;
   --font-weight-bold: 700;
 }
 
 @layer base {
   :root {
-    --primary-red: #b90101;
-    --accent-gold: #ffd700;
-    --bg-light: #f6f7f9;
-    --bg-pop-up-light-mode: rgba(39, 42, 48, 0.25); /*[#272A30]/25*/
-    --bg-pop-up-dark-mode: rgba(26, 31, 37, 0.4); /*[#1A1F25]/40*/
+    --primary-red: #B90101;
+    --accent-gold: #FFD700;
+    --bg-light: #F6F7F9;
+    --bg-pop-up-light-mode: rgba(39, 42, 48, 0.25);     /*[#272A30]/25*/
+    --bg-pop-up-dark-mode: rgba(26, 31, 37, 0.4);       /*[#1A1F25]/40*/
 
     /* Glassmorphism - Light Mode */
     --primary-color-5: rgba(39, 42, 48, 0.05);
+    --border-light-mode: rgba(39, 42, 48, 0.05);        /*[#272A30]/5*/
 
     /* Glassmorphism - dark  Mode */
     --primary-color-30: rgba(39, 42, 48, 0.3);
+    --border-dark-mode: rgba(255, 255, 255, 0.2);
+
+    /* ======= Dark mode ======
+      For title's color: White (FFFFF)  or  --color-primary: #B90101;
+       for description's : [#FFFFFF]/70 or  --text-black: rgba(255, 255, 255, 0.7);
+    */
+
+
+      /* ======= Light mode ======
+      For title's color: black (00000)  or  --color-primary: #B90101;
+       for description's : [#828282]  or   --text-light: #828282;
+    */
+
   }
 
   html {
@@ -93,7 +110,7 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
-  border: 2px solid #dde1e7;
+  border: 2px solid #DDE1E7;
   box-shadow: 0 8px 32px rgba(39, 42, 48, 0.08);
 }
 

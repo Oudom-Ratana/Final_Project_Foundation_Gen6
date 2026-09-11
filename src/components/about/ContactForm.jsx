@@ -44,22 +44,22 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="p-8 rounded-2xl bg-[#EFEFEF] dark:bg-black/60 border border-transparent dark:border-white/10 shadow-sm dark:shadow-2xl space-y-6 font-sans">
+    <div className="p-8 sm:p-10 rounded-3xl bg-[#EFEFEF] dark:bg-[#1A1F25]/40 border border-neutral-200/80 dark:border-white/20 shadow-sm dark:shadow-2xl space-y-8 font-sans transition-colors duration-300">
       <div>
-        <h3 className="text-2xl font-bold text-black dark:text-white">
+        <h3 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
           Send Us a Message
         </h3>
-        <p className="text-xs text-neutral-400 dark:text-neutral-400 mt-1">
+        <p className="text-sm text-neutral-600 dark:text-[rgba(255,255,255,0.7)] mt-2">
           Our support team will respond as soon as possible
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name & Email Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
-            <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
-              Full Name <span className="text-[#9E0000] dark:text-red-500">*</span>
+            <label className="block text-sm font-semibold text-neutral-900 dark:text-white mb-2">
+              Full Name <span className="text-[var(--primary-red)]">*</span>
             </label>
             <input
               type="text"
@@ -67,14 +67,14 @@ export default function ContactForm() {
               required
               value={formData.name}
               onChange={handleChange}
-              placeholder="Ratana Oudom"
-              className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
+              placeholder="Enter your name"
+              className="w-full px-5 py-3.5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
-              Email Address <span className="text-[#9E0000] dark:text-red-500">*</span>
+            <label className="block text-sm font-semibold text-neutral-900 dark:text-white mb-2">
+              Email Address <span className="text-[var(--primary-red)]">*</span>
             </label>
             <input
               type="email"
@@ -82,16 +82,16 @@ export default function ContactForm() {
               required
               value={formData.email}
               onChange={handleChange}
-              placeholder="oudom@example.com"
-              className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
+              placeholder="Enter your email"
+              className="w-full px-5 py-3.5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
             />
           </div>
         </div>
 
         {/* Phone & Subject Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
-            <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
+            <label className="block text-sm font-semibold text-neutral-900 dark:text-white mb-2">
               Phone Number
             </label>
             <input
@@ -99,13 +99,13 @@ export default function ContactForm() {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="+855 12 345 678"
-              className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
+              placeholder="Enter phone number"
+              className="w-full px-5 py-3.5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
+            <label className="block text-sm font-semibold text-neutral-900 dark:text-white mb-2">
               Subject
             </label>
             <input
@@ -114,15 +114,15 @@ export default function ContactForm() {
               value={formData.subject}
               onChange={handleChange}
               placeholder="Select a subject"
-              className="w-full px-4 py-2.5 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-full text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000]"
+              className="w-full px-5 py-3.5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
             />
           </div>
         </div>
 
         {/* Message Textarea */}
         <div>
-          <label className="block text-xs font-semibold text-black dark:text-neutral-200 mb-2">
-            Message <span className="text-[#9E0000] dark:text-red-500">*</span>
+          <label className="block text-sm font-semibold text-neutral-900 dark:text-white mb-2">
+            Message <span className="text-[var(--primary-red)]">*</span>
           </label>
           <textarea
             name="message"
@@ -131,25 +131,25 @@ export default function ContactForm() {
             value={formData.message}
             onChange={handleChange}
             placeholder="Write any message here"
-            className="w-full p-4 bg-white dark:bg-black/40 border border-transparent dark:border-white/15 rounded-2xl text-xs text-neutral-700 dark:text-neutral-200 placeholder-neutral-300 dark:placeholder-neutral-500 focus:outline-none focus:border-[#9E0000] resize-none"
+            className="w-full p-5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-2xl text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] resize-none transition-colors shadow-xs"
           />
         </div>
 
         {/* Consent Checkbox */}
-        <div className="flex items-center gap-2.5 pt-1">
+        <div className="flex items-center gap-3 pt-1">
           <input
             type="checkbox"
             id="agree"
             name="agree"
             checked={formData.agree}
             onChange={handleChange}
-            className="w-3.5 h-3.5 rounded-full accent-[#9E0000] cursor-pointer"
+            className="w-4 h-4 rounded bg-white dark:bg-transparent border-neutral-300 dark:border-white/30 accent-[var(--primary-red)] cursor-pointer"
           />
           <label
             htmlFor="agree"
-            className="text-[11px] text-neutral-500 dark:text-neutral-400 cursor-pointer select-none"
+            className="text-xs sm:text-sm text-neutral-600 dark:text-[rgba(255,255,255,0.8)] cursor-pointer select-none"
           >
-            I agree that ISTAD AngkorCine may use my information to respond to this request.
+            I agree that ISTAD AngkorCine may use my information to this request.
           </label>
         </div>
 
@@ -157,9 +157,9 @@ export default function ContactForm() {
         <div className="pt-2">
           <button
             type="submit"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-medium text-xs bg-[#9E0000] hover:bg-red-800 transition-colors"
+            className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-white font-bold text-sm bg-[var(--primary-red)] hover:bg-[#8b0101] transition-colors cursor-pointer shadow-sm"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-4 h-4" />
             <span>Send Message</span>
           </button>
         </div>
