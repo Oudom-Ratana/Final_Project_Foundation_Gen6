@@ -4,11 +4,11 @@ import {
   useDiscoverMoviesQuery,
   useSearchMoviesQuery,
 } from '../services/api/movieApi';
-import MovieCard from '../components/home/MovieCard';
 import MovieCardSkeleton from '../components/home/MovieCardSkeleton';
 import ScrollReveal from '../components/common/ScrollReveal';
 import StreamHero from '../components/stream/StreamHero';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import StreamCard from '../components/stream/StreamCard';
 
 export default function StreamPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -98,7 +98,7 @@ export default function StreamPage() {
                   duration={700}
                   distance="translate-y-10"
                 >
-                  <MovieCard movie={movie} />
+                  <StreamCard movie={movie} />
                 </ScrollReveal>
               ))}
         </div>

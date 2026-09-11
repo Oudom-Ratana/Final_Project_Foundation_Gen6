@@ -128,25 +128,14 @@
     #000000;
 }
 
-/* Custom scrollbar utility */
+/* Hide scrollbars globally (scrolling stays functional, bar is invisible) */
+* {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* Legacy Edge / IE */
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0d0304;
-}
-
-html:not(.dark) ::-webkit-scrollbar-track {
-  background: #F6F7F9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #B90101;
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #e60000;
+  display: none;
+  width: 0;
+  height: 0;
 }

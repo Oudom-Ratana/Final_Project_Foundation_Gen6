@@ -170,11 +170,11 @@ export default function StreamHero({ onSearch }) {
       <div className="flex justify-center">
         <Link
           to="/favourite"
-          className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-white font-bold text-[14px] shadow-lg hover:brightness-110 active:scale-95 transition"
+          className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-white font-bold card-description shadow-lg hover:brightness-110 active:scale-95 transition"
           style={{ backgroundColor: '#B90101' }}
         >
           <span>Favourite Movies</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-5 h-5" />
         </Link>
       </div>
     </div>

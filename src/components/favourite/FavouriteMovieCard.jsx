@@ -47,13 +47,11 @@ export default function MovieCard({
             <button
               type="button"
               onClick={() => dispatch(removeFromFavourite(id))}
-              className="flex flex-col items-center gap-1 text-black dark:text-white hover:text-red-600"
-            >
+              className="flex flex-col items-center gap-1 hover:text-[var(--color-primary)] border-none">
               <Heart
                 size={20}
-                className={isFavourite ? "fill-red-600 text-[var(--color-primary)]" : ""}
-              />
-              <span>Favourite</span>
+                className={isFavourite ? "fill-[var(--color-primary)] text-[var(--color-primary)] inline-block transition-transform duration-200 hover:scale-110" : ""} />
+              <span className='text-[var(--color-primary)] inline-block transition-transform duration-200 hover:scale-110'>Favourite</span>
             </button>
 
             <div className="h-8 w-px" />
@@ -61,8 +59,7 @@ export default function MovieCard({
             <button
               type="button"
               onClick={onDelete || (() => dispatch(removeFromFavourite(id)))}
-              className="flex flex-col items-center gap-1 text-[var(--color-primary)] hover:text-red-700"
-            >
+              className="flex flex-col items-center gap-1 text-[var(--color-primary)] hover:text-red-700 transition-transform duration-200 hover:scale-110">
               <Trash2 size={20} />
               <span>Delete</span>
             </button>
@@ -88,9 +85,9 @@ export default function MovieCard({
         <button
           type="button"
           onClick={() => navigate(`/movies/${id}`)}
-          className="mt-4 flex w-fit items-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+          className="mt-4 flex w-fit items-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-transform duration-200 hover:scale-105"
         >
-          <Play size={16} className="fill-white" />
+          <Play size={16} className="fill-white " />
           Full movie
         </button>
       </div>

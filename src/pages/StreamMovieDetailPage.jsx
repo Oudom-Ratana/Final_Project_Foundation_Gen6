@@ -181,8 +181,8 @@ export default function MovieDetailPage() {
             className="w-full h-[650px] object-cover object-center filter blur-xs opacity-25 dark:opacity-35 scale-105"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#F6F7F9] dark:from-[#080203] via-[#F6F7F9]/80 dark:via-black/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#F6F7F9] dark:from-black via-transparent to-[#F6F7F9] dark:to-black" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#F6F7F9] dark:from-[#080203] via-[#F6F7F9]/80 dark:via-black/70 to-transparent dark:hidden" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#F6F7F9] dark:from-black via-transparent to-[#F6F7F9] dark:to-black dark:hidden" />
       </div>
 
       <div className="relative z-10 space-y-12 pt-6">
@@ -261,68 +261,34 @@ export default function MovieDetailPage() {
                       : 'text-[#B90101]'
                   }`}
                 />
-                <span className="font-bold">Favourite</span>
+                <span className="font-sans font-bold dark:text-white text-neutral-900">Favourite</span>
               </button>
             </div>
 
             {/* Action Buttons: Watch Trailer & Full Movie */}
             <div className="flex flex-wrap items-center gap-4 pt-3">
-              {/* Watch Trailer Button (Red Pill) */}
+              {/* Watch Trailer Button (White Pill) */}
               <button
                 type="button"
                 onClick={handleOpenTrailer}
-                className="flex items-center gap-2.5 px-6 py-2.5 rounded-full text-white font-black text-sm uppercase tracking-wider shadow-xl shadow-red-950/50 hover:brightness-110 active:scale-95 transition"
-                style={{ backgroundColor: '#B90101' }}
+                className="flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-white text-neutral-900 font-sans font-bold text-sm uppercase tracking-wider shadow-lg hover:brightness-105 hover:scale-105 active:scale-95 transition"
               >
-                <Play className="w-4 h-4 fill-white" />
-                <span>Watch Trailer</span>
+                <Play className="w-4 h-4 fill-current text-[var(--primary-red)]" />
+                <span className='text-[var(--primary-red)]'>Watch Trailer</span>
               </button>
 
-              {/* Full Movie Button (Glassmorphic Pill) */}
+              {/* Full Movie Button (Red Pill) */}
               <button
                 type="button"
                 onClick={() => handleOpenFullMovie(1)}
-                className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-neutral-300 dark:border-white/20 bg-white/40 dark:bg-white/10 backdrop-blur-md text-neutral-900 dark:text-white font-bold text-sm uppercase tracking-wider hover:bg-white/60 dark:hover:bg-white/20 active:scale-95 transition shadow-sm"
+                className="flex items-center gap-2.5 px-6 py-2.5 rounded-full text-white font-sans font-bold text-sm uppercase tracking-wider shadow-md shadow-red-950/50 hover:brightness-110 hover:scale-105 active:scale-95 transition"
+                style={{ backgroundColor: '#B90101' }}
               >
-                <Play className="w-4 h-4 fill-current" />
+                <Play className="w-4 h-4 fill-white" />
                 <span>Full Movie</span>
               </button>
             </div>
 
-            {/* Episode Selector (Figma Style) */}
-            <div className="space-y-3 pt-4">
-              <div className="space-y-0.5">
-                <h3 className="text-xl font-black text-neutral-900 dark:text-white">
-                  Episode
-                </h3>
-                <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">
-                  Total {totalEpisodes}
-                </p>
-              </div>
-
-              {/* Numbered Episode Buttons in Golden Border (1 to 8) */}
-              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                {Array.from({ length: Math.min(totalEpisodes, 8) }, (_, idx) => idx + 1).map(
-                  (epNumber) => {
-                    const isSelected = selectedEpisode === epNumber;
-                    return (
-                      <button
-                        key={epNumber}
-                        type="button"
-                        onClick={() => handleOpenFullMovie(epNumber)}
-                        className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl font-black text-base sm:text-lg flex items-center justify-center transition-all border ${
-                          isSelected
-                            ? 'bg-[#B90101] text-white border-[#B90101] shadow-lg shadow-red-950/50 scale-105'
-                            : 'bg-transparent text-[#EAB308] border-[#EAB308] hover:bg-[#EAB308]/10'
-                        }`}
-                      >
-                        {epNumber}
-                      </button>
-                    );
-                  }
-                )}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -334,7 +300,7 @@ export default function MovieDetailPage() {
               return (
                 <div
                   key={index}
-                  className="rounded-2xl border border-neutral-200/80 dark:border-white/15 bg-white/70 dark:bg-black/40 backdrop-blur-md p-4 sm:p-5 text-center flex flex-col items-center justify-center gap-2 shadow-sm dark:shadow-xl hover:scale-105 transition-transform"
+                  className="rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md p-4 sm:p-5 text-center flex flex-col items-center justify-center gap-2 shadow-sm dark:shadow-xl hover:scale-105 transition-transform"
                 >
                   {/* Red Circle Icon */}
                   <div className="w-10 h-10 rounded-full bg-[#B90101] flex items-center justify-center text-white shadow-md">

@@ -40,7 +40,7 @@ export default function FavouritePage() {
           className="w-1.5 h-7 rounded-full inline-block"
           style={{ backgroundColor: '#B90101' }}
         />
-        <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
+        <h2 className="text-btn-card)] sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
           My Favourite Movies
         </h2>
         <span className="text-sm font-bold text-neutral-400">

@@ -11,7 +11,7 @@ import "./index.css";
 import RootLayout from "./components/layout/RootLayout";
 import HomePage from "./pages/HomePage";
 import StreamPage from "./pages/StreamPage";
-import MovieDetailPage from "./pages/MovieDetailPage";
+import StreamMovieDetailPage from "./pages/StreamMovieDetailPage"
 import AboutUsPage from './pages/AboutUsPage';
 import PromotionPage from './pages/promotions/PromotionPage';
 import DetailPage from './pages/promotions/DetailPage';
@@ -40,7 +40,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/movies/:id",
-        element: <MovieDetailPage />,
+        element: <StreamMovieDetailPage />,
       },
       {
         path: '/promo',
