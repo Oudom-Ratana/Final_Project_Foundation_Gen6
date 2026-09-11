@@ -11,11 +11,10 @@ import RootLayout from "./components/layout/RootLayout";
 import HomePage from "./pages/HomePage";
 import StreamPage from "./pages/StreamPage";
 import MovieDetailPage from "./pages/MovieDetailPage";
-import StreamMovieDetailPage from "./pages/StreamMovieDetailPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import PromotionPage from "./pages/promotions/PromotionPage";
 import DetailPage from "./pages/promotions/DetailPage";
-import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
+import MyTicketsPage from "./pages/MyTicketsPage";
 
 const router = createBrowserRouter([
   {
@@ -39,14 +38,6 @@ const router = createBrowserRouter([
         element: <MovieDetailPage />,
       },
       {
-        path: "/stream/:id",
-        element: <StreamMovieDetailPage />,
-      },
-      {
-        path: "/booking/seats",
-        element: <SeatSelectionPage />,
-      },
-      {
         path: "/promo",
         element: <PromotionPage />,
         children: [
@@ -56,45 +47,11 @@ const router = createBrowserRouter([
           },
         ],
       },
+      {
+        path: "/my-tickets",
+        element: <MyTicketsPage />,
+      },
     ],
-    // path: "/admin",
-    // element: <RootLayout />,
-    // children: [
-    //   {
-    //     index: true,
-    //     element: <HomePage />,
-    //   },
-    //   {
-    //     path: "/about",
-    //     element: <AboutUsPage />,
-    //   },
-    //   {
-    //     path: "/stream",
-    //     element: <StreamPage />,
-    //   },
-    //   {
-    //     path: "/movies/:id",
-    //     element: <MovieDetailPage />,
-    //   },
-    //   {
-    //     path: "/stream/:id",
-    //     element: <StreamMovieDetailPage />,
-    //   },
-    //   {
-    //     path: "/booking/seats",
-    //     element: <SeatSelectionPage />,
-    //   },
-    //   {
-    //     path: "/promo",
-    //     element: <PromotionPage />,
-    //     children: [
-    //       {
-    //         path: ":id",
-    //         element: <DetailPage />,
-    //       },
-    //     ],
-    //   },
-    // ],
   },
   {
     path: "*",
