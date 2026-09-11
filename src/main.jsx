@@ -8,10 +8,10 @@ import "./index.css";
 
 // Layout & Pages
 
-import AboutUsPage from './pages/AboutUsPage';
-import ForgotPassword from './components/auth/ForgotPassword';
-import SignUpComponent from './components/auth/SignUpComponent';
-import LoginComponent from './components/auth/LoginComponent';
+import AboutUsPage from "./pages/AboutUsPage";
+import ForgotPassword from "./components/auth/ForgotPassword";
+import SignUpComponent from "./components/auth/SignUpComponent";
+import LoginComponent from "./components/auth/LoginComponent";
 import RootLayout from "./layout/RootLayout";
 import HomePage from "./pages/HomePage";
 import StreamPage from "./pages/StreamPage";
@@ -36,19 +36,19 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: '/ForgotPassword',
+        path: "/ForgotPassword",
         element: <ForgotPassword />,
       },
       {
-        path: '/SignUp',
+        path: "/SignUp",
         element: <SignUpComponent />,
       },
-       {
-        path: '/Login',
+      {
+        path: "/Login",
         element: <LoginComponent />,
       },
       {
-        path: '/about',
+        path: "/about",
         element: <AboutUsPage />,
       },
       {

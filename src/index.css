@@ -26,7 +26,6 @@
   --text-btn-card: 16px;
   --font-weight-regular: 400;
   --font-weight-bold: 700;
-
 }
 
 @layer base {
@@ -98,7 +97,6 @@
   box-shadow: 0 8px 32px rgba(39, 42, 48, 0.08);
 }
 
-
 /* Custom Utilities for Project Colors & Theme */
 .bg-primary-red {
   background-color: #b90101 !important;
@@ -117,7 +115,7 @@
 }
 
 .text-dark {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 .bg-accent-gold {
