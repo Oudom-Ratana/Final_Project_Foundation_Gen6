@@ -20,77 +20,75 @@ const SignUpComponent = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex h-full w-full">
       {/* Left Hero Section */}
-      <div className="relative hidden w-1/2 md:block">
+      <div className="relative hidden w-1/2 md:block h-full">
         <img
           src={heroImage}
-          alt=""
+          alt="Cinema Experience"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="relative flex h-full flex-col justify-start px-12 pt-6 pb-12">
-          <h2 className="text-h3 font-family: 'google-sans', leading-tight text-white">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+        <div className="relative flex h-full flex-col justify-end px-10 pb-12">
+          <h2 className="text-2xl lg:text-3xl font-bold leading-snug text-white">
             Your next
             <br />
             movie experience
             <br />
-            <span className="relative inline-block">
+            <span className="relative inline-block mt-1">
               starts here.
-              <span className="absolute -bottom-2 left-0 h-1 w-24 bg-primary-red" />
+              <span className="absolute -bottom-1.5 left-0 h-1 w-20 bg-primary-red rounded-full" />
             </span>
           </h2>
         </div>
       </div>
 
       {/* Right Form Section */}
-      <div className="flex w-full items-center justify-center bg-blend-darken px-6 md:w-1/2">
-        <div className="w-full max-w-md py-12">
+      <div className="flex w-full md:w-1/2 items-center justify-center px-4 sm:px-6 lg:px-8 py-2 sm:py-4 h-full overflow-y-auto">
+        <div className="w-full max-w-md sm:max-w-lg my-auto py-1 sm:py-2">
           {/* Tabs */}
-          <div className="mb-8 flex items-center gap-3">
+          <div className="mb-4 sm:mb-5 flex items-center gap-3 sm:gap-4">
             <Link
               to="/login"
-              className="text-xl font-medium text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
+              className="text-2xl sm:text-3xl lg:text-4xl font-medium text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200 tracking-tight"
             >
               Log In
             </Link>
-            <span className="h-6 w-px bg-primary-red" />
-            <span className="text-xl font-bold text-neutral-900 dark:text-white">
+            <span className="h-7 sm:h-8 lg:h-9 w-0.5 bg-primary-red rounded-full" />
+            <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-primary-red tracking-tight">
               Sign Up
             </span>
           </div>
 
           {/* Social Auth */}
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 py-3.5 font-family: 'google-sans', text-neutral-900 transition-colors hover:bg-neutral-200"
+              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
             >
               <GoogleIcon />
-              <Link to="/google">Google</Link>
+              <span>Google</span>
             </button>
             <button
               type="button"
-              className="flex flex-1 items-center text-center justify-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 py-3.5 font-family: 'google-sans', text-neutral-900 transition-colors hover:bg-neutral-200"
+              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
             >
               <FacebookIcon />
-              <Link to="/facebook">Facebook</Link>
+              <span>Facebook</span>
             </button>
           </div>
 
-          <div className="my-6 flex items-center gap-4">
-            <span className="h-px flex-1 bg-neutral-200" />
-            <span className="text-sm font-family: 'google-sans', text-primary-red">
-              Or
-            </span>
-            <span className="h-px flex-1 bg-neutral-200" />
+          <div className="my-3.5 sm:my-4 flex items-center gap-3">
+            <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-700" />
+            <span className="text-xs font-semibold text-primary-red">Or</span>
+            <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-700" />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-3.5">
             <div>
               <label
                 htmlFor="fullName"
-                className="mb-2 block font-family: 'google-sans', text-dark:color:white"
+                className="mb-1.5 block text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-200"
               >
                 Full Name
               </label>
@@ -102,14 +100,14 @@ const SignUpComponent = () => {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
-                className="w-full rounded-full border border-neutral-200 bg-white px-5 py-3.5 text-neutral-900 placeholder:text-neutral-400 focus:border-primary-red focus:outline-none"
+                className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
               />
             </div>
 
             <div>
               <label
                 htmlFor="email"
-                className="mb-2 block font-family: 'google-sans', text-dark:color:white"
+                className="mb-1.5 block text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-200"
               >
                 Email Address
               </label>
@@ -121,14 +119,14 @@ const SignUpComponent = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full rounded-full border border-neutral-200 bg-white px-5 py-3.5 text-neutral-900 placeholder:text-neutral-400 focus:border-primary-red focus:outline-none"
+                className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
               />
             </div>
 
             <div>
               <label
                 htmlFor="password"
-                className="mb-2 block font-family: 'google-sans', text-dark:color:white"
+                className="mb-1.5 block text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-200"
               >
                 Password
               </label>
@@ -142,12 +140,12 @@ const SignUpComponent = () => {
                   onChange={handleChange}
                   required
                   minLength={8}
-                  className="w-full rounded-full border border-neutral-200 bg-white px-5 py-3.5 pr-12 text-neutral-900 placeholder:text-neutral-400 focus:border-primary-red focus:outline-none"
+                  className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 pr-11 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeIcon /> : <EyeOffIcon />}
@@ -157,17 +155,17 @@ const SignUpComponent = () => {
 
             <button
               type="submit"
-              className="w-full rounded-full bg-primary-red py-3.5 font-bold text-white transition-colors hover:brightness-110 active:scale-95"
+              className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-1 sm:mt-2"
             >
               Create Account
             </button>
           </form>
 
-          <p className="mt-10 text-center text-sm text-neutral-500">
+          <p className="mt-4 sm:mt-5 text-center text-xs text-neutral-500 dark:text-neutral-400">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-family: 'google-sans', text-primary-red underline"
+              className="font-bold text-primary-red underline hover:opacity-90"
             >
               Log In
             </Link>
