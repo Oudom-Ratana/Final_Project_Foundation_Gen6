@@ -71,7 +71,7 @@ export default function HomeHero() {
   if (isLoading || totalSlides === 0) {
     return (
       <section className="relative w-full min-h-[620px] sm:min-h-[700px] lg:min-h-[760px] overflow-hidden bg-neutral-950 font-sans flex flex-col items-center justify-center pt-20 pb-8 px-4 sm:px-6 lg:px-8 border-b border-white/10">
-        <SpidermanLoader size="lg" text="SWINGING INTO FLIM ZONE..." />
+        <SpidermanLoader size="lg" text="SWINGING INTO FILM ZONE..." />
       </section>
     );
   }

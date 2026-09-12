@@ -9,6 +9,7 @@ import {
 } from "../../redux/slices/authSlice";
 import { selectTheme, toggleTheme } from "../../redux/slices/uiSlice";
 import { selectWatchlist } from "../../redux/slices/watchlistSlice";
+import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
 
 export default function Navbar() {
   const dispatch = useDispatch();
@@ -72,27 +73,17 @@ export default function Navbar() {
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4 border-b border-[#9E0505]/20"
         style={{ borderColor: "rgba(158, 5, 5, 0.20)" }}
       >
-        {/* 1. Left: FLIM ZONE Logo with Speed Lines */}
+        {/* 1. Left: FilmZone Logo */}
         <Link
           to="/"
-          className="flex items-center gap-2 group shrink-0 select-none"
+          className="flex items-center gap-2 group shrink-0 select-none py-1"
+          aria-label="FilmZone Home"
         >
-          <div className="flex flex-col">
-            <div className="flex items-center font-black italic tracking-tighter text-2xl sm:text-3xl leading-none">
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-neutral-200 via-neutral-400 to-neutral-600 dark:from-white dark:via-neutral-300 dark:to-neutral-500 drop-shadow-sm">
-                FLIM
-              </span>
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-red-500 via-red-600 to-[#B90101] ml-1 drop-shadow-[0_0_8px_rgba(185,1,1,0.5)]">
-                ZONE
-              </span>
-            </div>
-            {/* Speed underline effect matching logo */}
-            <div className="flex items-center gap-0.5 mt-0.5">
-              <span className="h-[2px] w-5 bg-gradient-to-r from-transparent to-[#B90101]" />
-              <span className="h-[2px] w-9 bg-[#B90101]" />
-              <span className="h-[2px] w-3 bg-[#B90101]" />
-            </div>
-          </div>
+          <img
+            src={filmZoneLogo}
+            alt="FilmZone Logo"
+            className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-sm"
+          />
         </Link>
 
         {/* 2. Center: Navigation Links (Home, Promo, Stream, About) */}

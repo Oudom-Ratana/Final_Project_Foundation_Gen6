@@ -4,7 +4,7 @@ import React from "react";
 export default function SpidermanLoader({
   fullScreen = false,
   size = "md", // 'sm' | 'md' | 'lg'
-  text = "SWINGING INTO FLIM ZONE...",
+  text = "SWINGING INTO FILM ZONE...",
 }) {
   const sizeMap = {
     sm: { container: "w-28 h-28", eye: "scale-75", text: "text-xs" },
