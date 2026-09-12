@@ -59,7 +59,7 @@ export default function BookingTypeModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn select-none font-sans">
       {/* Modal Card */}
       <div
-        className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#1A1F25] border border-neutral-200 dark:border-white/15 p-6 sm:p-8 shadow-2xl transition-all scale-100"
+        className="relative w-full max-w-md rounded-3xl border border-[var(--border-light-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-6 sm:p-8 shadow-2xl transition-all scale-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Red Close Button (Top Right) */}

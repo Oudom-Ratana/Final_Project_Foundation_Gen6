@@ -77,7 +77,7 @@ export default function StreamCard({ movie }) {
         <div className="group flex flex-col space-y-3 font-sans cursor-pointer">
             {/* Poster Container with Mixed Corner Radius (Top-Left: 25px, Top-Right: 0px, Bottom-Left: 0px, Bottom-Right: 25px) */}
             <Link
-                to={movie.id ? `/movies/${movie.id}` : "#"}
+                to={movie.id ? `/stream/${movie.id}` : "#"}
                 className="relative aspect-[291/386] w-full overflow-hidden shadow-md dark:shadow-2xl bg-neutral-900 border border-neutral-200/80 dark:border-white/10 transition-all duration-300 rounded-tl-[25px] rounded-br-[25px] rounded-tr-none rounded-bl-none"
                 style={{
                     borderTopLeftRadius: "25px",

@@ -21,7 +21,7 @@ export default function MovieCard({
   return (
     <div className="flex w-full gap-5 border border-[var(--border-light-mode)] rounded-2xl bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-5">
       <Link
-        to={`/movies/${id}`}
+        to={`/stream/${id}`}
         className="h-56 w-40 shrink-0 overflow-hidden rounded-xl block cursor-pointer"
         aria-label={`View ${title}`}
       >

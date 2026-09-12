@@ -175,8 +175,8 @@ export default function StreamHero({ onSearch }) {
       {/* 5. Centered "Favourite Movies →" Button (Figma Spec) */}
       <div className="flex justify-center">
         <Link
-          // to="/favourite"
-          to="/stream?filter=favourite"
+          to="/favourite"
+          // to="/stream?filter=favourite"
           className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-white font-bold card-description shadow-lg hover:brightness-110 active:scale-95 transition"
           style={{ backgroundColor: '#B90101' }}>
           <span>Favourite Movies</span>
