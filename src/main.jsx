@@ -56,6 +56,10 @@ const router = createBrowserRouter([
         element: <StreamPage />,
       },
       {
+        path: "/stream/:id",
+        element: <StreamMovieDetailPage />,
+      },
+      {
         path: "/movies/:id",
         element: <MovieDetailPage />,
       },
