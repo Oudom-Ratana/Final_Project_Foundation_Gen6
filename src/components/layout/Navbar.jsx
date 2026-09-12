@@ -137,7 +137,7 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Glass Favorite Movie Button (Directly after Login button) */}
+                   {/* Glass Favorite Movie Button (Directly after Login button) */}
           <Link
             to="/stream"
             className="relative w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm group"
@@ -157,19 +157,21 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* Glass Notification Bell Button (Red primary color #B90101) */}
-          <button
-            type="button"
-            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm"
+
+          {/* Glass Notification Bell Button — navigates to /my-tickets */}
+          <Link
+            to="/my-tickets"
+            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#FFD700] hover:scale-105 active:scale-95 transition shadow-sm"
             style={{
               backgroundColor: "rgba(26, 31, 37, 0.10)",
               borderColor: "rgba(255, 255, 255, 0.20)",
               borderRadius: "35px",
             }}
-            aria-label="Notifications"
+            aria-label="My Tickets"
+            title="My Tickets"
           >
-            <Bell className="w-5 h-5 fill-[#B90101] text-[#B90101]" />
-          </button>
+            <Bell className="w-5 h-5 fill-primary text-primary" />
+          </Link>
 
           {/* Glass Theme Switcher Toggle Button (Red primary color #B90101) */}
           <button
