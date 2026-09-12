@@ -20,6 +20,7 @@ import StreamMovieDetailPage from "./pages/StreamMovieDetailPage";
 import PromotionPage from "./pages/promotions/PromotionPage";
 import DetailPage from "./pages/promotions/DetailPage";
 import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
+import MyTicketsPage from "./pages/MyTicketsPage";
 
 import AdminLayout from "./layout/AdminLayout";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
           },
         ],
       },
+      {
+        path: "/my-tickets",
+        element: <MyTicketsPage />,
+      }
     ],
   },
   {
