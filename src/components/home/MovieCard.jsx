@@ -12,6 +12,16 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
 
   if (!movie) return null;
 
+  const isTV = Boolean(
+    movie.media_type === "tv" ||
+    movie.first_air_date ||
+    (movie.name && !movie.title),
+  );
+
+  const targetUrl = movie.id
+    ? `${basePath}/${movie.id}${isTV ? "?type=tv" : ""}`
+    : "#";
+
   const isFavorite = movie.id
     ? watchlist.some((item) => item.id === movie.id)
     : false;
@@ -23,7 +33,15 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
     movie.first_air_date ||
     "2026"
   ).slice(0, 4);
-  const runtime = movie.runtime || "2h 12m";
+  const runtime = movie.runtime
+    ? typeof movie.runtime === "number"
+      ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m`
+      : movie.runtime
+    : isTV
+      ? movie.number_of_seasons
+        ? `${movie.number_of_seasons} Season${movie.number_of_seasons > 1 ? "s" : ""}`
+        : "TV Series"
+      : "2h 12m";
 
   // Handle genre resolution
   let genreName = "ACTION";
@@ -69,7 +87,7 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
     <div className="group flex flex-col space-y-3 font-sans cursor-pointer">
       {/* Poster Container with Mixed Corner Radius and Dark Blur Hover Overlay */}
       <Link
-        to={movie.id ? `${basePath}/${movie.id}` : "#"}
+        to={targetUrl}
         className="relative aspect-[291/386] w-full overflow-hidden shadow-md dark:shadow-2xl bg-neutral-900 border border-neutral-200/80 dark:border-white/10 transition-all duration-300 rounded-tl-[25px] rounded-br-[25px] rounded-tr-none rounded-bl-none"
         style={{
           borderTopLeftRadius: "25px",
@@ -98,31 +116,31 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
               {overviewText}
             </p>
             <span className="inline-flex items-center text-[16px] font-bold text-neutral-300 group-hover:text-accent-gold pt-1">
-              Booking Now →
+              {basePath === "/stream" ? "Stream Now →" : "Booking Now →"}
             </span>
           </div>
         </div>
       </Link>
 
       {/* Title & Metadata */}
-      <div className="space-y-1 px-0.5">
-        <Link to={movie.id ? `${basePath}/${movie.id}` : "#"}>
-          <h3 className="font-black text-[20px] text-neutral-900 dark:text-white leading-tight line-clamp-1 group-hover:text-[#B90101] transition-colors">
+      <div className="space-y-1 px-0.5 pt-0.5">
+        <Link to={targetUrl}>
+          <h3 className="font-black text-[21px] sm:text-[22px] text-neutral-900 dark:text-white leading-tight line-clamp-1 group-hover:text-[#B90101] transition-colors">
             {title}
           </h3>
         </Link>
 
         {/* Time and Rating Row with Favorite Heart Button */}
         <div className="flex items-center justify-between pt-0.5">
-          <p className="text-[15px] text-neutral-500 dark:text-neutral-400 font-medium">
+          <p className="text-[15px] sm:text-[16px] text-neutral-500 dark:text-neutral-400 font-semibold tracking-tight">
             {runtime} • {releaseYear}
           </p>
 
           {/* Right Side: Rating + Favorite Heart Button */}
           <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-1 text-[#FFD700]">
-              <Star className="w-3.5 h-3.5 fill-[#FFD700] text-[#FFD700]" />
-              <span className="text-[14px] font-black leading-none">
+              <Star className="w-4 h-4 fill-[#FFD700] text-[#FFD700]" />
+              <span className="text-[15px] sm:text-[16px] font-black leading-none">
                 {rating}
               </span>
             </div>
@@ -138,7 +156,7 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
               title={isFavorite ? "Remove from favorites" : "Add to favorites"}
             >
               <Heart
-                className={`w-4 h-4 transition-colors ${
+                className={`w-4.5 h-4.5 transition-colors ${
                   isFavorite
                     ? "fill-[#B90101] text-[#B90101]"
                     : "text-neutral-400 hover:text-[#B90101]"

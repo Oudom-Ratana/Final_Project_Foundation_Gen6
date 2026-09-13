@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useSearchParams } from "react-router";
 import {
   FileText,
   Clock,
@@ -12,6 +12,7 @@ import {
   useGetMovieDetailsQuery,
   useGetMovieTrailersQuery,
 } from "../services/api/movieApi";
+import { useGetTVDetailsQuery } from "../services/api/tvApi";
 import ShowtimeSection from "../components/booking/ShowtimeSection";
 import BookingTypeModal from "../components/booking/BookingTypeModal";
 import SpidermanLoader from "../components/common/SpidermanLoader";
@@ -19,15 +20,36 @@ import SpidermanLoader from "../components/common/SpidermanLoader";
 export default function MovieDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Scroll to top immediately when opened
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // Fetch movie details from TMDB
-  const { data: movie, isLoading, isError } = useGetMovieDetailsQuery(id);
-  const { data: trailersData } = useGetMovieTrailersQuery(id);
+  const isExplicitTV = searchParams.get("type") === "tv";
+
+  // Fetch movie details from TMDB (skipped if isExplicitTV)
+  const {
+    data: movieData,
+    isLoading: isMovieLoading,
+    isError: isMovieError,
+  } = useGetMovieDetailsQuery(id, { skip: isExplicitTV });
+
+  // Fetch TV details from TMDB (active if isExplicitTV or if movie query fails)
+  const {
+    data: tvData,
+    isLoading: isTVLoading,
+    isError: isTVError,
+  } = useGetTVDetailsQuery(id, { skip: !isExplicitTV && !isMovieError });
+
+  const movie = isExplicitTV ? tvData : movieData || tvData;
+  const isLoading = isExplicitTV ? isTVLoading : isMovieLoading && isTVLoading;
+  const isError = isExplicitTV ? isTVError : isMovieError && isTVError;
+
+  const { data: trailersData } = useGetMovieTrailersQuery(id, {
+    skip: isExplicitTV,
+  });
 
   const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
@@ -58,8 +80,13 @@ export default function MovieDetailPage() {
     );
   }
 
-  // Extract 100% real movie metadata from TMDB API
-  const title = movie.title || movie.original_title || "Untitled Movie";
+  // Extract 100% real movie/TV metadata from TMDB API
+  const title =
+    movie.title ||
+    movie.name ||
+    movie.original_title ||
+    movie.original_name ||
+    "Untitled";
   const genres =
     movie.genres && movie.genres.length > 0
       ? movie.genres.map((g) => g.name).join(", ")
@@ -68,10 +95,15 @@ export default function MovieDetailPage() {
   const duration =
     movie.runtime && movie.runtime > 0
       ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}min`
-      : "Duration unavailable";
+      : movie.episode_run_time?.[0]
+        ? `${movie.episode_run_time[0]}min per ep`
+        : movie.number_of_seasons
+          ? `${movie.number_of_seasons} Season${movie.number_of_seasons > 1 ? "s" : ""}`
+          : "2h 12m";
 
-  const releaseDate = movie.release_date
-    ? new Date(movie.release_date).toLocaleDateString("en-GB", {
+  const rawDate = movie.release_date || movie.first_air_date;
+  const releaseDate = rawDate
+    ? new Date(rawDate).toLocaleDateString("en-GB", {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -89,8 +121,8 @@ export default function MovieDetailPage() {
     : backdropUrl || "/placeholder-poster.png";
 
   // Extract 100% real Cast & Crew from TMDB credits
-  const castList = movie.credits?.cast || [];
-  const crewList = movie.credits?.crew || [];
+  const castList = movie.credits?.cast || movie.aggregate_credits?.cast || [];
+  const crewList = movie.credits?.crew || movie.aggregate_credits?.crew || [];
 
   // 1. Real Directors
   const directors = crewList
@@ -98,15 +130,20 @@ export default function MovieDetailPage() {
     .map((c) => ({ name: c.name, role: "Director" }));
 
   // 2. Real Writers & Creators
-  const creators = crewList
-    .filter(
-      (c) =>
-        c.job === "Characters" ||
-        c.job === "Comic Book" ||
-        c.job === "Novel" ||
-        c.job === "Original Story",
-    )
-    .map((c) => ({ name: c.name, role: "Characters" }));
+  const creators = [
+    ...(movie.created_by?.map((c) => ({ name: c.name, role: "Creator" })) ||
+      []),
+    ...crewList
+      .filter(
+        (c) =>
+          c.job === "Characters" ||
+          c.job === "Comic Book" ||
+          c.job === "Novel" ||
+          c.job === "Original Story" ||
+          c.job === "Creator",
+      )
+      .map((c) => ({ name: c.name, role: "Characters" })),
+  ];
 
   const writers = crewList
     .filter(

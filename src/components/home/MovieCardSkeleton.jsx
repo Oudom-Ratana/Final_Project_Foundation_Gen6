@@ -13,13 +13,13 @@ export default function MovieCardSkeleton() {
       />
 
       {/* Title & Metadata Skeleton */}
-      <div className="space-y-2 px-0.5 pt-1">
-        <div className="h-5 w-3/4 rounded bg-neutral-300 dark:bg-neutral-800" />
+      <div className="space-y-1.5 px-0.5 pt-1">
+        <div className="h-6 w-3/4 rounded bg-neutral-300 dark:bg-neutral-800" />
         <div className="flex items-center justify-between pt-0.5">
-          <div className="h-4 w-28 rounded bg-neutral-200 dark:bg-neutral-800/60" />
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-10 rounded bg-neutral-200 dark:bg-neutral-800/60" />
-            <div className="h-4 w-4 rounded-full bg-neutral-200 dark:bg-neutral-800/60" />
+          <div className="h-4.5 w-28 rounded bg-neutral-200 dark:bg-neutral-800/60" />
+          <div className="flex items-center gap-2.5">
+            <div className="h-4.5 w-10 rounded bg-neutral-200 dark:bg-neutral-800/60" />
+            <div className="h-5 w-5 rounded-full bg-neutral-200 dark:bg-neutral-800/60" />
           </div>
         </div>
       </div>
