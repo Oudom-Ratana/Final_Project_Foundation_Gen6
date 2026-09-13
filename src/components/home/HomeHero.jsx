@@ -176,7 +176,7 @@ export default function HomeHero() {
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link
                 to={`/movies/${activeMovie.id}`}
-                className="flex items-center justify-center gap-2.5 h-[54px] px-8 rounded-[30px] text-white font-black text-[15px] uppercase tracking-wider shadow-xl shadow-red-950/60 hover:brightness-110 active:scale-95 transition"
+                className="flex items-center justify-center gap-2.5 h-[54px] px-8 rounded-[30px] text-white font-black text-[15px] uppercase tracking-wider hover:brightness-110 active:scale-95 transition"
                 style={{
                   backgroundColor: "#B90101",
                   borderRadius: "30px",
