@@ -140,3 +140,60 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "A8",
   "A9",
 ]);
+
+/**
+ * Generates unique, realistic reserved seats for each specific showtime
+ * using a deterministic hash of (movieId + date + time + hallType).
+ */
+export function getReservedSeatsForShowtime(hallType, movieId, date, time) {
+  const seedStr = `${movieId || "m"}-${date || "d"}-${time || "t"}-${hallType}`;
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = (hash << 5) - hash + seedStr.charCodeAt(i);
+    hash |= 0;
+  }
+  const absHash = Math.abs(hash);
+
+  const reserved = new Set();
+
+  if (hallType === "gold") {
+    GOLD_ROWS.forEach((row, rIdx) => {
+      for (let col = 1; col <= 6; col++) {
+        const seatVal = (absHash + rIdx * 11 + col * 7) % 100;
+        const isCenter =
+          (row === "D" || row === "C") && (col === 3 || col === 4);
+        if (!isCenter && seatVal < 35) {
+          reserved.add(`${row}${col}`);
+        }
+      }
+    });
+    if (reserved.size < 6) {
+      DEFAULT_GOLD_RESERVED.forEach((s) => reserved.add(s));
+    }
+  } else {
+    STANDARD_ROWS.forEach((row, rIdx) => {
+      if (row === "A") {
+        COUPLE_PAIRS.forEach((pair, pIdx) => {
+          const pairVal = (absHash + pIdx * 17) % 100;
+          if (pairVal < 40) {
+            reserved.add(`A${pair[0]}`);
+            reserved.add(`A${pair[1]}`);
+          }
+        });
+      } else {
+        for (let col = 1; col <= 12; col++) {
+          const seatVal = (absHash + rIdx * 17 + col * 13) % 100;
+          const isCenter = (row === "D" || row === "E") && col >= 5 && col <= 8;
+          if (!isCenter && seatVal < 32) {
+            reserved.add(`${row}${col}`);
+          }
+        }
+      }
+    });
+    if (reserved.size < 12) {
+      DEFAULT_STANDARD_RESERVED.forEach((s) => reserved.add(s));
+    }
+  }
+
+  return reserved;
+}

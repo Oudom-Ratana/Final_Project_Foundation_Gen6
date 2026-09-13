@@ -1,12 +1,15 @@
+import { useEffect, useMemo } from "react";
 import { useSearchParams, Link } from "react-router";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { CheckCircle2, QrCode, Ticket } from "lucide-react";
 import {
   selectSelectedSeats,
   selectBooking,
 } from "../../redux/slices/bookingSlice";
+import { addTicket } from "../../redux/slices/ticketSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
 import BookingStepper from "../../components/booking/BookingStepper";
+import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 
 export default function BookingConfirmedPage() {
   const [searchParams] = useSearchParams();
@@ -45,9 +48,30 @@ export default function BookingConfirmedPage() {
       poster_path: null,
     };
 
+  const rawScreenType =
+    searchParams.get("screenType") || searchParams.get("format");
   const isGold = hallType.includes("gold");
   const hallNumber = isGold ? "Hall 4" : "Hall 3";
-  const formatBadge = isGold ? "GOLD" : "3D";
+
+  const formatBadge = useMemo(() => {
+    if (rawScreenType) return rawScreenType;
+    if (booking.showtime?.screenType) return booking.showtime.screenType;
+
+    const branchData = BRANCH_SHOWTIMES.find(
+      (b) =>
+        b.branchName.toLowerCase() === branch.toLowerCase() ||
+        b.location.toLowerCase() === branch.toLowerCase(),
+    );
+    if (branchData) {
+      for (const hall of branchData.halls) {
+        if (hall.times.includes(time)) {
+          return hall.screenType;
+        }
+      }
+    }
+    return isGold ? "GOLD" : "2D";
+  }, [rawScreenType, booking.showtime, branch, time, isGold]);
+
   const seatIds = selectedSeats.map((s) => s.id).join(", ");
   const pricePerSeat = selectedSeats[0]?.price || 4.0;
 
@@ -60,6 +84,73 @@ export default function BookingConfirmedPage() {
     0,
   );
   const totalPaid = ticketsTotal + concessionsTotal;
+
+  const dispatch = useDispatch();
+
+  // Persist confirmed booking into user tickets / booking history
+  useEffect(() => {
+    if (!bookingRef) return;
+
+    const runtimeMinutes = movie?.runtime || 135;
+    const durationStr = `${Math.floor(runtimeMinutes / 60)}h ${runtimeMinutes % 60}m`;
+
+    const genreList = movie?.genres
+      ? Array.isArray(movie.genres) && typeof movie.genres[0] === "object"
+        ? movie.genres.map((g) => g.name)
+        : movie.genres
+      : ["Action", "Adventure"];
+
+    const posterUrl = movie?.poster_path
+      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+      : movie?.poster ||
+        "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg";
+
+    const viewUrl = `/booking/confirmed?movie=${movieId}&hall=${hallType}&screenType=${encodeURIComponent(formatBadge)}&time=${encodeURIComponent(time)}&date=${encodeURIComponent(date)}&branch=${encodeURIComponent(branch)}&ref=${bookingRef}`;
+
+    const newTicket = {
+      id: bookingRef,
+      status: "upcoming",
+      movieId,
+      movie: {
+        title: movie?.title || "Movie Ticket",
+        poster: posterUrl,
+        duration: durationStr,
+        genres: genreList,
+      },
+      showtime: {
+        date,
+        time,
+        format: formatBadge,
+        hall: hallNumber,
+        location: branch,
+      },
+      seats: selectedSeats.map((s) => s.id),
+      pricePerSeat,
+      totalSeats: selectedSeats.length,
+      totalPrice: totalPaid,
+      concessions,
+      bookingRef,
+      viewUrl,
+      createdAt: new Date().toISOString(),
+    };
+
+    dispatch(addTicket(newTicket));
+  }, [
+    bookingRef,
+    movie,
+    movieId,
+    hallType,
+    time,
+    date,
+    branch,
+    formatBadge,
+    hallNumber,
+    selectedSeats,
+    pricePerSeat,
+    totalPaid,
+    concessions,
+    dispatch,
+  ]);
 
   const handleDownloadPdf = () => {
     window.print();
@@ -278,11 +369,18 @@ export default function BookingConfirmedPage() {
               </div>
             </div>
 
-            {/* Back To Home Button Container */}
-            <div className="w-full max-w-sm pt-2 flex justify-center">
+            {/* Go to My Tickets & Back To Home Button Container */}
+            <div className="w-full max-w-sm pt-2 flex flex-col items-center gap-2.5">
+              <Link
+                to="/my-tickets"
+                className="w-full max-w-xs py-3 px-8 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm text-center uppercase tracking-wider transition active:scale-95 shadow-md border border-white/20 flex items-center justify-center gap-2"
+              >
+                <Ticket className="w-4 h-4" />
+                <span>Go to My Tickets</span>
+              </Link>
               <Link
                 to="/"
-                className="w-full max-w-xs py-3 px-8 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm text-center uppercase tracking-wider transition active:scale-95 shadow-md border border-white/20 block"
+                className="text-xs font-bold text-neutral-500 hover:text-[#B90101] dark:text-neutral-400 dark:hover:text-white transition py-1"
               >
                 Back To Home
               </Link>

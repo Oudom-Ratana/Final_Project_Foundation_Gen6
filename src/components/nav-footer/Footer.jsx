@@ -94,8 +94,8 @@ export default function Footer() {
       style={
         isDark
           ? {
-              background:
-                "radial-gradient(ellipse at left, rgba(109, 8, 8, 0.7) 0%, #0d0304 100%), #000000",
+              background: "var(--bg-dark-mode)",
+              backgroundAttachment: "fixed",
             }
           : { backgroundColor: "#FFFFFF" }
       }

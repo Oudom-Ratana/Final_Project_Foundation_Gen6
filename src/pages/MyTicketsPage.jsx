@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import { useSelector } from "react-redux";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { selectTheme } from "../redux/slices/uiSlice";
-import { MOCK_TICKETS, TICKETS_PER_PAGE } from "../data/ticketData";
+import { selectAllTickets } from "../redux/slices/ticketSlice";
+import { TICKETS_PER_PAGE } from "../data/ticketData";
 import TicketCard from "../components/tickets/TicketCard";
 import ScrollReveal from "../components/common/ScrollReveal";
 
@@ -10,10 +12,22 @@ export default function MyTicketsPage() {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
-  const [activeTab, setActiveTab] = useState("upcoming"); // 'upcoming' | 'history'
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    tabParam === "history" ? "history" : "upcoming",
+  );
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredTickets = MOCK_TICKETS.filter((t) => {
+  useEffect(() => {
+    if (tabParam === "history" || tabParam === "upcoming") {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  const allTickets = useSelector(selectAllTickets);
+
+  const filteredTickets = allTickets.filter((t) => {
     const status = (t.status || "").toLowerCase();
     if (activeTab === "history") {
       return status === "history" || status === "completed";
@@ -30,6 +44,9 @@ export default function MyTicketsPage() {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setCurrentPage(1); // Reset to page 1 when switching tabs
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("tab", tab);
+    setSearchParams(newParams, { replace: true });
   };
 
   const handlePageChange = (page) => {

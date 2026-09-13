@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { Clock, Plus, Minus, ArrowLeft } from "lucide-react";
@@ -12,6 +12,7 @@ import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import { CONCESSIONS } from "../../data/concessionsData";
+import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 
 export default function BookingDetailsPage() {
   const [searchParams] = useSearchParams();
@@ -63,9 +64,35 @@ export default function BookingDetailsPage() {
       poster_path: null,
     };
 
-  const hallName = hallType.includes("gold")
-    ? "Gold Class Hall 4"
-    : "2D Hall 3";
+  // Dynamic screenType: from query params, or booking slice, or inferred from BRANCH_SHOWTIMES
+  const resolvedScreenType = useMemo(() => {
+    const fromParam =
+      searchParams.get("screenType") || searchParams.get("format");
+    if (fromParam) return fromParam;
+
+    if (booking.showtime?.screenType) {
+      return booking.showtime.screenType;
+    }
+
+    // Look up in BRANCH_SHOWTIMES
+    const branchData = BRANCH_SHOWTIMES.find(
+      (b) =>
+        b.branchName.toLowerCase() === branch.toLowerCase() ||
+        b.location.toLowerCase() === branch.toLowerCase(),
+    );
+    if (branchData) {
+      for (const hall of branchData.halls) {
+        if (hall.times.includes(time)) {
+          return hall.screenType;
+        }
+      }
+    }
+
+    return hallType.includes("gold") ? "GOLD" : "2D";
+  }, [searchParams, booking.showtime, branch, time, hallType]);
+
+  const hallNumber = hallType.includes("gold") ? "Hall 4" : "Hall 3";
+  const hallName = `${resolvedScreenType} ${hallNumber}`;
 
   // Seats Total
   const ticketsTotal = selectedSeats.reduce(
@@ -110,6 +137,7 @@ export default function BookingDetailsPage() {
     dispatch(setBookingConfirmation(bookingRef));
     const params = new URLSearchParams(searchParams);
     params.set("ref", bookingRef);
+    params.set("screenType", resolvedScreenType);
     navigate(`/booking/confirmed?${params.toString()}`);
   };
 

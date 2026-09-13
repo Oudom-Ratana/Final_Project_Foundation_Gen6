@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { Clock, ArrowLeft } from "lucide-react";
+import { Clock, ArrowLeft, User, Users } from "lucide-react";
 import {
   toggleSeat,
+  clearSeats,
   selectSelectedSeats,
   setShowtime,
   setMovie,
@@ -23,8 +24,7 @@ import {
   GOLD_PRICE,
   STANDARD_SINGLE_PRICE,
   STANDARD_COUPLE_PRICE,
-  DEFAULT_GOLD_RESERVED,
-  DEFAULT_STANDARD_RESERVED,
+  getReservedSeatsForShowtime,
   getCouplePair,
 } from "../../data/seatLayoutData";
 
@@ -40,16 +40,22 @@ export default function SeatSelectionPage() {
   const branch = searchParams.get("branch") || "FilmZone SenSok";
   const date = searchParams.get("date") || "Aug 26 Tue";
 
-  // Hall Mode: 'gold' vs 'standard' — determined solely by URL param set in ShowtimeSection
-  const hallType = (
-    searchParams.get("hall") ||
-    searchParams.get("type") ||
-    "standard"
-  )
-    .toLowerCase()
-    .includes("gold")
+  // Hall Mode: 'gold' vs 'standard'
+  const hallParam = searchParams.get("hall") || "standard";
+  const hallType = hallParam.toLowerCase().includes("gold")
     ? "gold"
     : "standard";
+
+  // Booking Mode: 'standard' vs 'group'
+  const bookingType =
+    (searchParams.get("type") || "standard").toLowerCase() === "group"
+      ? "group"
+      : "standard";
+
+  // Dynamic Screen Type (e.g., '2D', 'SCREEN X', 'GOLD', '3D')
+  const rawScreenType =
+    searchParams.get("screenType") || searchParams.get("format");
+  const screenType = rawScreenType || (hallType === "gold" ? "GOLD" : "2D");
 
   // Fetch movie details
   const { data: movie } = useGetMovieDetailsQuery(movieId, { skip: !movieId });
@@ -75,12 +81,33 @@ export default function SeatSelectionPage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Seat Checks
-  const isSeatSelected = (seatId) => selectedSeats.some((s) => s.id === seatId);
+  // Clear selected seats whenever showtime, hall, or booking type changes
+  useEffect(() => {
+    dispatch(clearSeats());
+  }, [movieId, time, date, hallType, bookingType, dispatch]);
 
-  const isSeatReserved = (seatId) => {
-    if (hallType === "gold") return DEFAULT_GOLD_RESERVED.has(seatId);
-    return DEFAULT_STANDARD_RESERVED.has(seatId);
+  // Clear selected seats when leaving the seat selection page
+  useEffect(() => {
+    return () => {
+      dispatch(clearSeats());
+    };
+  }, [dispatch]);
+
+  // Dynamic showtime-specific reserved seats
+  const reservedSeatsSet = useMemo(() => {
+    return getReservedSeatsForShowtime(hallType, movieId, date, time);
+  }, [hallType, movieId, date, time]);
+
+  const isSeatSelected = (seatId) => selectedSeats.some((s) => s.id === seatId);
+  const isSeatReserved = (seatId) => reservedSeatsSet.has(seatId);
+
+  // Switch Booking Type (Standard vs Group)
+  const handleBookingTypeChange = (newType) => {
+    if (newType === bookingType) return;
+    const params = new URLSearchParams(searchParams);
+    params.set("type", newType);
+    params.set("screenType", screenType);
+    navigate(`/booking/seats?${params.toString()}`, { replace: true });
   };
 
   // Interactive Click Handler
@@ -143,10 +170,12 @@ export default function SeatSelectionPage() {
     );
   };
 
-  // Total price calculation
-  const totalPrice = useMemo(() => {
+  // Total price calculation with optional Group Booking discount (10% off for 4+ seats)
+  const isGroupDiscount = bookingType === "group" && selectedSeats.length >= 4;
+  const rawTotalPrice = useMemo(() => {
     return selectedSeats.reduce((acc, seat) => acc + (seat.price || 0), 0);
   }, [selectedSeats]);
+  const totalPrice = isGroupDiscount ? rawTotalPrice * 0.9 : rawTotalPrice;
 
   // Proceed to Booking Details
   const handleProceed = () => {
@@ -159,14 +188,19 @@ export default function SeatSelectionPage() {
         time,
         branch,
         date,
+        screenType,
         hall:
           hallType === "gold"
             ? "Hall 4 - Gold Class VIP"
-            : "Hall 3 - Regular 2D",
+            : `Hall 3 - ${screenType}`,
         hallType,
+        bookingType,
       }),
     );
     const params = new URLSearchParams(searchParams);
+    params.set("type", bookingType);
+    params.set("hall", hallType);
+    params.set("screenType", screenType);
     navigate(`/booking/details?${params.toString()}`);
   };
 
@@ -213,6 +247,42 @@ export default function SeatSelectionPage() {
           </div>
         </div>
 
+        {/* Booking Type Switcher Bar (Standard Booking vs Group Booking Only) */}
+        <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-neutral-100 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-xs sm:text-sm font-bold text-neutral-600 dark:text-neutral-400">
+              Booking Type:
+            </span>
+          </div>
+
+          <div className="inline-flex p-1 rounded-full bg-neutral-200/80 dark:bg-neutral-900 border border-neutral-300 dark:border-white/10 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => handleBookingTypeChange("standard")}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                bookingType === "standard"
+                  ? "bg-[#B90101] text-white shadow-sm"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Standard Booking</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleBookingTypeChange("group")}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                bookingType === "group"
+                  ? "bg-[#B90101] text-white shadow-sm"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Group Booking</span>
+            </button>
+          </div>
+        </div>
+
         {/* 3. Curved "Screen" Arc */}
         <ScreenCurve />
 
@@ -253,6 +323,7 @@ export default function SeatSelectionPage() {
         <BookingCheckoutBar
           selectedSeats={selectedSeats}
           totalPrice={totalPrice}
+          isGroupDiscount={isGroupDiscount}
           onProceed={handleProceed}
         />
       </div>

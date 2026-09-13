@@ -43,9 +43,11 @@ export default function BookingTypeModal({
         (session.hall && session.hall.toLowerCase().includes("gold")),
       );
       const hallParam = isGold ? "gold" : "standard";
+      const screenType = session.screenType || (isGold ? "GOLD" : "2D");
       const params = new URLSearchParams({
         movie: session.movieId,
         hall: hallParam,
+        screenType,
         type: bookingType,
         time: session.time || "",
         branch: session.branchName || "",

@@ -8,7 +8,7 @@ import {
   logout,
 } from "../../redux/slices/authSlice";
 import { selectTheme, toggleTheme } from "../../redux/slices/uiSlice";
-import { selectWatchlist } from "../../redux/slices/watchlistSlice";
+import { selectFavouriteMovies } from "../../redux/slices/favouriteSlice";
 import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
 
 export default function Navbar() {
@@ -17,8 +17,8 @@ export default function Navbar() {
   const user = useSelector(selectCurrentUser);
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const theme = useSelector(selectTheme);
-  const watchlist = useSelector(selectWatchlist);
-  const favoriteCount = watchlist?.length || 0;
+  const favouriteMovies = useSelector(selectFavouriteMovies) || [];
+  const favoriteCount = favouriteMovies.length;
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);

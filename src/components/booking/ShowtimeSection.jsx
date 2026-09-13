@@ -54,6 +54,7 @@ export default function ShowtimeSection({ movieId }) {
     const params = new URLSearchParams({
       movie: movieId || "",
       hall: hall.goldClass ? "gold" : "standard",
+      screenType: hall.screenType || (hall.goldClass ? "GOLD" : "2D"),
       time,
       branch: branch.branchName,
       date: `${selectedDate.month} ${selectedDate.day} ${selectedDate.weekday}`,

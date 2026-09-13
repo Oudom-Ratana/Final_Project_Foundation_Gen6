@@ -1,7 +1,9 @@
+import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../../redux/slices/uiSlice";
 
 export default function TicketCard({ ticket }) {
+  const navigate = useNavigate();
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
@@ -15,6 +17,24 @@ export default function TicketCard({ ticket }) {
     status,
   } = ticket;
   const isUpcoming = status === "upcoming";
+
+  const handleViewTicket = () => {
+    if (ticket.viewUrl) {
+      navigate(ticket.viewUrl);
+    } else {
+      const params = new URLSearchParams({
+        movie: ticket.movieId || "558449",
+        ref: ticket.id || "TKT-001",
+        time: ticket.showtime?.time || "6:30 PM",
+        date: ticket.showtime?.date || "26 Aug 2026",
+        branch: ticket.showtime?.location || "FilmZone SenSok",
+        hall: (ticket.showtime?.format || "").toLowerCase().includes("gold")
+          ? "gold"
+          : "standard",
+      });
+      navigate(`/booking/confirmed?${params.toString()}`);
+    }
+  };
 
   return (
     <div
@@ -172,7 +192,8 @@ export default function TicketCard({ ticket }) {
           {isUpcoming && (
             <button
               type="button"
-              className="shrink-0 pb-0.5 text-[14px] font-black text-[#B90101] hover:opacity-80 active:scale-95 transition"
+              onClick={handleViewTicket}
+              className="shrink-0 pb-0.5 text-[14px] font-black text-[#B90101] hover:opacity-80 active:scale-95 transition cursor-pointer"
             >
               View Ticket
             </button>

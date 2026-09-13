@@ -5,7 +5,8 @@ import bookingReducer from "./slices/bookingSlice";
 import watchlistReducer from "./slices/watchlistSlice";
 import uiReducer from "./slices/uiSlice";
 import { baseApi } from "../services/api/baseApi";
-import  favouriteReducer from "./slices/favouriteSlice";
+import favouriteReducer from "./slices/favouriteSlice";
+import ticketReducer from "./slices/ticketSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     booking: bookingReducer,
     watchlist: watchlistReducer,
     ui: uiReducer,
+    tickets: ticketReducer,
     [baseApi.reducerPath]: baseApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

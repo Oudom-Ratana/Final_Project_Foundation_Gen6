@@ -15,6 +15,9 @@ import {
 import { useGetTVDetailsQuery } from "../services/api/tvApi";
 import ShowtimeSection from "../components/booking/ShowtimeSection";
 import SpidermanLoader from "../components/common/SpidermanLoader";
+import BookingTypeModal from "../components/booking/BookingTypeModal";
+import MovieDetailSkeleton from "../components/common/MovieDetailSkeleton";
+import { formatMovieRuntime } from "../utils/formatRuntime";
 
 export default function MovieDetailPage() {
   const { id } = useParams();
@@ -43,8 +46,15 @@ export default function MovieDetailPage() {
   } = useGetTVDetailsQuery(id, { skip: !isExplicitTV && !isMovieError });
 
   const movie = isExplicitTV ? tvData : movieData || tvData;
-  const isLoading = isExplicitTV ? isTVLoading : isMovieLoading && isTVLoading;
-  const isError = isExplicitTV ? isTVError : isMovieError && isTVError;
+
+  // Determine if still waiting for initial data from either movie query or fallback TV query
+  const isInitialLoading = isExplicitTV
+    ? isTVLoading || (!tvData && !isTVError)
+    : isMovieLoading ||
+      (!movieData && !isMovieError) ||
+      (isMovieError && (isTVLoading || (!tvData && !isTVError)));
+
+  const isActuallyError = isExplicitTV ? isTVError : isMovieError && isTVError;
 
   const { data: trailersData } = useGetMovieTrailersQuery(id, {
     skip: isExplicitTV,
@@ -52,24 +62,22 @@ export default function MovieDetailPage() {
 
   const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className="w-full min-h-[70vh] flex items-center justify-center">
-        <SpidermanLoader size="lg" text="LOADING MOVIE DETAILS..." />
-      </div>
-    );
+  // While fetching data or if data is not yet ready, always render the loading skeleton!
+  if (isInitialLoading || (!movie && !isActuallyError)) {
+    return <MovieDetailSkeleton />;
   }
 
-  if (isError || !movie) {
+  // Only show error screen if all queries have genuinely completed and returned an error
+  if (isActuallyError || !movie) {
     return (
-      <div className="w-full py-20 text-center space-y-4">
+      <div className="w-full py-20 text-center space-y-4 font-sans">
         <h2 className="text-3xl font-black text-[#B90101]">Movie Not Found</h2>
-        <p className="text-neutral-400">
-          The requested movie could not be loaded from TMDB.
+        <p className="text-neutral-500 dark:text-neutral-400">
+          The requested movie could not be loaded. Please try again.
         </p>
         <button
           onClick={() => navigate(-1)}
-          className="px-6 py-2.5 rounded-full bg-[#B90101] text-white font-bold"
+          className="px-6 py-2.5 rounded-full bg-[#B90101] text-white font-bold hover:brightness-110 active:scale-95 transition"
         >
           Go Back
         </button>
@@ -96,7 +104,12 @@ export default function MovieDetailPage() {
         ? `${movie.episode_run_time[0]}min per ep`
         : movie.number_of_seasons
           ? `${movie.number_of_seasons} Season${movie.number_of_seasons > 1 ? "s" : ""}`
-          : "2h 12m";
+          : formatMovieRuntime(
+              movie.runtime,
+              movie.id,
+              isTV,
+              movie.number_of_seasons,
+            );
 
   const rawDate = movie.release_date || movie.first_air_date;
   const releaseDate = rawDate

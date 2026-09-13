@@ -100,7 +100,9 @@ export default function StreamPlayerModal({
                 }`}
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Full Movie</span>
+                <span>
+                  {mediaType === "tv" ? "Watch Series" : "Full Movie"}
+                </span>
               </button>
 
               {trailerKey && (

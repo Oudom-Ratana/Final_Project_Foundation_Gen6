@@ -1,15 +1,9 @@
-import { Star, Heart } from "lucide-react";
+import { Star } from "lucide-react";
 import { Link } from "react-router";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  toggleWatchlist,
-  selectWatchlist,
-} from "../../redux/slices/watchlistSlice";
+import { useGetMovieRuntimeQuery } from "../../services/api/movieApi";
+import { formatMovieRuntime } from "../../utils/formatRuntime";
 
 export default function MovieCard({ movie, basePath = "/movies" }) {
-  const dispatch = useDispatch();
-  const watchlist = useSelector(selectWatchlist);
-
   if (!movie) return null;
 
   const isTV = Boolean(
@@ -18,13 +12,13 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
     (movie.name && !movie.title),
   );
 
+  const { data: fetchedRuntime } = useGetMovieRuntimeQuery(movie.id, {
+    skip: isTV || !movie.id || Boolean(movie.runtime),
+  });
+
   const targetUrl = movie.id
     ? `${basePath}/${movie.id}${isTV ? "?type=tv" : ""}`
     : "#";
-
-  const isFavorite = movie.id
-    ? watchlist.some((item) => item.id === movie.id)
-    : false;
 
   const title = movie.title || movie.name || "Untitled";
   const rating = (movie.vote_average || 8.5).toFixed(1);
@@ -33,15 +27,14 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
     movie.first_air_date ||
     "2026"
   ).slice(0, 4);
-  const runtime = movie.runtime
-    ? typeof movie.runtime === "number"
-      ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m`
-      : movie.runtime
-    : isTV
-      ? movie.number_of_seasons
-        ? `${movie.number_of_seasons} Season${movie.number_of_seasons > 1 ? "s" : ""}`
-        : "TV Series"
-      : "2h 12m";
+
+  const rawRuntime = movie.runtime || fetchedRuntime;
+  const runtime = formatMovieRuntime(
+    rawRuntime,
+    movie.id,
+    isTV,
+    movie.number_of_seasons,
+  );
 
   // Handle genre resolution
   let genreName = "ACTION";
@@ -76,12 +69,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
   const overviewText =
     movie.overview ||
     "Experience the thrilling adventures, captivating story, and cinematic brilliance of this blockbuster release.";
-
-  const handleToggleFavorite = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dispatch(toggleWatchlist(movie));
-  };
 
   return (
     <div className="group flex flex-col space-y-3 font-sans cursor-pointer">
@@ -130,39 +117,18 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
           </h3>
         </Link>
 
-        {/* Time and Rating Row with Favorite Heart Button */}
+        {/* Time and Rating Row */}
         <div className="flex items-center justify-between pt-0.5">
           <p className="text-[15px] sm:text-[16px] text-neutral-500 dark:text-neutral-400 font-semibold tracking-tight">
             {runtime} • {releaseYear}
           </p>
 
-          {/* Right Side: Rating + Favorite Heart Button */}
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1 text-[#FFD700]">
-              <Star className="w-4 h-4 fill-[#FFD700] text-[#FFD700]" />
-              <span className="text-[15px] sm:text-[16px] font-black leading-none">
-                {rating}
-              </span>
-            </div>
-
-            {/* Favorite Heart Button */}
-            <button
-              type="button"
-              onClick={handleToggleFavorite}
-              className="p-1 rounded-full hover:bg-neutral-200/60 dark:hover:bg-white/10 transition cursor-pointer active:scale-90"
-              aria-label={
-                isFavorite ? "Remove from favorites" : "Add to favorites"
-              }
-              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            >
-              <Heart
-                className={`w-4.5 h-4.5 transition-colors ${
-                  isFavorite
-                    ? "fill-[#B90101] text-[#B90101]"
-                    : "text-neutral-400 hover:text-[#B90101]"
-                }`}
-              />
-            </button>
+          {/* Right Side: Rating */}
+          <div className="flex items-center gap-1 text-[#FFD700]">
+            <Star className="w-4 h-4 fill-[#FFD700] text-[#FFD700]" />
+            <span className="text-[15px] sm:text-[16px] font-black leading-none">
+              {rating}
+            </span>
           </div>
         </div>
       </div>

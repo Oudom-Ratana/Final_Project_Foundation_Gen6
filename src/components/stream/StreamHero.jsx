@@ -7,20 +7,18 @@ import {
   ArrowRight,
   Star,
 } from "lucide-react";
-import { useGetTrendingMoviesQuery } from "../../services/api/movieApi";
+import { useGetTrendingTVQuery } from "../../services/api/tvApi";
 
 export default function StreamHero({ onSearch }) {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Fetch trending movies for featured streaming banner
-  const { data: trendingMovies, isLoading } = useGetTrendingMoviesQuery("day");
+  // Fetch trending TV series for featured streaming banner
+  const { data: trendingTV, isLoading } = useGetTrendingTVQuery("day");
 
   const bannerSlides =
-    trendingMovies && trendingMovies.length > 0
-      ? trendingMovies.slice(0, 5)
-      : [];
+    trendingTV && trendingTV.length > 0 ? trendingTV.slice(0, 5) : [];
 
   const totalSlides = bannerSlides.length;
 
@@ -142,11 +140,14 @@ export default function StreamHero({ onSearch }) {
         {/* 4. Bottom Slide Indicator / Title Preview */}
         <div className="relative z-20 flex items-center justify-between gap-4">
           <Link
-            to={`/stream/${activeMovie.id}`}
+            to={`/stream/${activeMovie.id}?type=tv`}
             className="group/title flex items-center gap-2 max-w-lg truncate"
           >
+            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#B90101] text-white shadow-sm">
+              TV Series
+            </span>
             <span className="text-lg sm:text-2xl font-black text-white drop-shadow group-hover/title:text-[#B90101] transition-colors truncate">
-              {activeMovie.title || activeMovie.name}
+              {activeMovie.name || activeMovie.title}
             </span>
             <div className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/30 text-amber-300 text-xs font-bold">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
@@ -178,7 +179,8 @@ export default function StreamHero({ onSearch }) {
           to="/favourite"
           // to="/stream?filter=favourite"
           className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-white font-bold card-description shadow-lg hover:brightness-110 active:scale-95 transition"
-          style={{ backgroundColor: '#B90101' }}>
+          style={{ backgroundColor: "#B90101" }}
+        >
           <span>Favourite Movies</span>
           <ArrowRight className="w-5 h-5" />
         </Link>

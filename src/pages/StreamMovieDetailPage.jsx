@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router';
-import { useDispatch, useSelector } from 'react-redux';
+import { useState } from "react";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowLeft,
   Play,
@@ -14,66 +14,84 @@ import {
   BookOpen,
   Clapperboard,
   Sparkles,
-} from 'lucide-react';
+  Tv,
+} from "lucide-react";
 import {
   useGetMovieDetailsQuery,
   useGetMovieTrailersQuery,
-} from '../services/api/movieApi';
-import { useGetTVDetailsQuery } from '../services/api/tvApi';
-import StreamPlayerModal from '../components/stream/StreamPlayerModal';
-import SpidermanLoader from '../components/common/SpidermanLoader';
+} from "../services/api/movieApi";
+import { useGetTVDetailsQuery } from "../services/api/tvApi";
+import StreamPlayerModal from "../components/stream/StreamPlayerModal";
+import MovieDetailSkeleton from "../components/common/MovieDetailSkeleton";
+import { formatMovieRuntime } from "../utils/formatRuntime";
 import {
   addToFavourite,
   removeFromFavourite,
-} from '../redux/slices/favouriteSlice';
+} from "../redux/slices/favouriteSlice";
 
 export default function StreamMovieDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const typeParam = searchParams.get("type");
+  const isExplicitTV = typeParam === "tv";
 
-  // Try fetching movie details first
+  // If explicitly TV series, skip movie details to prevent numeric ID collisions
   const {
     data: movieData,
     isLoading: isMovieLoading,
     isError: isMovieError,
-  } = useGetMovieDetailsQuery(id);
+  } = useGetMovieDetailsQuery(id, { skip: isExplicitTV });
 
-  // If movie details fails or if it is a TV series, fetch TV details
+  // Fetch TV details if explicitly TV or if movie details failed
   const {
     data: tvData,
     isLoading: isTVLoading,
-  } = useGetTVDetailsQuery(id, { skip: !isMovieError && Boolean(movieData) });
+    isFetching: isTVFetching,
+    isError: isTVError,
+  } = useGetTVDetailsQuery(id, {
+    skip: !isExplicitTV && !isMovieError,
+  });
 
   const { data: trailers } = useGetMovieTrailersQuery(id);
 
   const dispatch = useDispatch();
   const favouriteMovies = useSelector((state) => state.favourite.movies);
-  const isFavourite = favouriteMovies.some((m) => m.id === id);
+  const isFavourite = favouriteMovies.some((m) => String(m.id) === String(id));
 
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
-  const [playerMode, setPlayerMode] = useState('full_movie'); // 'full_movie' | 'trailer'
+  const [playerMode, setPlayerMode] = useState("full_movie"); // 'full_movie' | 'trailer'
 
-  const data = movieData || tvData;
-  const isTV = Boolean(tvData && !movieData);
-  const isLoading = isMovieLoading || (isMovieError && isTVLoading);
+  const data = isExplicitTV ? tvData : movieData || tvData;
+  const isTV = Boolean(
+    isExplicitTV || (tvData && !movieData) || data?.number_of_seasons,
+  );
 
-  if (isLoading) {
-    return (
-      <div className="w-full min-h-[70vh] flex items-center justify-center">
-        <SpidermanLoader size="lg" text="LOADING MOVIE DETAILS..." />
-      </div>
-    );
+  const isInitialLoading = isExplicitTV
+    ? isTVLoading || (!tvData && !isTVError)
+    : isMovieLoading ||
+      (!movieData && !isMovieError) ||
+      (isMovieError && (isTVLoading || (!tvData && !isTVError)));
+
+  const isActuallyError = isExplicitTV ? isTVError : isMovieError && isTVError;
+
+  // While fetching data or if data is not yet ready, always render the loading skeleton!
+  if (isInitialLoading || (!data && !isActuallyError)) {
+    return <MovieDetailSkeleton />;
   }
 
-  if (!data) {
+  // Only show error screen if all queries have genuinely completed and returned an error
+  if (isActuallyError || !data) {
     return (
-      <div className="w-full py-20 text-center space-y-4">
+      <div className="w-full py-20 text-center space-y-4 font-sans">
         <h2 className="text-3xl font-black text-[#B90101]">Movie Not Found</h2>
-        <p className="text-neutral-400">The requested movie could not be loaded from TMDB.</p>
+        <p className="text-neutral-500 dark:text-neutral-400">
+          The requested content could not be loaded. Please try again.
+        </p>
         <button
           onClick={() => navigate(-1)}
-          className="px-6 py-2.5 rounded-full bg-[#B90101] text-white font-bold"
+          className="px-6 py-2.5 rounded-full bg-[#B90101] text-white font-bold hover:brightness-110 active:scale-95 transition"
         >
           Go Back
         </button>
@@ -82,72 +100,86 @@ export default function StreamMovieDetailPage() {
   }
 
   // Extract movie/TV metadata
-  const title = data.title || data.name || 'Untitled';
-  const genres = data.genres?.map((g) => g.name).join(', ') || 'Action, Adventure, Drama';
-  const duration = data.runtime
-    ? `${Math.floor(data.runtime / 60)}h ${data.runtime % 60}min`
-    : data.episode_run_time?.[0]
-    ? `${data.episode_run_time[0]}min`
-    : '2h 15min';
+  const title = data.title || data.name || "Untitled";
+  const genres =
+    data.genres?.map((g) => g.name).join(", ") || "Action, Adventure, Drama";
 
-  const rawDate = data.release_date || data.first_air_date || '2026-07-30';
-  const releaseDate = new Date(rawDate).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+  const season1 =
+    data.seasons?.find((s) => s.season_number === 1) || data.seasons?.[0];
+  const season1EpisodeCount =
+    season1?.episode_count || data.number_of_episodes || 8;
+  const totalEpisodes = isTV ? Math.min(season1EpisodeCount, 24) : 1;
+
+  const duration = isTV
+    ? `${data.number_of_seasons || 1} Season${(data.number_of_seasons || 1) > 1 ? "s" : ""} • ${data.number_of_episodes || totalEpisodes} Ep`
+    : data.runtime
+      ? `${Math.floor(data.runtime / 60)}h ${data.runtime % 60}min`
+      : data.episode_run_time?.[0]
+        ? `${data.episode_run_time[0]}min`
+        : formatMovieRuntime(
+            data.runtime,
+            data.id,
+            isTV,
+            data.number_of_seasons,
+          );
+
+  const rawDate = data.release_date || data.first_air_date || "2026-07-30";
+  const releaseDate = new Date(rawDate).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 
-  const classification = data.adult ? 'R18+' : 'NC15';
+  const classification = data.adult ? "R18+" : "NC15";
   const backdropUrl = data.backdrop_path
     ? `https://image.tmdb.org/t/p/original${data.backdrop_path}`
     : data.poster_path
-    ? `https://image.tmdb.org/t/p/original${data.poster_path}`
-    : '';
+      ? `https://image.tmdb.org/t/p/original${data.poster_path}`
+      : "";
 
   const posterUrl = data.poster_path
     ? `https://image.tmdb.org/t/p/w500${data.poster_path}`
     : backdropUrl;
 
-  const trailerKey = trailers?.[0]?.key || (data.videos?.results?.[0]?.key);
-  const totalEpisodes = data.number_of_episodes || 8;
+  const trailerKey = trailers?.[0]?.key || data.videos?.results?.[0]?.key;
 
   // Extract Cast & Crew (Writers, Producers, Directors)
   const crewList = data.credits?.crew || [];
   const castList = data.credits?.cast || [];
 
   const writer =
-    crewList.find((c) => c.job === 'Screenplay' || c.job === 'Writer')?.name ||
-    'George R. R. Martin';
+    crewList.find((c) => c.job === "Screenplay" || c.job === "Writer")?.name ||
+    "George R. R. Martin";
   const producer =
-    crewList.find((c) => c.job === 'Producer' || c.job === 'Executive Producer')?.name ||
-    'D. B. Weiss';
+    crewList.find((c) => c.job === "Producer" || c.job === "Executive Producer")
+      ?.name || "D. B. Weiss";
   const creator =
     data.created_by?.[0]?.name ||
-    crewList.find((c) => c.job === 'Story' || c.job === 'Creator')?.name ||
-    'David Friedman';
+    crewList.find((c) => c.job === "Story" || c.job === "Creator")?.name ||
+    "David Friedman";
   const director =
-    crewList.find((c) => c.job === 'Director')?.name || 'Alan Taylor';
+    crewList.find((c) => c.job === "Director")?.name || "Alan Taylor";
   const secondaryDirector =
-    crewList.filter((c) => c.job === 'Director')?.[1]?.name ||
+    crewList.filter((c) => c.job === "Director")?.[1]?.name ||
     castList?.[0]?.name ||
-    'Alex Graves';
+    "Alex Graves";
 
   const crewCards = [
-    { name: writer, role: 'Writer', icon: Edit3 },
-    { name: producer, role: 'Producer', icon: Film },
-    { name: creator, role: 'Created by', icon: BookOpen },
-    { name: director, role: 'Director', icon: Clapperboard },
-    { name: secondaryDirector, role: 'Director', icon: Edit3 },
+    { name: writer, role: "Writer", icon: Edit3 },
+    { name: producer, role: "Producer", icon: Film },
+    { name: creator, role: "Created by", icon: BookOpen },
+    { name: director, role: "Director", icon: Clapperboard },
+    { name: secondaryDirector, role: "Director", icon: Edit3 },
   ];
 
   const handleOpenTrailer = () => {
-    setPlayerMode('trailer');
+    setPlayerMode("trailer");
     setIsPlayerOpen(true);
   };
 
   const handleOpenFullMovie = (ep = selectedEpisode) => {
     setSelectedEpisode(ep);
-    setPlayerMode('full_movie');
+    setPlayerMode("full_movie");
     setIsPlayerOpen(true);
   };
 
@@ -159,7 +191,8 @@ export default function StreamMovieDetailPage() {
     duration,
     year: rawDate.slice(0, 4),
     genre: genres,
-    description: data.overview || data.tagline || '',
+    description: data.overview || data.tagline || "",
+    isTV,
   };
 
   const toggleFavourite = () => {
@@ -223,28 +256,40 @@ export default function StreamMovieDetailPage() {
               <div className="flex items-center gap-3">
                 <FileText className="w-5 h-5 text-[#B90101] shrink-0" />
                 <span>
-                  <strong className="text-neutral-900 dark:text-white">Genre:</strong> {genres}
+                  <strong className="text-neutral-900 dark:text-white">
+                    Genre:
+                  </strong>{" "}
+                  {genres}
                 </span>
               </div>
 
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-[#B90101] shrink-0" />
                 <span>
-                  <strong className="text-neutral-900 dark:text-white">Duration:</strong> {duration}
+                  <strong className="text-neutral-900 dark:text-white">
+                    Duration:
+                  </strong>{" "}
+                  {duration}
                 </span>
               </div>
 
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-[#B90101] shrink-0" />
                 <span>
-                  <strong className="text-neutral-900 dark:text-white">Release:</strong> {releaseDate}
+                  <strong className="text-neutral-900 dark:text-white">
+                    Release:
+                  </strong>{" "}
+                  {releaseDate}
                 </span>
               </div>
 
               <div className="flex items-center gap-3">
                 <ShieldAlert className="w-5 h-5 text-[#B90101] shrink-0" />
                 <span>
-                  <strong className="text-neutral-900 dark:text-white">Classification:</strong> {classification}
+                  <strong className="text-neutral-900 dark:text-white">
+                    Classification:
+                  </strong>{" "}
+                  {classification}
                 </span>
               </div>
 
@@ -257,11 +302,13 @@ export default function StreamMovieDetailPage() {
                 <Heart
                   className={`w-5 h-5 transition-colors ${
                     isFavourite
-                      ? 'fill-[#B90101] text-[#B90101]'
-                      : 'text-[#B90101]'
+                      ? "fill-[#B90101] text-[#B90101]"
+                      : "text-[#B90101]"
                   }`}
                 />
-                <span className="font-sans font-bold dark:text-white text-neutral-900">Favourite</span>
+                <span className="font-sans font-bold dark:text-white text-neutral-900">
+                  Favourite
+                </span>
               </button>
             </div>
 
@@ -274,21 +321,62 @@ export default function StreamMovieDetailPage() {
                 className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border bg-[var(--primary-color-5)] border-[var(--border-light-mode)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] text-neutral-900 font-sans font-bold text-sm uppercase tracking-wider shadow-lg hover:brightness-105 hover:scale-105 active:scale-95 transition"
               >
                 <Play className="w-4 h-4 fill-current text-[var(--primary-red)]" />
-                <span className='text-[var(--primary-red)]'>Watch Trailer</span>
+                <span className="text-[var(--primary-red)]">Watch Trailer</span>
               </button>
 
-              {/* Full Movie Button (Red Pill) */}
+              {/* Full Movie / Watch Series Button (Red Pill) */}
               <button
                 type="button"
-                onClick={() => handleOpenFullMovie(1)}
+                onClick={() => handleOpenFullMovie(selectedEpisode)}
                 className="flex items-center gap-2.5 px-6 py-2.5 rounded-full text-white font-sans font-bold text-sm uppercase tracking-wider shadow-md shadow-red-950/50 hover:brightness-110 hover:scale-105 active:scale-95 transition"
-                style={{ backgroundColor: '#B90101' }}
+                style={{ backgroundColor: "#B90101" }}
               >
                 <Play className="w-4 h-4 fill-white" />
-                <span>Full Movie</span>
+                <span>
+                  {isTV ? `Watch Episode ${selectedEpisode}` : "Full Movie"}
+                </span>
               </button>
             </div>
 
+            {/* Episode Selector - STRICTLY ONLY rendered for TV Series / Multiple Episodes */}
+            {isTV && totalEpisodes > 1 && (
+              <div className="pt-2 space-y-3">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-neutral-400">
+                  <Tv className="w-4 h-4 text-[#B90101]" />
+                  <span className="uppercase tracking-wider">
+                    Select Episode ({totalEpisodes} Available)
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 select-none">
+                  {Array.from({ length: totalEpisodes }, (_, i) => i + 1).map(
+                    (ep) => {
+                      const isSelected = selectedEpisode === ep;
+                      return (
+                        <button
+                          key={ep}
+                          type="button"
+                          onClick={() => {
+                            setSelectedEpisode(ep);
+                            handleOpenFullMovie(ep);
+                          }}
+                          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 shrink-0 ${
+                            isSelected
+                              ? "bg-[#B90101] text-white shadow-md shadow-red-950/60 scale-105"
+                              : "bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-300 dark:border-white/10"
+                          }`}
+                        >
+                          <Play
+                            className={`w-3 h-3 ${isSelected ? "fill-white" : "fill-current"}`}
+                          />
+                          <span>Ep {ep}</span>
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -327,7 +415,7 @@ export default function StreamMovieDetailPage() {
         isOpen={isPlayerOpen}
         onClose={() => setIsPlayerOpen(false)}
         tmdbId={id}
-        mediaType={isTV ? 'tv' : 'movie'}
+        mediaType={isTV ? "tv" : "movie"}
         title={title}
         trailerKey={trailerKey}
         initialMode={playerMode}

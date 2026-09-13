@@ -3,67 +3,214 @@ import { useSearchParams } from "react-router";
 import {
   useDiscoverMoviesQuery,
   useSearchMoviesQuery,
-} from '../services/api/movieApi';
-import MovieCard from "../components/home/MovieCard";
-import MovieCardSkeleton from '../components/home/MovieCardSkeleton';
-import ScrollReveal from '../components/common/ScrollReveal';
-import StreamHero from '../components/stream/StreamHero';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
-import StreamCard from '../components/stream/StreamCard';
+} from "../services/api/movieApi";
+import { useDiscoverTVQuery, useSearchTVQuery } from "../services/api/tvApi";
+import MovieCardSkeleton from "../components/home/MovieCardSkeleton";
+import ScrollReveal from "../components/common/ScrollReveal";
+import StreamHero from "../components/stream/StreamHero";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Tv,
+  Film,
+  Flame,
+  Star,
+  Calendar,
+} from "lucide-react";
+import StreamCard from "../components/stream/StreamCard";
+
+// Official TMDB TV Genres
+const TV_GENRES = [
+  { id: "all", label: "All Genres" },
+  { id: "action", label: "Action & Adventure", genreId: 10759 },
+  { id: "drama", label: "Drama", genreId: 18 },
+  { id: "comedy", label: "Comedy", genreId: 35 },
+  { id: "scifi", label: "Sci-Fi & Fantasy", genreId: 10765 },
+  { id: "animation", label: "Animation", genreId: 16 },
+  { id: "crime", label: "Crime", genreId: 80 },
+  { id: "mystery", label: "Mystery", genreId: 9648 },
+  { id: "family", label: "Family", genreId: 10751 },
+  { id: "documentary", label: "Documentary", genreId: 99 },
+];
+
+// Official TMDB Movie Genres
+const MOVIE_GENRES = [
+  { id: "all", label: "All Genres" },
+  { id: "action", label: "Action", genreId: 28 },
+  { id: "romance", label: "Romance", genreId: 10749 },
+  { id: "comedy", label: "Comedy", genreId: 35 },
+  { id: "drama", label: "Drama", genreId: 18 },
+  { id: "horror", label: "Horror", genreId: 27 },
+  { id: "scifi", label: "Sci-Fi", genreId: 878 },
+  { id: "animation", label: "Animation", genreId: 16 },
+  { id: "crime", label: "Crime", genreId: 80 },
+  { id: "thriller", label: "Thriller", genreId: 53 },
+];
+
+const SORT_OPTIONS = [
+  { value: "popularity.desc", label: "Most Popular", icon: Flame },
+  { value: "vote_average.desc", label: "Top Rated", icon: Star },
+  { value: "release.desc", label: "Newest", icon: Calendar },
+];
 
 export default function StreamPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get("q") || "";
   const pageParam = parseInt(searchParams.get("page") || "1", 10);
+  const categoryParam = searchParams.get("category") || "tv"; // 'tv' (default) | 'movie'
+  const genreParam = searchParams.get("genre") || "all";
+  const sortParam = searchParams.get("sort") || "popularity.desc";
 
+  const [activeCategory, setActiveCategory] = useState(categoryParam);
+  const [selectedGenre, setSelectedGenre] = useState(genreParam);
+  const [sortBy, setSortBy] = useState(sortParam);
   const [currentPage, setCurrentPage] = useState(pageParam);
 
-  // Sync state with URL param
+  // Sync state with URL params
   useEffect(() => {
     setCurrentPage(pageParam);
   }, [pageParam]);
 
-  // Fetch either search query or discover stream movies (16 items)
-  const { data: discoverData, isLoading: isDiscoverLoading } =
-    useDiscoverMoviesQuery(
-      { page: currentPage, sort_by: "popularity.desc" },
-      { skip: Boolean(queryParam) },
+  useEffect(() => {
+    setActiveCategory(categoryParam);
+  }, [categoryParam]);
+
+  useEffect(() => {
+    setSelectedGenre(genreParam);
+  }, [genreParam]);
+
+  useEffect(() => {
+    setSortBy(sortParam);
+  }, [sortParam]);
+
+  const isTV = activeCategory === "tv";
+  const activeGenreList = isTV ? TV_GENRES : MOVIE_GENRES;
+  const currentGenreObj = activeGenreList.find((g) => g.id === selectedGenre);
+  const activeWithGenres = currentGenreObj?.genreId;
+
+  // Resolve sort key for Movies vs TV
+  const resolvedSort =
+    sortBy === "release.desc"
+      ? isTV
+        ? "first_air_date.desc"
+        : "primary_release_date.desc"
+      : sortBy;
+
+  // TV Series queries (Default / Main stream content)
+  const { data: discoverTVData, isLoading: isDiscoverTVLoading } =
+    useDiscoverTVQuery(
+      {
+        page: currentPage,
+        sort_by: resolvedSort,
+        with_genres: activeWithGenres,
+      },
+      { skip: Boolean(queryParam) || !isTV },
     );
 
-  const { data: searchData, isLoading: isSearchLoading } = useSearchMoviesQuery(
+  const { data: searchTVData, isLoading: isSearchTVLoading } = useSearchTVQuery(
     { query: queryParam, page: currentPage },
-    { skip: !queryParam },
+    { skip: !queryParam || !isTV },
   );
 
-  const isLoading = queryParam ? isSearchLoading : isDiscoverLoading;
-  const rawMovies = queryParam ? searchData : discoverData;
-  const movies = rawMovies ? rawMovies.slice(0, 16) : [];
+  // Movies queries (Alternative category)
+  const { data: discoverMovieData, isLoading: isDiscoverMovieLoading } =
+    useDiscoverMoviesQuery(
+      {
+        page: currentPage,
+        sort_by: resolvedSort,
+        with_genres: activeWithGenres,
+      },
+      { skip: Boolean(queryParam) || isTV },
+    );
+
+  const { data: searchMovieData, isLoading: isSearchMovieLoading } =
+    useSearchMoviesQuery(
+      { query: queryParam, page: currentPage },
+      { skip: !queryParam || isTV },
+    );
+
+  const isLoading = isTV
+    ? queryParam
+      ? isSearchTVLoading
+      : isDiscoverTVLoading
+    : queryParam
+      ? isSearchMovieLoading
+      : isDiscoverMovieLoading;
+
+  const rawData = isTV
+    ? queryParam
+      ? searchTVData
+      : discoverTVData
+    : queryParam
+      ? searchMovieData
+      : discoverMovieData;
+
+  const items = (rawData ? rawData.slice(0, 16) : []).map((item) => ({
+    ...item,
+    isTV,
+  }));
+
+  // Handlers without ANY auto-scrolling
+  const handleCategoryChange = (cat) => {
+    if (cat === activeCategory) return;
+    setActiveCategory(cat);
+    setSelectedGenre("all");
+    setCurrentPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("category", cat);
+    newParams.delete("genre");
+    newParams.set("page", "1");
+    setSearchParams(newParams, { preventScrollReset: true });
+  };
+
+  const handleGenreChange = (genreId) => {
+    if (genreId === selectedGenre) return;
+    setSelectedGenre(genreId);
+    setCurrentPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    if (genreId === "all") {
+      newParams.delete("genre");
+    } else {
+      newParams.set("genre", genreId);
+    }
+    newParams.set("page", "1");
+    setSearchParams(newParams, { preventScrollReset: true });
+  };
+
+  const handleSortChange = (newSort) => {
+    if (newSort === sortBy) return;
+    setSortBy(newSort);
+    setCurrentPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("sort", newSort);
+    newParams.set("page", "1");
+    setSearchParams(newParams, { preventScrollReset: true });
+  };
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > 12) return;
     setCurrentPage(newPage);
     const newParams = new URLSearchParams(searchParams);
     newParams.set("page", newPage.toString());
-    setSearchParams(newParams);
-    window.scrollTo({ top: 400, behavior: "smooth" });
+    setSearchParams(newParams, { preventScrollReset: true });
   };
 
   const handleHeroSearch = (term) => {
     const newParams = new URLSearchParams();
     if (term) newParams.set("q", term);
     newParams.set("page", "1");
-    setSearchParams(newParams);
+    setSearchParams(newParams, { preventScrollReset: true });
   };
 
   return (
-    <div className="w-full space-y-12 pb-20 font-sans">
+    <div className="w-full space-y-10 pb-20 font-sans">
       {/* 1. Featured Stream Hero Banner with Search & Favourite Button */}
       <StreamHero onSearch={handleHeroSearch} />
 
-      {/* 2. Free Movies Section */}
-      <section className="space-y-8">
-        {/* Section Header with Red Bar */}
-        <div className="flex items-center justify-between">
+      {/* 2. Stream Catalog Section */}
+      <section className="space-y-6">
+        {/* Section Header with Red Bar & Controls (Category Switcher + Sort Selector) */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span
               className="w-1.5 h-7 rounded-full inline-block"
@@ -72,42 +219,124 @@ export default function StreamPage() {
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
               {queryParam
                 ? `Search Results for "${queryParam}"`
-                : "Free Movies here"}
+                : isTV
+                  ? "Popular TV Series & Shows"
+                  : "Free Feature Movies"}
             </h2>
           </div>
 
-          {queryParam && (
-            <button
-              onClick={() => {
-                setSearchParams({});
-              }}
-              className="text-sm font-bold text-[#B90101] hover:underline"
-            >
-              Clear Search
-            </button>
-          )}
+          {/* Right Controls: Sort Selector + Category Switcher */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {queryParam && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchParams({}, { preventScrollReset: true });
+                }}
+                className="text-sm font-bold text-[#B90101] hover:underline mr-2"
+              >
+                Clear Search
+              </button>
+            )}
+
+            {/* Sort Options Bar (Popular, Top Rated, Newest) */}
+            {!queryParam && (
+              <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300/80 dark:border-white/10 text-xs font-bold shadow-xs">
+                {SORT_OPTIONS.map((opt) => {
+                  const isSortActive = sortBy === opt.value;
+                  const IconComp = opt.icon;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => handleSortChange(opt.value)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${
+                        isSortActive
+                          ? "bg-[#B90101] text-white shadow-sm"
+                          : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <IconComp className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Category Toggle Pills (TV Series vs Movies) */}
+            <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300/80 dark:border-white/10 text-xs font-bold shadow-xs">
+              <button
+                type="button"
+                onClick={() => handleCategoryChange("tv")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
+                  isTV
+                    ? "bg-[#B90101] text-white shadow-sm"
+                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                }`}
+              >
+                <Tv className="w-3.5 h-3.5" />
+                <span>Series</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCategoryChange("movie")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
+                  !isTV
+                    ? "bg-[#B90101] text-white shadow-sm"
+                    : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                }`}
+              >
+                <Film className="w-3.5 h-3.5" />
+                <span>Movies</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* 3. 4-Column × 4-Row Responsive Grid (16 Cards or 16 Skeletons) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {isLoading || movies.length === 0
+        {/* 3. Horizontal Genre Filter Pills Bar */}
+        {!queryParam && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 select-none scrollbar-none">
+            {activeGenreList.map((g) => {
+              const isGenreActive = selectedGenre === g.id;
+              return (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => handleGenreChange(g.id)}
+                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap transition-all shrink-0 ${
+                    isGenreActive
+                      ? "bg-[#B90101] text-white shadow-md shadow-red-950/40 scale-105"
+                      : "bg-neutral-100 dark:bg-neutral-900/90 text-neutral-700 dark:text-neutral-300 border border-neutral-300/80 dark:border-white/10 hover:border-[#B90101]/50 hover:text-neutral-900 dark:hover:text-white"
+                  }`}
+                >
+                  {g.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 4. 4-Column × 4-Row Responsive Grid (16 Cards or 16 Skeletons) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 pt-2">
+          {isLoading || items.length === 0
             ? Array.from({ length: 16 }).map((_, index) => (
                 <MovieCardSkeleton key={`stream-skeleton-${index}`} />
               ))
-            : movies.map((movie, index) => (
+            : items.map((item, index) => (
                 <ScrollReveal
-                  key={movie.id || index}
+                  key={item.id || index}
                   delay={(index % 4) * 80}
                   duration={700}
                   distance="translate-y-10"
                 >
-                  <StreamCard movie={movie} />
-                  {/* <MovieCard basePath="/stream" movie={movie} /> */}
+                  <StreamCard movie={item} activeGenreId={activeWithGenres} />
                 </ScrollReveal>
               ))}
         </div>
 
-        {/* 4. Pagination Bar (< 1 2 3 ... 12 >) */}
+        {/* 5. Pagination Bar (< 1 2 3 ... 12 >) */}
         <div className="flex items-center justify-center gap-2 pt-8 select-none">
           <button
             type="button"

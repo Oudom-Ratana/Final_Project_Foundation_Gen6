@@ -5,6 +5,7 @@ import { selectTheme } from "../../redux/slices/uiSlice";
 export default function BookingCheckoutBar({
   selectedSeats = [],
   totalPrice = 0,
+  isGroupDiscount = false,
   onProceed,
 }) {
   const theme = useSelector(selectTheme);
@@ -39,6 +40,11 @@ export default function BookingCheckoutBar({
           <strong className="font-black text-neutral-900 dark:text-white">
             ${totalPrice.toFixed(2)}
           </strong>
+          {isGroupDiscount && (
+            <span className="ml-2 text-[11px] font-bold text-emerald-500">
+              (10% Off Group)
+            </span>
+          )}
         </p>
       </div>
 
