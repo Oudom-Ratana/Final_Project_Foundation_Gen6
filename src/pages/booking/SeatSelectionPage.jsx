@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { Clock, ArrowLeft, Sparkles, Layers } from "lucide-react";
+import { Clock, ArrowLeft } from "lucide-react";
 import {
   toggleSeat,
-  clearSeats,
   selectSelectedSeats,
   setShowtime,
   setMovie,
 } from "../../redux/slices/bookingSlice";
+import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
 
 // Modular Subcomponents & Data
@@ -29,30 +29,35 @@ import {
 } from "../../data/seatLayoutData";
 
 export default function SeatSelectionPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   // Query Parameters
-  const movieId = searchParams.get("movie") || searchParams.get("movieId") || "558449";
-  const initialHall = (searchParams.get("hall") || searchParams.get("type") || "standard").toLowerCase();
+  const movieId =
+    searchParams.get("movie") || searchParams.get("movieId") || "558449";
   const time = searchParams.get("time") || "03:00 PM";
   const branch = searchParams.get("branch") || "FilmZone SenSok";
   const date = searchParams.get("date") || "Aug 26 Tue";
 
-  // Hall Mode: 'gold' vs 'standard'
-  const isGoldClass = initialHall.includes("gold");
-  const [hallType, setHallType] = useState(isGoldClass ? "gold" : "standard");
-
-  useEffect(() => {
-    setHallType(isGoldClass ? "gold" : "standard");
-  }, [isGoldClass]);
+  // Hall Mode: 'gold' vs 'standard' — determined solely by URL param set in ShowtimeSection
+  const hallType = (
+    searchParams.get("hall") ||
+    searchParams.get("type") ||
+    "standard"
+  )
+    .toLowerCase()
+    .includes("gold")
+    ? "gold"
+    : "standard";
 
   // Fetch movie details
   const { data: movie } = useGetMovieDetailsQuery(movieId, { skip: !movieId });
 
-  // Redux Selected Seats
+  // Redux Selected Seats & Theme
   const selectedSeats = useSelector(selectSelectedSeats);
+  const theme = useSelector(selectTheme);
+  const isDark = theme === "dark";
 
   // 3-Minute Countdown Timer
   const [timeLeft, setTimeLeft] = useState(180);
@@ -134,7 +139,7 @@ export default function SeatSelectionPage() {
         number: colNumber,
         type: hallType === "gold" ? "gold" : "single",
         price: seatPrice,
-      })
+      }),
     );
   };
 
@@ -143,33 +148,26 @@ export default function SeatSelectionPage() {
     return selectedSeats.reduce((acc, seat) => acc + (seat.price || 0), 0);
   }, [selectedSeats]);
 
-  // Hall Switcher
-  const handleSwitchHall = (newType) => {
-    setHallType(newType);
-    dispatch(clearSeats());
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("hall", newType);
-    setSearchParams(newParams);
-  };
-
   // Proceed to Booking Details
   const handleProceed = () => {
     if (selectedSeats.length === 0) return;
     if (movie) {
       dispatch(setMovie(movie));
-      dispatch(
-        setShowtime({
-          time,
-          branch,
-          date,
-          hall: hallType === "gold" ? "Hall 4 - Gold Class VIP" : "Hall 1 - Standard 2D",
-          hallType,
-        })
-      );
     }
-    alert(
-      `Proceeding to Booking Details for seats: ${selectedSeats.map((s) => s.id).join(", ")} | Total: $${totalPrice.toFixed(2)}`
+    dispatch(
+      setShowtime({
+        time,
+        branch,
+        date,
+        hall:
+          hallType === "gold"
+            ? "Hall 4 - Gold Class VIP"
+            : "Hall 3 - Regular 2D",
+        hallType,
+      }),
     );
+    const params = new URLSearchParams(searchParams);
+    navigate(`/booking/details?${params.toString()}`);
   };
 
   return (
@@ -180,8 +178,8 @@ export default function SeatSelectionPage() {
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 space-y-8 pt-2">
-        {/* Top Navigation & Hall Switcher */}
-        <div className="flex items-center justify-between">
+        {/* Top Navigation */}
+        <div className="flex items-center">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -190,34 +188,6 @@ export default function SeatSelectionPage() {
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
           </button>
-
-          {/* Hall Switcher Pills */}
-          <div className="flex items-center p-1 rounded-full bg-neutral-200 dark:bg-white/10 border border-neutral-300 dark:border-white/10 text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => handleSwitchHall("standard")}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
-                hallType === "standard"
-                  ? "bg-[#B90101] text-white shadow-sm"
-                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Standard Hall</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSwitchHall("gold")}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
-                hallType === "gold"
-                  ? "bg-[#B90101] text-white shadow-sm"
-                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Gold Class VIP</span>
-            </button>
-          </div>
         </div>
 
         {/* 1. Top 4-Step Stepper */}
@@ -247,7 +217,17 @@ export default function SeatSelectionPage() {
         <ScreenCurve />
 
         {/* 4. Main Seating Pod */}
-        <div className="w-full rounded-[2rem] sm:rounded-[2.5rem] border border-neutral-200/90 dark:border-white/10 bg-white dark:bg-[#12080A]/90 backdrop-blur-md p-5 sm:p-10 shadow-xl overflow-x-auto">
+        <div
+          className="w-full rounded-2xl sm:rounded-3xl border p-6 sm:p-10 shadow-sm overflow-x-auto backdrop-blur-md"
+          style={{
+            backgroundColor: isDark
+              ? "var(--primary-color-30)"
+              : "var(--primary-color-5)",
+            borderColor: isDark
+              ? "var(--border-dark-mode)"
+              : "var(--border-light-mode)",
+          }}
+        >
           {hallType === "gold" ? (
             <GoldClassSeatMap
               isSeatReserved={isSeatReserved}

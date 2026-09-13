@@ -1,19 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import {
-  FileText,
-  Clock,
-  Calendar,
-  ShieldAlert,
-  Play,
-  ArrowLeft,
-} from "lucide-react";
+import { FileText, Clock, Calendar, Play, ArrowLeft } from "lucide-react";
 import {
   useGetMovieDetailsQuery,
   useGetMovieTrailersQuery,
 } from "../services/api/movieApi";
 import ShowtimeSection from "../components/booking/ShowtimeSection";
-import BookingTypeModal from "../components/booking/BookingTypeModal";
 import SpidermanLoader from "../components/common/SpidermanLoader";
 
 export default function MovieDetailPage() {
@@ -30,8 +22,6 @@ export default function MovieDetailPage() {
   const { data: trailersData } = useGetMovieTrailersQuery(id);
 
   const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
-  const [selectedSession, setSelectedSession] = useState(null);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -172,15 +162,6 @@ export default function MovieDetailPage() {
 
   const handleStopTrailer = () => {
     setIsPlayingTrailer(false);
-  };
-
-  const handleShowtimeSelect = (sessionData) => {
-    setSelectedSession({
-      ...sessionData,
-      movieId: movie.id,
-      movieTitle: title,
-    });
-    setIsBookingModalOpen(true);
   };
 
   return (
@@ -453,18 +434,8 @@ export default function MovieDetailPage() {
 
       {/* 3. Showtime Section (Locations, Date Selector, Branch Cards) */}
       <div className="max-w-6xl mx-auto px-2 sm:px-4">
-        <ShowtimeSection onSelectShowtime={handleShowtimeSelect} />
+        <ShowtimeSection movieId={id} />
       </div>
-
-      {/* 4. "How are you watching today?" Modal */}
-      <BookingTypeModal
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
-        session={selectedSession}
-        onSelectBookingType={(type) => {
-          console.log("Selected booking type:", type, selectedSession);
-        }}
-      />
     </div>
   );
 }

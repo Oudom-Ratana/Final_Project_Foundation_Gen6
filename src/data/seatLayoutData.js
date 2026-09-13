@@ -23,48 +23,57 @@ export const STANDARD_COL_GROUPS = [
   [11, 12],
 ];
 
-// Row A Couple Seat Pairs (5 evenly balanced pairs)
+// Row A Couple Seat Pairs matching Figma layout:
+// Pair 1: [1, 2] under cols 1, 2
+// Pair 2: [3, 4] under cols 3, 4
+// Pair 3: [5, 6] under cols 5, 6
+// Pair 4: [8, 9] under cols 8, 9
+// Pair 5: [11, 12] under cols 11, 12
 export const COUPLE_PAIRS = [
   [1, 2],
   [3, 4],
   [5, 6],
-  [7, 8],
-  [9, 10],
+  [8, 9],
+  [11, 12],
 ];
 
 export const getCouplePair = (col) =>
-  COUPLE_PAIRS.find((p) => p.includes(col)) ||
-  (col === 11 || col === 12 ? [9, 10] : null);
+  COUPLE_PAIRS.find((p) => p.includes(col)) || null;
 
 // Realistic default reserved seats matching mockups
 export const DEFAULT_GOLD_RESERVED = new Set([
+  // Cols 1 and 2 (all 6 rows reserved)
   "F1",
   "F2",
-  "F3",
-  "F4",
   "E1",
   "E2",
-  "E3",
-  "E4",
   "D1",
   "D2",
   "C1",
   "C2",
   "B1",
   "B2",
-  "B3",
-  "B4",
   "A1",
   "A2",
+  // Cols 3 and 4 (F, E, B, A reserved; D3-D4 and C3-C4 available for selection)
+  "F3",
+  "F4",
+  "E3",
+  "E4",
+  "B3",
+  "B4",
   "A3",
   "A4",
 ]);
 
 export const DEFAULT_STANDARD_RESERVED = new Set([
+  // Row H
   "H1",
   "H2",
+  // Row G
   "G1",
   "G2",
+  // Row F
   "F1",
   "F2",
   "F3",
@@ -73,6 +82,7 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "F6",
   "F7",
   "F8",
+  // Row E (all reserved)
   "E1",
   "E2",
   "E3",
@@ -81,18 +91,22 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "E6",
   "E7",
   "E8",
+  "E9",
+  "E10",
   "E11",
   "E12",
+  // Row D (D1-D2 & D5-D12 reserved; D3-D4 available to select)
   "D1",
   "D2",
-  "D3",
-  "D4",
   "D5",
   "D6",
   "D7",
   "D8",
+  "D9",
+  "D10",
   "D11",
   "D12",
+  // Row C (all reserved)
   "C1",
   "C2",
   "C3",
@@ -101,8 +115,11 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "C6",
   "C7",
   "C8",
+  "C9",
+  "C10",
   "C11",
   "C12",
+  // Row B (all reserved)
   "B1",
   "B2",
   "B3",
@@ -111,12 +128,15 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "B6",
   "B7",
   "B8",
+  "B9",
+  "B10",
   "B11",
   "B12",
+  // Row A Couple pairs (A1-A2, A3-A4, A8-A9 reserved; A5-A6 & A11-A12 available)
   "A1",
   "A2",
   "A3",
   "A4",
-  "A7",
   "A8",
+  "A9",
 ]);

@@ -1,34 +1,55 @@
 import { ChevronRight } from "lucide-react";
+import { useSelector } from "react-redux";
+import { selectTheme } from "../../redux/slices/uiSlice";
 
-export default function BookingCheckoutBar({ selectedSeats = [], totalPrice = 0, onProceed }) {
+export default function BookingCheckoutBar({
+  selectedSeats = [],
+  totalPrice = 0,
+  onProceed,
+}) {
+  const theme = useSelector(selectTheme);
+  const isDark = theme === "dark";
+
   if (selectedSeats.length === 0) return null;
 
+  const count = selectedSeats.length;
+  const label = count === 1 ? "1 SEAT" : `${count} SEATS`;
+  const seatList = selectedSeats.map((s) => s.id).join(", ");
+
   return (
-    <div className="fixed bottom-4 left-4 right-4 max-w-2xl mx-auto z-40 rounded-full border border-neutral-300 dark:border-white/20 bg-white/95 dark:bg-[#14181E]/95 backdrop-blur-md px-5 py-3 shadow-2xl flex items-center justify-between animate-slideUp">
+    <div
+      className="fixed bottom-6 left-4 right-4 max-w-2xl mx-auto z-40 rounded-full border px-6 sm:px-8 py-3.5 shadow-2xl flex items-center justify-between backdrop-blur-md animate-slideUp select-none"
+      style={{
+        backgroundColor: isDark
+          ? "var(--primary-color-30)"
+          : "var(--primary-color-5)",
+        borderColor: isDark
+          ? "var(--border-dark-mode)"
+          : "var(--border-light-mode)",
+      }}
+    >
+      {/* Left: Seat list and Total */}
       <div className="space-y-0.5 min-w-0 pr-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase text-neutral-400">
-            {selectedSeats.length} {selectedSeats.length === 1 ? "Seat" : "Seats"}:
-          </span>
-          <span className="font-black text-sm sm:text-base text-[#B90101] truncate">
-            {selectedSeats.map((s) => s.id).join(", ")}
-          </span>
+        <div className="text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-200 truncate">
+          <span>{label}: </span>
+          <span className="text-[#B90101] font-extrabold">{seatList}</span>
         </div>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="text-xs sm:text-sm font-medium text-neutral-600 dark:text-neutral-300">
           Total:{" "}
-          <strong className="text-sm font-black text-neutral-900 dark:text-white">
+          <strong className="font-black text-neutral-900 dark:text-white">
             ${totalPrice.toFixed(2)}
           </strong>
         </p>
       </div>
 
+      {/* Right: Red Booking Details Button */}
       <button
         type="button"
         onClick={onProceed}
-        className="px-6 py-2.5 rounded-full bg-[#B90101] hover:bg-[#A00101] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-red-950/40 active:scale-95 transition flex items-center gap-2 shrink-0"
+        className="px-5 sm:px-7 py-2.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all shadow-md active:scale-95 flex items-center gap-1.5 shrink-0 border border-white/20"
       >
-        <span>Booking Details</span>
-        <ChevronRight className="w-4 h-4" />
+        <span>BOOKING DETAILS</span>
+        <ChevronRight className="w-4 h-4 stroke-[3]" />
       </button>
     </div>
   );

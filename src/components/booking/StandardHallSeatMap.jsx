@@ -15,17 +15,17 @@ export default function StandardHallSeatMap({
   const [hoveredCouple, setHoveredCouple] = useState(null);
 
   return (
-    <div className="min-w-[660px] max-w-3xl mx-auto space-y-3.5 sm:space-y-4 select-none">
-      {/* Column Numbers Header: 1-2, 3-10, 11-12 (100% pixel-perfect alignment with seats) */}
+    <div className="min-w-[660px] max-w-3xl mx-auto space-y-3 sm:space-y-3.5 select-none">
+      {/* Column Numbers Header: 1-2, 3-10, 11-12 (Aligned with seats) */}
       <div className="flex items-center justify-between gap-2 text-xs font-bold text-neutral-600 dark:text-neutral-400">
-        <span className="w-6" />
-        <div className="flex items-center gap-3 sm:gap-5">
+        <span className="w-6 sm:w-8" />
+        <div className="flex items-center gap-3.5 sm:gap-6">
           {STANDARD_COL_GROUPS.map((group, gIdx) => (
             <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
               {group.map((col) => (
                 <div
                   key={col}
-                  className="p-0.5 flex items-center justify-center text-center"
+                  className="p-0.5 flex items-center justify-center text-center font-bold text-xs sm:text-sm text-neutral-800 dark:text-neutral-200"
                   style={{ width: 34, minWidth: 34 }}
                 >
                   <span>{col}</span>
@@ -34,23 +34,23 @@ export default function StandardHallSeatMap({
             </div>
           ))}
         </div>
-        <span className="w-6" />
+        <span className="w-6 sm:w-8" />
       </div>
 
-      {/* Upper Rows: H down to B (12 seats per row) */}
-      <div className="space-y-3.5 sm:space-y-4">
+      {/* Upper Rows: H down to B */}
+      <div className="space-y-3 sm:space-y-3.5">
         {STANDARD_ROWS.filter((r) => r !== "A").map((rowLetter) => (
           <div
             key={rowLetter}
             className="flex items-center justify-between gap-2"
           >
             {/* Left Row Letter */}
-            <span className="w-6 text-center font-bold text-sm sm:text-base text-neutral-800 dark:text-neutral-200">
+            <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
               {rowLetter}
             </span>
 
             {/* Columns: Left (1-2), Center (3-10), Right (11-12) */}
-            <div className="flex items-center gap-3 sm:gap-5">
+            <div className="flex items-center gap-3.5 sm:gap-6">
               {STANDARD_COL_GROUPS.map((group, gIdx) => (
                 <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
                   {group.map((col) => {
@@ -75,6 +75,7 @@ export default function StandardHallSeatMap({
                             : "hover:scale-110 active:scale-95 cursor-pointer"
                         }`}
                         aria-label={`Seat ${seatId} ${status}`}
+                        title={`Seat ${seatId} (${status})`}
                       >
                         <SeatIcon status={status} size={30} />
                       </button>
@@ -85,74 +86,82 @@ export default function StandardHallSeatMap({
             </div>
 
             {/* Right Row Letter */}
-            <span className="w-6 text-center font-bold text-sm sm:text-base text-neutral-800 dark:text-neutral-200">
+            <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
               {rowLetter}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Bottom Row A: Couple Seats (Centered into the middle with equal spacing between pairs via justify-around) */}
-      <div className="pt-6 sm:pt-8">
+      {/* Bottom Row A: Couple Seat Pairs (Spaced across columns with empty slots at 7 & 10 matching Figma) */}
+      <div className="pt-5 sm:pt-6">
         <div className="flex items-center justify-between gap-2">
           {/* Left Row Letter */}
-          <span className="w-6 text-center font-bold text-sm sm:text-base text-neutral-800 dark:text-neutral-200">
+          <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
             A
           </span>
 
-          {/* Centered with equal space between each couple pair (justify-around) */}
-          <div className="flex-1 flex items-center justify-around px-1 sm:px-6">
-            {COUPLE_PAIRS.map((pair, pIdx) => {
-              const [col1, col2] = pair;
-              const pairKey = `A-${col1}-${col2}`;
-              const isPairHovered = hoveredCouple === pairKey;
-
-              return (
-                <div
-                  key={pIdx}
-                  className={`flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl transition-all duration-200 ${
-                    isPairHovered
-                      ? "scale-105 bg-amber-500/10 dark:bg-amber-400/10 shadow-sm"
-                      : ""
-                  }`}
-                  onMouseEnter={() => setHoveredCouple(pairKey)}
-                  onMouseLeave={() => setHoveredCouple(null)}
-                >
-                  {pair.map((col) => {
-                    const seatId = `A${col}`;
-                    const isReserved = isSeatReserved(seatId);
-                    const isSelected = isSeatSelected(seatId);
-                    const status = isReserved
-                      ? "reserved"
-                      : isSelected
-                        ? "selected"
-                        : "available";
-
+          {/* Column Groups matching layout above: Left (1-2), Center (3-10), Right (11-12) */}
+          <div className="flex items-center gap-3.5 sm:gap-6">
+            {STANDARD_COL_GROUPS.map((group, gIdx) => (
+              <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
+                {group.map((col) => {
+                  // In Figma Row A, slots 7 and 10 are open gaps between pairs
+                  if (col === 7 || col === 10) {
                     return (
-                      <button
-                        key={seatId}
-                        type="button"
-                        onClick={() => onSeatClick("A", col, true)}
-                        disabled={isReserved}
-                        className={`p-0.5 rounded-lg transition-transform ${
-                          isReserved
-                            ? "cursor-not-allowed opacity-95"
-                            : "cursor-pointer active:scale-95"
-                        }`}
-                        aria-label={`Couple Seat ${seatId} ${status}`}
-                        title={`Couple Seat Pair A${col1}-A${col2} ($${STANDARD_COUPLE_PRICE.toFixed(2)})`}
-                      >
-                        <SeatIcon status={status} size={30} />
-                      </button>
+                      <div
+                        key={col}
+                        className="p-0.5"
+                        style={{ width: 34, minWidth: 34 }}
+                      />
                     );
-                  })}
-                </div>
-              );
-            })}
+                  }
+
+                  const seatId = `A${col}`;
+                  const isReserved = isSeatReserved(seatId);
+                  const isSelected = isSeatSelected(seatId);
+                  const status = isReserved
+                    ? "reserved"
+                    : isSelected
+                      ? "selected"
+                      : "available";
+
+                  const pair = COUPLE_PAIRS.find((p) => p.includes(col));
+                  const pairKey = pair ? `A-${pair[0]}-${pair[1]}` : null;
+                  const isPairHovered = hoveredCouple === pairKey;
+
+                  return (
+                    <button
+                      key={seatId}
+                      type="button"
+                      onClick={() => onSeatClick("A", col, true)}
+                      disabled={isReserved}
+                      onMouseEnter={() => pairKey && setHoveredCouple(pairKey)}
+                      onMouseLeave={() => setHoveredCouple(null)}
+                      className={`p-0.5 rounded-lg transition-transform ${
+                        isReserved
+                          ? "cursor-not-allowed opacity-95"
+                          : isPairHovered
+                            ? "scale-110 active:scale-95 cursor-pointer"
+                            : "hover:scale-110 active:scale-95 cursor-pointer"
+                      }`}
+                      aria-label={`Couple Seat ${seatId} ${status}`}
+                      title={
+                        pair
+                          ? `Couple Seat Pair A${pair[0]}-A${pair[1]} ($${STANDARD_COUPLE_PRICE.toFixed(2)})`
+                          : ""
+                      }
+                    >
+                      <SeatIcon status={status} size={30} />
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </div>
 
           {/* Right Row Letter */}
-          <span className="w-6 text-center font-bold text-sm sm:text-base text-neutral-800 dark:text-neutral-200">
+          <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
             A
           </span>
         </div>
