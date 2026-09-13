@@ -34,7 +34,10 @@ export default function FeaturedSeriesSection() {
                 duration={700}
                 distance="translate-y-12"
               >
-                <MovieCard movie={item} />
+                <MovieCard
+                  basePath="/movies"
+                  movie={{ ...item, media_type: "tv" }}
+                />
               </ScrollReveal>
             ))}
       </div>

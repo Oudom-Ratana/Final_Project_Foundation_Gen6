@@ -71,7 +71,7 @@ export default function HomeHero() {
   if (isLoading || totalSlides === 0) {
     return (
       <section className="relative w-full min-h-[620px] sm:min-h-[700px] lg:min-h-[760px] overflow-hidden bg-neutral-950 font-sans flex flex-col items-center justify-center pt-20 pb-8 px-4 sm:px-6 lg:px-8 border-b border-white/10">
-        <SpidermanLoader size="lg" text="SWINGING INTO FLIM ZONE..." />
+        <SpidermanLoader size="lg" text="SWINGING INTO FILM ZONE..." />
       </section>
     );
   }
@@ -79,9 +79,9 @@ export default function HomeHero() {
   const activeMovie = slides[currentIndex] || slides[0];
 
   return (
-    <section className="relative w-full min-h-[720px] sm:min-h-[700px] lg:min-h-[850px] overflow-hidden select-none font-sans flex flex-col justify-between">
+    <section className="relative w-full min-h-[720px] sm:min-h-[700px] lg:min-h-[880px] overflow-hidden select-none font-sans flex flex-col justify-between">
       {/* 1. Full-Width Background Slides Layer with Smooth Cross-Fade */}
-      <div className="absolute inset-0 z-0 bg-black ">
+      <div className="absolute inset-0 z-0  bg-black ">
         {slides.map((slide, index) => {
           const isActive = index === currentIndex;
           return (
@@ -99,8 +99,8 @@ export default function HomeHero() {
                 className="w-full h-full object-cover object-center filter brightness-90"
               />
               {/* Cinematic Vignette Gradients */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-black/60 sm:to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/60" />
+              {/* <div className="absolute inset-0 bg-gradient-to-r from-black/170 via-black/50 to-black/140 sm:to-transparent" /> */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/60" />
               <div className="absolute inset-0 bg-radial-at-c from-transparent via-black/20 to-black/80" />
             </div>
           );
@@ -130,9 +130,9 @@ export default function HomeHero() {
 
       {/* 3. Top Controls Floating Row (Ticket Button) */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 invisible">
-        <div className="flex items-center justify-end w-full"> 
+        <div className="flex items-center justify-end w-full">
           {/* Floating Ticket Pill Button */}
-           <Link
+          <Link
             to="/my-tickets"
             className="flex items-center gap-2 px-5 py-2 rounded-[35px] border backdrop-blur-md text-white font-bold text-[15px] shadow-sm hover:scale-105 active:scale-95 transition"
             style={{
@@ -144,11 +144,11 @@ export default function HomeHero() {
             <span>Ticket</span>
           </Link>
         </div>
-      </div> 
+      </div>
 
       {/* 4. Middle Content Area (Headline, Overview, Action Buttons) */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-auto py-6 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center px-5">
           {/* Left Side: Headline, Description & Action Buttons */}
           <div
             key={`content-${activeMovie.id || currentIndex}`}
@@ -176,7 +176,7 @@ export default function HomeHero() {
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link
                 to={`/movies/${activeMovie.id}`}
-                className="flex items-center justify-center gap-2.5 h-[54px] px-8 rounded-[30px] text-white font-black text-[15px] uppercase tracking-wider shadow-xl shadow-red-950/60 hover:brightness-110 active:scale-95 transition"
+                className="flex items-center justify-center gap-2.5 h-[54px] px-8 rounded-[30px] text-white font-black text-[15px] uppercase tracking-wider hover:brightness-110 active:scale-95 transition"
                 style={{
                   backgroundColor: "#B90101",
                   borderRadius: "30px",

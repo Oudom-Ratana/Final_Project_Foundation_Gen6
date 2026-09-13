@@ -27,7 +27,7 @@ export default function AboutHero() {
           <div className="pt-2">
             <Link
               to="/"
-              className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full bg-primary-red text-white font-bold text-btn hover:bg-primary-dark active:scale-95 transition-all shadow-xl shadow-red-950/40"
+              className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full bg-primary-red text-white font-bold text-btn hover:bg-primary-dark active:scale-95 transition-all "
             >
               <span>Explore movies</span>
               <ArrowRight className="w-5 h-5" />

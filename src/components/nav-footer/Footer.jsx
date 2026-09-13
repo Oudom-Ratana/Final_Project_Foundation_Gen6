@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import istadLogo from "../../assets/logo/ISTAD_Light.png";
+import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
 
 // --- Static content -------------------------------------------------
 // Keeping these as plain arrays (instead of hardcoding JSX) makes it easy
@@ -105,15 +106,14 @@ export default function Footer() {
           <div className="sm:col-span-2 lg:col-span-1 space-y-4">
             <Link
               to="/"
-              className="inline-flex items-center gap-1 select-none"
-              aria-label="Film Zone home"
+              className="inline-flex items-center select-none"
+              aria-label="FilmZone home"
             >
-              <span className="font-black italic tracking-tighter text-2xl leading-none text-transparent bg-clip-text bg-gradient-to-b from-neutral-300 via-neutral-500 to-neutral-700 dark:from-white dark:via-neutral-300 dark:to-neutral-500">
-                FLIM
-              </span>
-              <span className="font-black italic tracking-tighter text-2xl leading-none text-transparent bg-clip-text bg-gradient-to-b from-red-500 via-red-600 to-[#B90101]">
-                ZONE
-              </span>
+              <img
+                src={filmZoneLogo}
+                alt="FilmZone Logo"
+                className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 hover:scale-105"
+              />
             </Link>
 
             <p

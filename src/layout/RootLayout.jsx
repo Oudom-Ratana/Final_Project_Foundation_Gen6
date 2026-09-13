@@ -1,20 +1,28 @@
 import { Outlet, useLocation, ScrollRestoration } from "react-router";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../redux/slices/uiSlice";
-import Navbar from "../components/layout/Navbar";
-import Footer from "../components/layout/Footer";
+import Navbar from "../components/nav-footer/Navbar";
+import Footer from "../components/nav-footer/Footer";
 
 export default function RootLayout() {
   const location = useLocation();
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
   const isHomePage = location.pathname === "/";
+  const isAuthPage = [
+    "/login",
+    "/Login",
+    "/signup",
+    "/SignUp",
+    "/forgot-password",
+    "/ForgotPassword",
+  ].includes(location.pathname);
 
   return (
     <div
       className={`min-h-screen flex flex-col font-sans antialiased transition-colors duration-300 selection:bg-[#B90101] selection:text-white ${
         isDark ? "text-white" : "text-neutral-900"
-      }`}
+      } ${isAuthPage ? "h-screen overflow-hidden" : ""}`}
       style={{
         backgroundColor: isDark ? "transparent" : "#F6F7F9",
         background: isDark
@@ -28,14 +36,15 @@ export default function RootLayout() {
         className={`flex-1 w-full ${
           isHomePage
             ? "pb-12"
-            : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12"
+            : isAuthPage
+              ? "h-[calc(100dvh-5rem)] mt-20 overflow-hidden"
+              : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12"
         }`}
       >
         <Outlet />
       </main>
-      <Footer />
+      {!isAuthPage && <Footer />}
       <ScrollRestoration />
     </div>
   );
 }
-

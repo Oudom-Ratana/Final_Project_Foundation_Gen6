@@ -46,9 +46,9 @@ export default function ComingSoonCard({ item }) {
       </div>
 
       {/* Title & Release Date */}
-      <div className="space-y-1">
+      <div className="space-y-1 pt-0.5">
         <h3
-          className="font-bold text-[20px] sm:text-[22px] leading-snug tracking-tight group-hover:brightness-110 transition line-clamp-1"
+          className="font-black text-[21px] sm:text-[22px] leading-snug tracking-tight group-hover:brightness-110 transition line-clamp-1"
           style={{ color: "#9E0505" }}
         >
           {title}
