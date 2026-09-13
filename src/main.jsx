@@ -26,6 +26,8 @@ import AdminLayout from "./layout/AdminLayout";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminMovieLibraryPage from "./pages/admin/AdminMovieLibraryPage";
 import AdminUserAnalyticsPage from "./pages/admin/AdminUserAnalyticsPage";
+import FavouritePage from "./pages/FavouritePage";
+
 
 const router = createBrowserRouter([
   {
@@ -57,8 +59,8 @@ const router = createBrowserRouter([
         element: <StreamPage />,
       },
       {
-        path: "/stream/:id",
-        element: <StreamMovieDetailPage />,
+        path: "/favourite",
+        element: <FavouritePage />,
       },
       {
         path: "/movies/:id",

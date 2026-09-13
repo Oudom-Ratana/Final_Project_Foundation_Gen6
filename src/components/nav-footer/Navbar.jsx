@@ -130,7 +130,7 @@ export default function Navbar() {
 
           {/* Glass Favorite Movie Button (Directly after Login button) */}
           <Link
-            to="/stream"
+            to="/favourite"
             className="relative w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm group"
             style={{
               backgroundColor: "rgba(26, 31, 37, 0.10)",

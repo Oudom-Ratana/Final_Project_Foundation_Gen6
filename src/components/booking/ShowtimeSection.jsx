@@ -57,7 +57,7 @@ export default function ShowtimeSection({ onSelectShowtime }) {
         <button
           type="button"
           onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-          className="w-full py-3.5 px-6 rounded-full border border-neutral-300 dark:border-white/20 bg-white dark:bg-[#14181E] flex items-center justify-between text-neutral-800 dark:text-neutral-100 font-bold text-base hover:border-[#B90101] transition shadow-xs"
+          className="w-full py-3.5 px-6 rounded-full border border-[var(--border-light-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] flex items-center justify-between text-neutral-800 dark:text-neutral-100 font-bold text-base hover:border-[#B90101] transition shadow-xs"
         >
           <span className="mx-auto pl-6 font-bold">{selectedLocation}</span>
           <ChevronDown
@@ -69,7 +69,7 @@ export default function ShowtimeSection({ onSelectShowtime }) {
 
         {/* Dropdown Menu */}
         {isLocationDropdownOpen && (
-          <div className="absolute top-full left-0 right-0 mt-2 z-30 rounded-2xl bg-white dark:bg-[#1A1F25] border border-neutral-200 dark:border-white/15 p-2 shadow-2xl space-y-1">
+          <div className="absolute top-full left-0 right-0 mt-2 z-30 rounded-2xl border border-[var(--border-light-mode)] bg-white dark:bg-black/90 dark:border-[var(--border-dark-mode)]  p-2 shadow-2xl space-y-1">
             {LOCATIONS.map((loc) => (
               <button
                 key={loc}
@@ -127,7 +127,7 @@ export default function ShowtimeSection({ onSelectShowtime }) {
         {filteredBranches.map((branch) => (
           <div
             key={branch.id}
-            className="w-full rounded-2xl sm:rounded-3xl border border-neutral-200/90 dark:border-white/10 bg-white dark:bg-[#14181E] p-5 sm:p-6 space-y-4 shadow-sm hover:shadow-md transition-shadow"
+            className="w-full rounded-2xl sm:rounded-3xl border border-[var(--border-light-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)]  p-5 sm:p-6 space-y-4 shadow-sm hover:shadow-md transition-shadow"
           >
             {/* Top Row: Branch Name • Hall & Badges */}
             <div className="flex flex-wrap items-center justify-between gap-3">
