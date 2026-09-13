@@ -5,9 +5,9 @@ export default function ComingSoonCard({ item }) {
 
   const title = item.title || item.name || "Coming Soon";
 
-  // Format release date to 'Month Day, Year' (e.g. 'March 26, 2027')
+  // Format release date to 'Month Day, Year'
   const formatReleaseDate = (dateStr) => {
-    if (!dateStr) return "March 26, 2027";
+    if (!dateStr) return "Coming Soon";
     if (/^[A-Za-z]+\s+\d{1,2},\s+\d{4}$/.test(dateStr)) return dateStr;
     const parsed = new Date(dateStr);
     if (!isNaN(parsed.getTime())) {
@@ -20,7 +20,9 @@ export default function ComingSoonCard({ item }) {
     return dateStr;
   };
 
-  const formattedDate = formatReleaseDate(item.release_date);
+  const formattedDate = formatReleaseDate(
+    item.release_date || item.first_air_date,
+  );
 
   const bannerUrl =
     item.banner ||

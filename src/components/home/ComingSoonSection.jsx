@@ -1,13 +1,21 @@
-import { useGetUpcomingMoviesQuery } from "../../services/api/movieApi";
+import { useDiscoverMoviesQuery } from "../../services/api/movieApi";
 import ComingSoonCard from "./ComingSoonCard";
 import ComingSoonCardSkeleton from "./ComingSoonCardSkeleton";
 import ScrollReveal from "../common/ScrollReveal";
 
 export default function ComingSoonSection() {
-  const { data: tmdbUpcoming, isLoading } = useGetUpcomingMoviesQuery(2);
+  // Fetch newest movies ordered by primary_release_date.desc
+  const { data: tmdbNewest, isLoading } = useDiscoverMoviesQuery({
+    sort_by: "primary_release_date.desc",
+    page: 1,
+  });
 
   const upcomingToDisplay =
-    tmdbUpcoming && tmdbUpcoming.length > 0 ? tmdbUpcoming.slice(0, 3) : [];
+    tmdbNewest && tmdbNewest.length > 0
+      ? tmdbNewest
+          .filter((m) => Boolean(m.backdrop_path || m.poster_path))
+          .slice(0, 3)
+      : [];
 
   return (
     <section className="space-y-6 font-sans">

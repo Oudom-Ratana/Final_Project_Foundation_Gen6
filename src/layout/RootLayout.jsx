@@ -25,9 +25,8 @@ export default function RootLayout() {
       } ${isAuthPage ? "h-screen overflow-hidden" : ""}`}
       style={{
         backgroundColor: isDark ? "transparent" : "#F6F7F9",
-        background: isDark
-          ? "radial-gradient(ellipse at left, rgba(109, 8, 8, 0.7) 0%, #0d0304 100%), #000000"
-          : "#F6F7F9",
+        background: isDark ? "var(--bg-dark-mode)" : "#F6F7F9",
+        backgroundAttachment: isDark ? "fixed" : "scroll",
         minHeight: "100vh",
       }}
     >

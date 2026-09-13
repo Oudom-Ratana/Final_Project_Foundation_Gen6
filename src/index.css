@@ -23,8 +23,10 @@
   --text-light: #828282;
   --text-black: rgba(255, 255, 255, 0.7);
 
-   /* Typography */
-  --font-sans: 'Google Sans', 'Product Sans', 'Open Sans', system-ui, -apple-system, sans-serif;
+  /* Typography */
+  --font-sans:
+    "Google Sans", "Product Sans", "Open Sans", system-ui, -apple-system,
+    sans-serif;
 
   --text-h1: 96px;
   --text-h2: 44px;
@@ -52,23 +54,30 @@
 
     /* Glassmorphism - Light Mode */
     --primary-color-5: rgba(39, 42, 48, 0.05);
-    --border-light-mode: rgba(39, 42, 48, 0.05);        /*[#272A30]/5*/
+    --border-light-mode: rgba(39, 42, 48, 0.05); /*[#272A30]/5*/
 
     /* Glassmorphism - dark  Mode */
     --primary-color-30: rgba(39, 42, 48, 0.3);
     --border-dark-mode: rgba(255, 255, 255, 0.2);
+
+    /* Figma Dark Mode Background: 2 layers (Front: Radial gradient, Behind: Pure black) */
+    --bg-dark-mode:
+      radial-gradient(
+        ellipse at 50% 50%,
+        rgba(109, 8, 8, 0.5) 0%,
+        #000000 100%
+      ),
+      #000000;
 
     /* ======= Dark mode ======
       For title's color: White (FFFFF)  or  --color-primary: #B90101;
        for description's : [#FFFFFF]/70 or  --text-black: rgba(255, 255, 255, 0.7);
     */
 
-
-      /* ======= Light mode ======
+    /* ======= Light mode ======
       For title's color: black (00000)  or  --color-primary: #B90101;
        for description's : [#828282]  or   --text-light: #828282;
     */
-
   }
 
   html {
@@ -98,9 +107,8 @@
   }
 
   html.dark body {
-    background:
-      radial-gradient(ellipse at left, rgba(109, 8, 8, 0.7) 0%, #0d0304 100%),
-      #000000;
+    background: var(--bg-dark-mode);
+    background-attachment: fixed;
     color: #ffffff;
   }
 
@@ -161,23 +169,19 @@
   background-color: #f6f7f9 !important;
 }
 
-.bg-cinema-radial {
-  background:
-    radial-gradient(
-      ellipse at center,
-      rgba(109, 8, 8, 0.7) 0%,
-      #0d0304 70%,
-      #000000 100%
-    ),
-    #000000;
+.bg-dark-mode {
+  background: var(--bg-dark-mode) !important;
+  background-attachment: fixed;
 }
 
-
+.bg-cinema-radial {
+  background: var(--bg-dark-mode);
+}
 
 /* Hide scrollbars globally (scrolling stays functional, bar is invisible) */
 * {
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* Legacy Edge / IE */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Legacy Edge / IE */
 }
 
 /* Hide scrollbars while preserving scrolling functionality */

@@ -24,7 +24,7 @@ export default function FavouritePage() {
         <Link
           to="/stream"
           className="mt-2 inline-flex items-center gap-2 px-6 py-2 rounded-full text-white font-bold text-[14px] shadow-lg hover:brightness-110 active:scale-95 transition"
-          style={{ backgroundColor: '#B90101' }}
+          style={{ backgroundColor: "#B90101" }}
         >
           <span>Browse Stream</span>
         </Link>
@@ -38,10 +38,10 @@ export default function FavouritePage() {
       <div className="flex items-center gap-3">
         <span
           className="w-1.5 h-7 rounded-full inline-block"
-          style={{ backgroundColor: '#B90101' }}
+          style={{ backgroundColor: "#B90101" }}
         />
-        <h2 className="text-btn-card)] sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
-          My Favourite Movies
+        <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
+          My Favourite Movies & Shows
         </h2>
         <span className="text-sm font-bold text-neutral-400">
           ({movies.length})
@@ -60,6 +60,7 @@ export default function FavouritePage() {
             year={movie.year}
             genre={movie.genre}
             description={movie.description}
+            isTV={movie.isTV}
             isFavourite
             onDelete={() => dispatch(removeFromFavourite(movie.id))}
           />

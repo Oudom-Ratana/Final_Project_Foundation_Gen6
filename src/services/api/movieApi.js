@@ -113,6 +113,15 @@ export const movieApi = baseApi.injectEndpoints({
         `/search/multi?query=${encodeURIComponent(query)}&page=${page}`,
       transformResponse: (response) => response?.results || [],
     }),
+
+    // 14. Lightweight Movie Runtime Query (/movie/{id})
+    getMovieRuntime: builder.query({
+      query: (id) => `/movie/${id}`,
+      transformResponse: (response) => response?.runtime || null,
+      providesTags: (result, error, id) => [
+        { type: "Movie", id: `runtime-${id}` },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -126,6 +135,7 @@ export const {
   useGetTopRatedMoviesQuery,
   useDiscoverMoviesQuery,
   useGetMovieDetailsQuery,
+  useGetMovieRuntimeQuery,
   useGetMovieTrailersQuery,
   useGetMovieCreditsQuery,
   useGetMovieGenresQuery,
