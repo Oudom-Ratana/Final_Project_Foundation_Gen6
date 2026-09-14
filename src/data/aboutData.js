@@ -1,3 +1,4 @@
+
 import BunvarnImg from "../assets/mentors_and_member/image/Bunvarn.png";
 import ChingseanImg from "../assets/mentors_and_member/image/Chingsean.png";
 import KhemaImg from "../assets/mentors_and_member/image/Khema.png";
@@ -5,7 +6,7 @@ import LeaknaImg from "../assets/mentors_and_member/image/Leakna.png";
 import LyzhiaImg from "../assets/mentors_and_member/image/Lyzhia.png";
 import OudomImg from "../assets/mentors_and_member/image/Oudom.png";
 import PanhaleapImg from "../assets/mentors_and_member/image/Panhaleap.png";
-import ReaksmeyImg from "../assets/mentors_and_member/image/reaksmey.jpg";
+import ReaksmeyImg from "../assets/mentors_and_member/image/Reaksmey.png";
 import SithaImg from "../assets/mentors_and_member/image/Sitha.png";
 import ThanuImg from "../assets/mentors_and_member/image/Thanu.png";
 
@@ -53,7 +54,7 @@ export const TEAM_MEMBERS = [
     id: 3,
     name: "Sen Sengthanu",
     role: "Frontend",
-    image: ThanuImg, // Replace with Sengtheng's image once added
+    image: ThanuImg,
     telegram: "#",
     github: "#",
     portfolio: "#",
