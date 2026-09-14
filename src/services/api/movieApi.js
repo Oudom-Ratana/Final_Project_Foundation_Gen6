@@ -63,7 +63,12 @@ export const movieApi = baseApi.injectEndpoints({
         if (params.page) queryParams.append("page", params.page);
         if (params.with_genres)
           queryParams.append("with_genres", params.with_genres);
-        if (params.sort_by) queryParams.append("sort_by", params.sort_by);
+        if (params.sort_by) {
+          queryParams.append("sort_by", params.sort_by);
+          if (params.sort_by.startsWith("vote_average")) {
+            queryParams.append("vote_count.gte", "200");
+          }
+        }
         if (params.primary_release_year)
           queryParams.append(
             "primary_release_year",
@@ -72,7 +77,11 @@ export const movieApi = baseApi.injectEndpoints({
         const queryStr = queryParams.toString();
         return `/discover/movie${queryStr ? `?${queryStr}` : ""}`;
       },
-      transformResponse: (response) => response?.results || response,
+      transformResponse: (response) => ({
+        results: response?.results || [],
+        total_pages: Math.min(response?.total_pages || 1, 500),
+        total_results: response?.total_results || 0,
+      }),
       providesTags: [{ type: "Movie", id: "DISCOVER" }],
     }),
 
@@ -104,7 +113,11 @@ export const movieApi = baseApi.injectEndpoints({
     searchMovies: builder.query({
       query: ({ query, page = 1 }) =>
         `/search/movie?query=${encodeURIComponent(query)}&page=${page}`,
-      transformResponse: (response) => response?.results || [],
+      transformResponse: (response) => ({
+        results: response?.results || [],
+        total_pages: Math.min(response?.total_pages || 1, 500),
+        total_results: response?.total_results || 0,
+      }),
     }),
 
     // 13. Search Multi (Movies, TV Series, People)

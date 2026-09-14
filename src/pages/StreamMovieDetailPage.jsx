@@ -20,7 +20,10 @@ import {
   useGetMovieDetailsQuery,
   useGetMovieTrailersQuery,
 } from "../services/api/movieApi";
-import { useGetTVDetailsQuery } from "../services/api/tvApi";
+import {
+  useGetTVDetailsQuery,
+  useGetTVTrailersQuery,
+} from "../services/api/tvApi";
 import StreamPlayerModal from "../components/stream/StreamPlayerModal";
 import MovieDetailSkeleton from "../components/common/MovieDetailSkeleton";
 import { formatMovieRuntime } from "../utils/formatRuntime";
@@ -28,6 +31,7 @@ import {
   addToFavourite,
   removeFromFavourite,
 } from "../redux/slices/favouriteSlice";
+import { useAddFavoriteMutation } from "../services/api/accountApi";
 
 export default function StreamMovieDetailPage() {
   const { id } = useParams();
@@ -53,10 +57,17 @@ export default function StreamMovieDetailPage() {
     skip: !isExplicitTV && !isMovieError,
   });
 
-  const { data: trailers } = useGetMovieTrailersQuery(id);
+  const { data: movieTrailers } = useGetMovieTrailersQuery(id, {
+    skip: isExplicitTV,
+  });
+  const { data: tvTrailers } = useGetTVTrailersQuery(id, {
+    skip: !isExplicitTV && !isMovieError,
+  });
 
   const dispatch = useDispatch();
   const favouriteMovies = useSelector((state) => state.favourite.movies);
+  const [addFavorite] = useAddFavoriteMutation();
+
   const isFavourite = favouriteMovies.some((m) => String(m.id) === String(id));
 
   const [selectedEpisode, setSelectedEpisode] = useState(1);
@@ -141,7 +152,19 @@ export default function StreamMovieDetailPage() {
     ? `https://image.tmdb.org/t/p/w500${data.poster_path}`
     : backdropUrl;
 
-  const trailerKey = trailers?.[0]?.key || data.videos?.results?.[0]?.key;
+  const allVideos = [
+    ...(movieTrailers || []),
+    ...(tvTrailers || []),
+    ...(data.videos?.results || []),
+  ];
+
+  const trailerKey =
+    allVideos.find(
+      (v) =>
+        v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"),
+    )?.key ||
+    allVideos.find((v) => v.site === "YouTube" && v.type === "Trailer")?.key ||
+    allVideos.find((v) => v.site === "YouTube")?.key;
 
   // Extract Cast & Crew (Writers, Producers, Directors)
   const crewList = data.credits?.crew || [];
@@ -195,11 +218,25 @@ export default function StreamMovieDetailPage() {
     isTV,
   };
 
-  const toggleFavourite = () => {
+  const toggleFavourite = async () => {
+    const nextFavState = !isFavourite;
+
+    // 1. Instant local/optimistic update
     if (isFavourite) {
       dispatch(removeFromFavourite(id));
     } else {
       dispatch(addToFavourite(favouritePayload));
+    }
+
+    // 2. Sync to official TMDB Account Favorite API
+    try {
+      await addFavorite({
+        mediaType: isTV ? "tv" : "movie",
+        mediaId: id,
+        favorite: nextFavState,
+      }).unwrap();
+    } catch (err) {
+      console.warn("Failed to sync favorite with TMDB API:", err);
     }
   };
 

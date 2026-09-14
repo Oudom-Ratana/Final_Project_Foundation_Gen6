@@ -44,7 +44,7 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="p-8 sm:p-10 rounded-3xl bg-[#EFEFEF] dark:bg-[#1A1F25]/40 border border-neutral-200/80 dark:border-white/20 shadow-sm dark:shadow-2xl space-y-8 font-sans transition-colors duration-300">
+    <div className="p-8 sm:p-10 rounded-3xl bg-white/80 dark:bg-[#1A1F25]/40 backdrop-blur-md border border-neutral-200/90 dark:border-white/20 shadow-md dark:shadow-2xl space-y-8 font-sans transition-colors duration-300">
       <div>
         <h3 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
           Send Us a Message
@@ -68,7 +68,7 @@ export default function ContactForm() {
               value={formData.name}
               onChange={handleChange}
               placeholder="Enter your name"
-              className="w-full px-5 py-3.5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
+              className="w-full px-5 py-3.5 bg-neutral-50 dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
             />
           </div>
 
@@ -83,7 +83,7 @@ export default function ContactForm() {
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter your email"
-              className="w-full px-5 py-3.5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
+              className="w-full px-5 py-3.5 bg-neutral-50 dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
             />
           </div>
         </div>
@@ -100,7 +100,7 @@ export default function ContactForm() {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Enter phone number"
-              className="w-full px-5 py-3.5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
+              className="w-full px-5 py-3.5 bg-neutral-50 dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
             />
           </div>
 
@@ -114,7 +114,7 @@ export default function ContactForm() {
               value={formData.subject}
               onChange={handleChange}
               placeholder="Select a subject"
-              className="w-full px-5 py-3.5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
+              className="w-full px-5 py-3.5 bg-neutral-50 dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] transition-colors shadow-xs"
             />
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function ContactForm() {
             value={formData.message}
             onChange={handleChange}
             placeholder="Write any message here"
-            className="w-full p-5 bg-white dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-2xl text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] resize-none transition-colors shadow-xs"
+            className="w-full p-5 bg-neutral-50 dark:bg-transparent border border-neutral-300 dark:border-white/20 rounded-2xl text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-400 focus:outline-none focus:border-[var(--primary-red)] dark:focus:border-[var(--primary-red)] resize-none transition-colors shadow-xs"
           />
         </div>
 
@@ -143,7 +143,7 @@ export default function ContactForm() {
             name="agree"
             checked={formData.agree}
             onChange={handleChange}
-            className="w-4 h-4 rounded bg-white dark:bg-transparent border-neutral-300 dark:border-white/30 accent-[var(--primary-red)] cursor-pointer"
+            className="w-4 h-4 rounded bg-neutral-50 dark:bg-transparent border-neutral-300 dark:border-white/30 accent-[var(--primary-red)] cursor-pointer"
           />
           <label
             htmlFor="agree"

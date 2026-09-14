@@ -7,7 +7,7 @@ export default function ContactInfo({ mapImage }) {
   const googleMapsUrl = "https://maps.google.com/?q=ISTAD+Phnom+Penh";
 
   return (
-    <div className="p-8 sm:p-10 rounded-3xl bg-[#EFEFEF] dark:bg-[#1A1F25]/40 border border-neutral-200/80 dark:border-white/20 shadow-sm dark:shadow-2xl space-y-8 flex flex-col justify-between font-sans transition-colors duration-300">
+    <div className="p-8 sm:p-10 rounded-3xl bg-white/80 dark:bg-[#1A1F25]/40 backdrop-blur-md border border-neutral-200/90 dark:border-white/20 shadow-md dark:shadow-2xl space-y-8 flex flex-col justify-between font-sans transition-colors duration-300">
       <div className="space-y-6">
         <div>
           <h3 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
@@ -80,7 +80,7 @@ export default function ContactInfo({ mapImage }) {
         </a>
       </div>
 
-      <div className="border-t border-neutral-300/70 dark:border-white/20 pt-4">
+      <div className="border-t border-neutral-200 dark:border-white/20 pt-4">
         <p className="text-xs text-neutral-600 dark:text-[rgba(255,255,255,0.7)] text-center">
           For immediate assistance while at the cinema, please visit the ticket counter
         </p>

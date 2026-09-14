@@ -1,21 +1,67 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 import heroImage from "../../assets/others/cinema.png";
+import { setCredentials } from "../../redux/slices/authSlice";
+import { loginUser, googleLogin } from "../../services/mockAuthService";
 
 const LoginComponent = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const handleChange = (e) => {
+    setErrorMsg("");
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Logging in with:", formData);
+    setErrorMsg("");
+    setIsSubmitting(true);
+
+    try {
+      const result = loginUser({
+        email: formData.email,
+        password: formData.password,
+      });
+      dispatch(setCredentials(result));
+      toast.success(`Welcome back, ${result.user.name}!`);
+      navigate("/");
+    } catch (err) {
+      const message = err.message || "Invalid credentials. Please try again.";
+      setErrorMsg(message);
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    try {
+      const result = googleLogin();
+      dispatch(setCredentials(result));
+      toast.success(`Welcome, ${result.user.name}!`);
+      navigate("/");
+    } catch (err) {
+      toast.error("Google sign in failed");
+    }
+  };
+
+  const handleFillDemo = (type = "user") => {
+    if (type === "admin") {
+      setFormData({ email: "admin@filmzone.com", password: "admin123" });
+    } else {
+      setFormData({ email: "user@filmzone.com", password: "password123" });
+    }
+    setErrorMsg("");
   };
 
   return (
@@ -66,6 +112,12 @@ const LoginComponent = () => {
             Sign in to book your next movie.
           </p>
 
+          {errorMsg && (
+            <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-[#B90101]/30 text-[#B90101] text-xs font-semibold">
+              {errorMsg}
+            </div>
+          )}
+
           <form
             onSubmit={handleSubmit}
             className="mt-5 sm:mt-6 space-y-4 sm:space-y-4.5"
@@ -110,7 +162,7 @@ const LoginComponent = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeIcon /> : <EyeOffIcon />}
@@ -129,11 +181,34 @@ const LoginComponent = () => {
 
             <button
               type="submit"
-              className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-1"
+              disabled={isSubmitting}
+              className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-1 disabled:opacity-60"
             >
-              Login
+              {isSubmitting ? "Logging In..." : "Login"}
             </button>
           </form>
+
+          {/* Quick Demo Credentials */}
+          <div className="mt-3 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 px-1">
+            <span>Quick test:</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleFillDemo("user")}
+                className="text-xs font-bold text-[#B90101] hover:underline cursor-pointer"
+              >
+                Demo User
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => handleFillDemo("admin")}
+                className="text-xs font-bold text-[#B90101] hover:underline cursor-pointer"
+              >
+                Demo Admin
+              </button>
+            </div>
+          </div>
 
           <div className="my-4 sm:my-5 flex items-center gap-3">
             <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-700" />
@@ -143,6 +218,7 @@ const LoginComponent = () => {
 
           <button
             type="button"
+            onClick={handleGoogleLogin}
             className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
           >
             <GoogleIcon />

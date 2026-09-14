@@ -10,9 +10,13 @@ export default function ComingSoonSection() {
     page: 1,
   });
 
+  const rawList = Array.isArray(tmdbNewest)
+    ? tmdbNewest
+    : tmdbNewest?.results || [];
+
   const upcomingToDisplay =
-    tmdbNewest && tmdbNewest.length > 0
-      ? tmdbNewest
+    rawList.length > 0
+      ? rawList
           .filter((m) => Boolean(m.backdrop_path || m.poster_path))
           .slice(0, 3)
       : [];

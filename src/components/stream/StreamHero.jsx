@@ -6,12 +6,14 @@ import {
   ChevronRight,
   ArrowRight,
   Star,
+  X,
 } from "lucide-react";
 import { useGetTrendingTVQuery } from "../../services/api/tvApi";
 
-export default function StreamHero({ onSearch }) {
+export default function StreamHero({ onSearch, initialQuery = "" }) {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialQuery);
+  const [isFocused, setIsFocused] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Fetch trending TV series for featured streaming banner
@@ -38,12 +40,46 @@ export default function StreamHero({ onSearch }) {
     setCurrentIndex((prev) => (prev + 1) % totalSlides);
   };
 
+  // Sync searchTerm when initialQuery is updated externally (e.g. Clear Search clicked or URL navigation)
+  useEffect(() => {
+    if (initialQuery === "") {
+      setSearchTerm("");
+    } else if (!isFocused && searchTerm.trim() !== initialQuery) {
+      setSearchTerm(initialQuery);
+    }
+  }, [initialQuery, isFocused]);
+
+  // Instant auto-search as user types (debounced 300ms)
+  useEffect(() => {
+    const trimmed = searchTerm.trim();
+    // Avoid redundant search if identical to current active query
+    if (trimmed === initialQuery) return;
+
+    const timer = setTimeout(() => {
+      if (onSearch) {
+        onSearch(trimmed);
+      } else if (trimmed) {
+        navigate(`/stream?q=${encodeURIComponent(trimmed)}`);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, initialQuery, onSearch, navigate]);
+
+  const handleClear = () => {
+    setSearchTerm("");
+    if (onSearch) {
+      onSearch("");
+    }
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    const trimmed = searchTerm.trim();
     if (onSearch) {
-      onSearch(searchTerm.trim());
-    } else if (searchTerm.trim()) {
-      navigate(`/stream?q=${encodeURIComponent(searchTerm.trim())}`);
+      onSearch(trimmed);
+    } else if (trimmed) {
+      navigate(`/stream?q=${encodeURIComponent(trimmed)}`);
     }
   };
 
@@ -93,25 +129,31 @@ export default function StreamHero({ onSearch }) {
         {/* 2. Top Floating Search Bar */}
         <div className="relative z-20 flex justify-center w-full">
           <form onSubmit={handleSearchSubmit} className="w-full max-w-md">
-            <div className="relative">
+            <div className="relative flex items-center">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white/70 pointer-events-none" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search Movies..."
-                className="w-full pl-5 pr-12 py-2.5 sm:py-3 rounded-full border backdrop-blur-md text-[15px] text-white placeholder-white/70 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder="Search movies or TV shows..."
+                className="w-full pl-11 pr-10 py-2.5 sm:py-3 rounded-full border backdrop-blur-md text-[15px] text-white placeholder-white/70 focus:outline-none focus:border-[#B90101] transition shadow-inner"
                 style={{
-                  backgroundColor: "rgba(26, 31, 37, 0.35)",
+                  backgroundColor: "rgba(26, 31, 37, 0.45)",
                   borderColor: "rgba(255, 255, 255, 0.25)",
                 }}
               />
-              <button
-                type="submit"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition"
-                aria-label="Search"
-              >
-                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </form>
         </div>

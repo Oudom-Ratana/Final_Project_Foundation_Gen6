@@ -1,9 +1,17 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 import heroImage from "../../assets/others/cinema.png";
+import { setCredentials } from "../../redux/slices/authSlice";
+import { registerUser, googleLogin } from "../../services/mockAuthService";
 
 const SignUpComponent = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -11,12 +19,53 @@ const SignUpComponent = () => {
   });
 
   const handleChange = (e) => {
+    setErrorMsg("");
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Creating account:", formData);
+    setErrorMsg("");
+
+    if (!formData.fullName.trim()) {
+      setErrorMsg("Please enter your full name.");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const result = registerUser({
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+      });
+      dispatch(setCredentials(result));
+      toast.success(`Account created! Welcome, ${result.user.name}!`);
+      navigate("/");
+    } catch (err) {
+      const message = err.message || "Failed to create account.";
+      setErrorMsg(message);
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleSignUp = () => {
+    try {
+      const result = googleLogin();
+      dispatch(setCredentials(result));
+      toast.success(`Welcome, ${result.user.name}!`);
+      navigate("/");
+    } catch (err) {
+      toast.error("Google sign in failed");
+    }
   };
 
   return (
@@ -64,6 +113,7 @@ const SignUpComponent = () => {
           <div className="flex gap-3">
             <button
               type="button"
+              onClick={handleGoogleSignUp}
               className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
             >
               <GoogleIcon />
@@ -71,6 +121,11 @@ const SignUpComponent = () => {
             </button>
             <button
               type="button"
+              onClick={() =>
+                toast.info(
+                  "Facebook registration coming soon! Try Google or Email.",
+                )
+              }
               className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
             >
               <FacebookIcon />
@@ -83,6 +138,12 @@ const SignUpComponent = () => {
             <span className="text-xs font-semibold text-primary-red">Or</span>
             <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-700" />
           </div>
+
+          {errorMsg && (
+            <div className="mb-3 p-3 rounded-xl bg-red-500/10 border border-[#B90101]/30 text-[#B90101] text-xs font-semibold">
+              {errorMsg}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-3.5">
             <div>
@@ -135,17 +196,17 @@ const SignUpComponent = () => {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
-                  placeholder="Create your password"
+                  placeholder="Create your password (min 6 characters)"
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  minLength={8}
+                  minLength={6}
                   className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 pr-11 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeIcon /> : <EyeOffIcon />}
@@ -155,9 +216,10 @@ const SignUpComponent = () => {
 
             <button
               type="submit"
-              className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-1 sm:mt-2"
+              disabled={isSubmitting}
+              className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-1 sm:mt-2 disabled:opacity-60"
             >
-              Create Account
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 

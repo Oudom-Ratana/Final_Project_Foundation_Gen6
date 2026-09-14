@@ -67,11 +67,11 @@ export default function HomeHero() {
     setCurrentIndex((prev) => (prev + 1) % totalSlides);
   };
 
-  // 1. Spider-Man Themed Loading State
+  // 1. FilmZone Themed Loading State
   if (isLoading || totalSlides === 0) {
     return (
       <section className="relative w-full min-h-[620px] sm:min-h-[700px] lg:min-h-[760px] overflow-hidden bg-neutral-950 font-sans flex flex-col items-center justify-center pt-20 pb-8 px-4 sm:px-6 lg:px-8 border-b border-white/10">
-        <SpidermanLoader size="lg" text="SWINGING INTO FILM ZONE..." />
+        <SpidermanLoader size="lg" text="LOADING FILM ZONE..." />
       </section>
     );
   }
@@ -79,7 +79,7 @@ export default function HomeHero() {
   const activeMovie = slides[currentIndex] || slides[0];
 
   return (
-    <section className="relative w-full min-h-[720px] sm:min-h-[700px] lg:min-h-[880px] overflow-hidden select-none font-sans flex flex-col justify-between">
+    <section className="relative w-full min-h-[680px] sm:min-h-[800px] lg:min-h-[980px] overflow-hidden select-none font-sans flex flex-col justify-between">
       {/* 1. Full-Width Background Slides Layer with Smooth Cross-Fade */}
       <div className="absolute inset-0 z-0  bg-black ">
         {slides.map((slide, index) => {
