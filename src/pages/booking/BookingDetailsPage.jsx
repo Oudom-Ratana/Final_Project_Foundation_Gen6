@@ -6,6 +6,7 @@ import {
   selectSelectedSeats,
   selectBooking,
   updateConcessionQuantity,
+  setSelectedSeats,
   setBookingConfirmation,
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
@@ -46,15 +47,46 @@ export default function BookingDetailsPage() {
 
   const booking = useSelector(selectBooking);
   const reduxSelectedSeats = useSelector(selectSelectedSeats);
+  const seatsParam = searchParams.get("seats");
 
-  // Fallback to mock seats if page was refreshed directly
-  const selectedSeats =
-    reduxSelectedSeats.length > 0
-      ? reduxSelectedSeats
-      : [
-          { id: "D6", price: 4.0, row: "D", number: 6 },
-          { id: "D7", price: 4.0, row: "D", number: 7 },
-        ];
+  // Read selected seats from Redux or parse from URL parameters
+  const selectedSeats = useMemo(() => {
+    if (reduxSelectedSeats && reduxSelectedSeats.length > 0) {
+      return reduxSelectedSeats;
+    }
+    if (seatsParam) {
+      const seatIds = seatsParam
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const seatPrice = hallType.includes("gold") ? 10.0 : 5.0;
+      return seatIds.map((id) => {
+        const row = id.charAt(0);
+        const num = parseInt(id.slice(1), 10) || 1;
+        return {
+          id,
+          row,
+          number: num,
+          type: hallType.includes("gold") ? "gold" : "single",
+          price: seatPrice,
+        };
+      });
+    }
+    return [
+      { id: "A1", price: 5.0, row: "A", number: 1 },
+      { id: "A2", price: 5.0, row: "A", number: 2 },
+    ];
+  }, [reduxSelectedSeats, seatsParam, hallType]);
+
+  // Sync back to Redux if Redux was empty
+  useEffect(() => {
+    if (
+      (!reduxSelectedSeats || reduxSelectedSeats.length === 0) &&
+      selectedSeats.length > 0
+    ) {
+      dispatch(setSelectedSeats(selectedSeats));
+    }
+  }, [reduxSelectedSeats, selectedSeats, dispatch]);
 
   const concessions = booking.concessions || [];
 
@@ -138,6 +170,13 @@ export default function BookingDetailsPage() {
     const params = new URLSearchParams(searchParams);
     params.set("ref", bookingRef);
     params.set("screenType", resolvedScreenType);
+    params.set("seats", selectedSeats.map((s) => s.id).join(","));
+    if (concessions.length > 0) {
+      params.set(
+        "concessions",
+        encodeURIComponent(JSON.stringify(concessions)),
+      );
+    }
     navigate(`/booking/confirmed?${params.toString()}`);
   };
 

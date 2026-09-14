@@ -12,18 +12,18 @@ export default function StreamCard({ movie, activeGenreId }) {
   const dispatch = useDispatch();
   const favouriteMovies = useSelector((state) => state.favourite.movies);
 
-  if (!movie) return null;
-
   const isTV = Boolean(
-    movie.isTV ||
-    movie.media_type === "tv" ||
-    movie.first_air_date ||
-    (movie.name && !movie.title),
+    movie?.isTV ||
+    movie?.media_type === "tv" ||
+    movie?.first_air_date ||
+    (movie?.name && !movie?.title),
   );
 
-  const { data: fetchedRuntime } = useGetMovieRuntimeQuery(movie.id, {
-    skip: isTV || !movie.id || Boolean(movie.runtime),
+  const { data: fetchedRuntime } = useGetMovieRuntimeQuery(movie?.id, {
+    skip: !movie?.id || isTV || Boolean(movie?.runtime),
   });
+
+  if (!movie) return null;
 
   const title = movie.title || movie.name || "Untitled";
   const rating = (movie.vote_average || 8.5).toFixed(1);

@@ -22,17 +22,17 @@ export default function SeatPricingCards({ hallType = "standard" }) {
 
   if (hallType === "gold") {
     return (
-      <div className="flex items-center justify-center pt-4 select-none">
+      <div className="flex items-center justify-center pt-2 select-none">
         <div
-          className="w-40 sm:w-44 rounded-2xl sm:rounded-3xl border p-5 text-center flex flex-col items-center justify-center space-y-2 shadow-sm backdrop-blur-md"
+          className="w-44 sm:w-52 rounded-3xl border p-5 sm:p-6 text-center flex flex-col items-center justify-center space-y-2.5 shadow-sm backdrop-blur-md"
           style={glassCardStyle}
         >
-          <SeatIcon status="available" size={36} />
+          <SeatIcon status="available" size={38} />
           <div>
-            <h4 className="font-extrabold text-xs sm:text-sm text-[#EAB308]">
+            <h4 className="font-extrabold text-sm sm:text-base text-[#EAB308]">
               Gold Class
             </h4>
-            <p className="font-black text-base sm:text-lg text-neutral-900 dark:text-white">
+            <p className="font-black text-lg sm:text-xl text-neutral-900 dark:text-white">
               ${GOLD_PRICE.toFixed(2)}
             </p>
           </div>
@@ -42,18 +42,18 @@ export default function SeatPricingCards({ hallType = "standard" }) {
   }
 
   return (
-    <div className="flex items-center justify-center gap-4 sm:gap-6 pt-4 select-none">
+    <div className="flex items-center justify-center gap-5 sm:gap-8 pt-2 select-none">
       {/* Single Seat Card */}
       <div
-        className="w-36 sm:w-40 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 text-center flex flex-col items-center justify-center space-y-2 shadow-sm backdrop-blur-md"
+        className="w-40 sm:w-48 rounded-3xl border p-5 sm:p-6 text-center flex flex-col items-center justify-center space-y-2.5 shadow-sm backdrop-blur-md transition-all hover:scale-102"
         style={glassCardStyle}
       >
-        <SeatIcon status="available" size={30} />
+        <SeatIcon status="available" size={34} />
         <div>
-          <h4 className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white">
+          <h4 className="font-bold text-sm sm:text-base text-neutral-900 dark:text-white">
             Single Seat
           </h4>
-          <p className="font-black text-sm sm:text-base text-neutral-900 dark:text-white">
+          <p className="font-black text-lg sm:text-xl text-neutral-900 dark:text-white">
             ${STANDARD_SINGLE_PRICE.toFixed(2)}
           </p>
         </div>
@@ -61,18 +61,18 @@ export default function SeatPricingCards({ hallType = "standard" }) {
 
       {/* Couple Seat Card */}
       <div
-        className="w-36 sm:w-40 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 text-center flex flex-col items-center justify-center space-y-2 shadow-sm backdrop-blur-md"
+        className="w-40 sm:w-48 rounded-3xl border p-5 sm:p-6 text-center flex flex-col items-center justify-center space-y-2.5 shadow-sm backdrop-blur-md transition-all hover:scale-102"
         style={glassCardStyle}
       >
         <div className="flex items-center gap-1.5 justify-center">
-          <SeatIcon status="available" size={26} />
-          <SeatIcon status="available" size={26} />
+          <SeatIcon status="available" size={30} />
+          <SeatIcon status="available" size={30} />
         </div>
         <div>
-          <h4 className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white">
+          <h4 className="font-bold text-sm sm:text-base text-neutral-900 dark:text-white">
             Couple Seat
           </h4>
-          <p className="font-black text-sm sm:text-base text-neutral-900 dark:text-white">
+          <p className="font-black text-lg sm:text-xl text-neutral-900 dark:text-white">
             ${STANDARD_COUPLE_PRICE.toFixed(2)}
           </p>
         </div>
