@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
 import { Heart, Trash2, Play } from "lucide-react";
 import { removeFromFavourite } from "../../redux/slices/favouriteSlice";
+import { useAddFavoriteMutation } from "../../services/api/accountApi";
 
 export default function MovieCard({
   id,
@@ -18,8 +19,26 @@ export default function MovieCard({
 }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [addFavorite] = useAddFavoriteMutation();
 
   const streamUrl = `/stream/${id}${isTV ? "?type=tv" : ""}`;
+
+  const handleRemove = async () => {
+    if (onDelete) {
+      onDelete();
+    } else {
+      dispatch(removeFromFavourite(id));
+    }
+    try {
+      await addFavorite({
+        mediaType: isTV ? "tv" : "movie",
+        mediaId: id,
+        favorite: false,
+      }).unwrap();
+    } catch (err) {
+      console.warn("Failed to remove favorite from TMDB:", err);
+    }
+  };
 
   return (
     <div className="flex w-full gap-5 border border-[var(--border-light-mode)] rounded-2xl bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-5">
@@ -53,7 +72,7 @@ export default function MovieCard({
           <div className="flex shrink-0 items-center gap-3 text-sm ">
             <button
               type="button"
-              onClick={() => dispatch(removeFromFavourite(id))}
+              onClick={handleRemove}
               className="flex flex-col items-center gap-1 hover:text-[var(--color-primary)] border-none cursor-pointer"
               title="Remove from favourite"
             >
@@ -70,7 +89,7 @@ export default function MovieCard({
 
             <button
               type="button"
-              onClick={onDelete || (() => dispatch(removeFromFavourite(id)))}
+              onClick={handleRemove}
               className="flex flex-col items-center gap-1 text-[var(--color-primary)] hover:text-red-700 transition-transform duration-200 hover:scale-110 cursor-pointer"
               title="Delete from favourite"
             >

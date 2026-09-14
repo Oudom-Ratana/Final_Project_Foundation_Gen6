@@ -6,24 +6,26 @@ import {
   removeFromFavourite,
 } from "../../redux/slices/favouriteSlice";
 import { useGetMovieRuntimeQuery } from "../../services/api/movieApi";
+import { useAddFavoriteMutation } from "../../services/api/accountApi";
 import { formatMovieRuntime } from "../../utils/formatRuntime";
 
 export default function StreamCard({ movie, activeGenreId }) {
   const dispatch = useDispatch();
-  const favouriteMovies = useSelector((state) => state.favourite.movies);
-
-  if (!movie) return null;
+  const favouriteMovies = useSelector((state) => state.favourite?.movies || []);
+  const [addFavorite] = useAddFavoriteMutation();
 
   const isTV = Boolean(
-    movie.isTV ||
-    movie.media_type === "tv" ||
-    movie.first_air_date ||
-    (movie.name && !movie.title),
+    movie?.isTV ||
+    movie?.media_type === "tv" ||
+    movie?.first_air_date ||
+    (movie?.name && !movie?.title),
   );
 
-  const { data: fetchedRuntime } = useGetMovieRuntimeQuery(movie.id, {
-    skip: isTV || !movie.id || Boolean(movie.runtime),
+  const { data: fetchedRuntime } = useGetMovieRuntimeQuery(movie?.id, {
+    skip: !movie?.id || isTV || Boolean(movie?.runtime),
   });
+
+  if (!movie) return null;
 
   const title = movie.title || movie.name || "Untitled";
   const rating = (movie.vote_average || 8.5).toFixed(1);
@@ -117,9 +119,13 @@ export default function StreamCard({ movie, activeGenreId }) {
     (m) => String(m.id) === String(movie.id),
   );
 
-  const handleToggleFavorite = (e) => {
+  const handleToggleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    const nextFavState = !isFavourite;
+
+    // 1. Instant local/optimistic update in Redux
     if (isFavourite) {
       dispatch(removeFromFavourite(movie.id));
     } else {
@@ -135,6 +141,17 @@ export default function StreamCard({ movie, activeGenreId }) {
           isTV,
         }),
       );
+    }
+
+    // 2. Sync to official TMDB Account Favorite API
+    try {
+      await addFavorite({
+        mediaType: isTV ? "tv" : "movie",
+        mediaId: movie.id,
+        favorite: nextFavState,
+      }).unwrap();
+    } catch (err) {
+      console.warn("Failed to sync favorite with TMDB API:", err);
     }
   };
 
