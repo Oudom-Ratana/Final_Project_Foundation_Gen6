@@ -23,13 +23,13 @@ import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
 import BookingDetailsPage from "./pages/booking/BookingDetailsPage";
 import BookingConfirmedPage from "./pages/booking/BookingConfirmedPage";
 import MyTicketsPage from "./pages/MyTicketsPage";
+import ProfilePage from "./pages/ProfilePage";
 
 import AdminLayout from "./layout/AdminLayout";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminMovieLibraryPage from "./pages/admin/AdminMovieLibraryPage";
 import AdminUserAnalyticsPage from "./pages/admin/AdminUserAnalyticsPage";
 import FavouritePage from "./pages/FavouritePage";
-
 
 const router = createBrowserRouter([
   {
@@ -97,6 +97,10 @@ const router = createBrowserRouter([
       {
         path: "/my-tickets",
         element: <MyTicketsPage />,
+      },
+      {
+        path: "/profile",
+        element: <ProfilePage />,
       },
     ],
   },

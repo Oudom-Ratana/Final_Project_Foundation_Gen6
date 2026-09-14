@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import { User, Bell, Sun, Moon, Menu, X, LogOut, Heart } from "lucide-react";
@@ -9,6 +9,7 @@ import {
 } from "../../redux/slices/authSlice";
 import { selectTheme, toggleTheme } from "../../redux/slices/uiSlice";
 import { selectFavouriteMovies } from "../../redux/slices/favouriteSlice";
+import { toast } from "react-toastify";
 import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
 
 export default function Navbar() {
@@ -21,8 +22,29 @@ export default function Navbar() {
   const favoriteCount = favouriteMovies.length;
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const profileDropdownRef = useRef(null);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target)
+      ) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    if (isProfileDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isProfileDropdownOpen]);
 
   // Check if current route is Homepage for transparent overlay mode
   const isHomePage = location.pathname === "/";
@@ -104,23 +126,69 @@ export default function Navbar() {
 
         {/* 3. Right: Action Buttons (Red Login Pill, Glass Bell, Glass Sun/Moon) */}
         <div className="hidden sm:flex items-center gap-3">
-          {/* Red Login Pill Button */}
+          {/* User Avatar Dropdown (Avatar only) */}
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-2 px-5 py-2.5 rounded-[35px] bg-[#B90101] text-white font-bold text-[16px] shadow-md">
-              <User className="w-4 h-4 fill-white" />
-              <span className="max-w-[100px] truncate">{user.name}</span>
+            <div className="relative" ref={profileDropdownRef}>
               <button
-                onClick={() => dispatch(logout())}
-                className="p-1 hover:text-neutral-200 transition"
-                title="Logout"
+                type="button"
+                onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
+                className="w-[46px] h-[46px] rounded-full overflow-hidden border-2 border-[#B90101] hover:scale-105 active:scale-95 transition shadow-md flex items-center justify-center bg-neutral-200 dark:bg-neutral-800 cursor-pointer focus:outline-none"
+                aria-label="User profile menu"
+                title={user.name}
               >
-                <LogOut className="w-4 h-4" />
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#B90101] flex items-center justify-center text-white">
+                    <User className="w-5 h-5 fill-white" />
+                  </div>
+                )}
               </button>
+
+              {/* Popup Dropdown Menu with Profile & Logout */}
+              {isProfileDropdownOpen && (
+                <div className="absolute right-0 mt-3 w-48 rounded-2xl bg-white dark:bg-[#1A1F25] border border-neutral-200 dark:border-white/10 shadow-2xl backdrop-blur-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="px-4 py-2 border-b border-neutral-100 dark:border-white/5">
+                    <p className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+                      {user.name}
+                    </p>
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+                      {user.email}
+                    </p>
+                  </div>
+
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsProfileDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-[#B90101] dark:hover:text-[#B90101] transition"
+                  >
+                    <User className="w-4 h-4 text-[#B90101]" />
+                    <span>Profile</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false);
+                      dispatch(logout());
+                      toast.info("Logged out successfully");
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[#B90101] hover:bg-red-500/10 transition cursor-pointer text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <Link
               to="/login"
-              className="flex items-center gap-2 px-6 py-2.5 rounded-[35px] text-white font-bold text-[16px] shadow-md hover:brightness-110 active:scale-95 transition"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-[35px] text-white font-bold text-[16px] shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer"
               style={{ backgroundColor: "#B90101" }}
             >
               <User className="w-4 h-4 fill-white" />
@@ -284,18 +352,55 @@ export default function Navbar() {
           </NavLink>
 
           <div
-            className="pt-3 border-t flex items-center justify-between"
+            className="pt-3 border-t flex flex-col gap-2"
             style={{ borderColor: "rgba(158, 5, 5, 0.20)" }}
           >
-            <Link
-              to="/login"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="w-full py-2.5 rounded-[35px] text-white font-bold text-[16px] flex items-center justify-center gap-2 shadow-md"
-              style={{ backgroundColor: "#B90101" }}
-            >
-              <User className="w-4 h-4 fill-white" />
-              <span>Login</span>
-            </Link>
+            {isAuthenticated && user ? (
+              <div className="w-full flex items-center justify-between p-3 rounded-2xl bg-[#B90101] text-white shadow-md">
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 truncate hover:opacity-90 transition cursor-pointer flex-1"
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover bg-white/20 border border-white/40 shrink-0"
+                    />
+                  ) : (
+                    <User className="w-5 h-5 fill-white shrink-0" />
+                  )}
+                  <div className="truncate">
+                    <p className="text-sm font-bold truncate">{user.name}</p>
+                    <p className="text-xs text-white/70 truncate">
+                      {user.email}
+                    </p>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => {
+                    dispatch(logout());
+                    setIsMobileMenuOpen(false);
+                    toast.info("Logged out successfully");
+                  }}
+                  className="p-2 rounded-xl bg-black/20 hover:bg-black/30 transition text-white cursor-pointer"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-2.5 rounded-[35px] text-white font-bold text-[16px] flex items-center justify-center gap-2 shadow-md hover:brightness-110 transition"
+                style={{ backgroundColor: "#B90101" }}
+              >
+                <User className="w-4 h-4 fill-white" />
+                <span>Login</span>
+              </Link>
+            )}
           </div>
         </div>
       )}

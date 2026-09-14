@@ -262,11 +262,6 @@ export default function StreamPage() {
                   ? "Popular TV Series & Shows"
                   : "Free Feature Movies"}
             </h2>
-            {!isLoading && totalResults > 0 && (
-              <span className="text-sm font-bold text-neutral-400">
-                ({totalResults.toLocaleString()})
-              </span>
-            )}
           </div>
 
           {/* Right Controls: Sort Selector + Category Switcher */}
