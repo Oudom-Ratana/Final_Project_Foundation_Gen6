@@ -26,6 +26,12 @@ const authSlice = createSlice({
       if (token) localStorage.setItem("cinema_token", token);
       if (user) localStorage.setItem("cinema_user", JSON.stringify(user));
     },
+    updateUser: (state, action) => {
+      state.user = { ...state.user, ...action.payload };
+      if (state.user) {
+        localStorage.setItem("cinema_user", JSON.stringify(state.user));
+      }
+    },
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -43,7 +49,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout, setError, setLoading } =
+export const { setCredentials, updateUser, logout, setError, setLoading } =
   authSlice.actions;
 
 export const selectCurrentUser = (state) => state.auth.user;

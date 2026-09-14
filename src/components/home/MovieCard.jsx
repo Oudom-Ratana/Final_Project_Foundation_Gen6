@@ -99,7 +99,7 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
             >
               {genreName.toUpperCase()}
             </span>
-            <p className="text-white text-xs sm:text-[18px] leading-relaxed line-clamp-4 font-normal drop-shadow">
+            <p className="text-white text-xs sm:text-[18px] leading-8 line-clamp-4 font-normal drop-shadow">
               {overviewText}
             </p>
             <span className="inline-flex items-center text-[16px] font-bold text-neutral-300 group-hover:text-accent-gold pt-1">

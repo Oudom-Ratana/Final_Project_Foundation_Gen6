@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const TMDB_ACCESS_TOKEN = import.meta.env.VITE_TMDB_ACCESS_TOKEN;
 
@@ -34,6 +33,7 @@ export const baseApi = createApi({
     "Booking",
     "Cinema",
     "Auth",
+    "Favorite",
   ],
   endpoints: () => ({}),
 });

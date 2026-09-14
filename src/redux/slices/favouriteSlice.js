@@ -51,11 +51,20 @@ export const favouriteSlice = createSlice({
       }
       localStorage.setItem("favouriteMovies", JSON.stringify(state.movies));
     },
+
+    setFavouriteMovies: (state, action) => {
+      state.movies = action.payload || [];
+      localStorage.setItem("favouriteMovies", JSON.stringify(state.movies));
+    },
   },
 });
 
-export const { addToFavourite, removeFromFavourite, toggleFavourite } =
-  favouriteSlice.actions;
+export const {
+  addToFavourite,
+  removeFromFavourite,
+  toggleFavourite,
+  setFavouriteMovies,
+} = favouriteSlice.actions;
 
 export const selectFavouriteMovies = (state) => state.favourite.movies;
 
