@@ -30,6 +30,7 @@ import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminMovieLibraryPage from "./pages/admin/AdminMovieLibraryPage";
 import AdminUserAnalyticsPage from "./pages/admin/AdminUserAnalyticsPage";
 import FavouritePage from "./pages/FavouritePage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const router = createBrowserRouter([
   {
@@ -128,12 +129,7 @@ const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: (
-      <div className="py-20 text-center text-white font-sans">
-        <h1 className="text-4xl font-black text-[#B90101]">404</h1>
-        <p className="text-neutral-400 mt-2">Page Not Found</p>
-      </div>
-    ),
+    element: <NotFoundPage />,
   },
 ]);
 
