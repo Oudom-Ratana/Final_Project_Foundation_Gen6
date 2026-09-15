@@ -49,17 +49,42 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  const [isScrolled, setIsScrolled] = useState(false);
+  const isHomePage = location.pathname === "/";
+
+  // Track scroll position for dynamic homepage navbar transition
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 30);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const isTransparentHeroMode = isHomePage && !isScrolled;
+
   // Active state: Primary red with red underline indicator bar
-  // Inactive state: Golden yellow text
+  // Inactive state:
+  // - Top of homepage: Golden yellow text (#EAB308) matching the dark hero banner
+  // - Scrolled / Other pages: Crisp charcoal (#1E293B / neutral-800) in light mode, Golden yellow in dark mode
   const navLinkClass = ({ isActive }) =>
     `relative text-[18px] font-bold transition-all px-1 pb-1.5 ${
       isActive
         ? 'text-[#B90101] font-black after:content-[""] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2.5px] after:bg-[#B90101] after:rounded-full'
-        : "text-[#EAB308] hover:text-[#B90101]"
+        : isTransparentHeroMode
+          ? "text-[#EAB308] hover:text-[#B90101]"
+          : "text-neutral-800 dark:text-[#EAB308] hover:text-[#B90101] dark:hover:text-[#B90101]"
     }`;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-black/15 dark:bg-black/30 backdrop-blur-md border-b border-[#9E0505]/20 transition-colors duration-300">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
+        isTransparentHeroMode
+          ? "bg-gradient-to-b from-black/80 via-black/40 to-transparent backdrop-blur-[2px] border-b border-white/10"
+          : "bg-white/55 dark:bg-black/40 backdrop-blur-md border-b border-neutral-200/80 dark:border-[#9E0505]/20 shadow-xs dark:shadow-none"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
         {/* 1. Left: FilmZone Logo */}
         <Link
@@ -90,33 +115,30 @@ export default function Navbar() {
           </NavLink>
         </nav>
 
-        {/* 3. Right: Action Buttons (Red Login Pill, Glass Bell, Glass Sun/Moon) */}
         {/* 3. Right: Action Buttons (Notification Bell, Theme Switcher, Avatar/Login on far right) */}
         <div className="hidden sm:flex items-center gap-3">
-          {/* Glass Notification Bell Button — navigates to /my-tickets */}
+          {/* Notification Bell Button — navigates to /my-tickets */}
           <Link
             to="/my-tickets"
-            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#FFD700] hover:scale-105 active:scale-95 transition shadow-sm"
-            style={{
-              backgroundColor: "rgba(26, 31, 37, 0.10)",
-              borderColor: "rgba(255, 255, 255, 0.20)",
-              borderRadius: "35px",
-            }}
+            className={`w-[46px] h-[46px] rounded-full border backdrop-blur-md flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-xs ${
+              isTransparentHeroMode
+                ? "bg-[#1A1F25]/20 hover:bg-[#1A1F25]/35 border-white/20 text-[#FFD700]"
+                : "bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 dark:hover:bg-[#1A1F25]/60 border-neutral-200 dark:border-white/15 text-[#B90101] dark:text-[#EAB308]"
+            }`}
             aria-label="My Tickets"
             title="My Tickets"
           >
-            <Bell className="w-5 h-5 fill-primary text-primary" />
+            <Bell className="w-5 h-5 fill-current" />
           </Link>
 
-          {/* Glass Theme Switcher Toggle Button */}
+          {/* Theme Switcher Toggle Button */}
           <button
             onClick={() => dispatch(toggleTheme())}
-            className="w-[46px] h-[46px] rounded-[35px] bg-[#1A1F25]/10 dark:bg-[#1A1F25]/20 hover:bg-[#1A1F25]/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-sm"
-            style={{
-              backgroundColor: "rgba(26, 31, 37, 0.10)",
-              borderColor: "rgba(255, 255, 255, 0.20)",
-              borderRadius: "35px",
-            }}
+            className={`w-[46px] h-[46px] rounded-full border backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-xs cursor-pointer ${
+              isTransparentHeroMode
+                ? "bg-[#1A1F25]/20 hover:bg-[#1A1F25]/35 border-white/20"
+                : "bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 dark:hover:bg-[#1A1F25]/60 border-neutral-200 dark:border-white/15"
+            }`}
             aria-label="Toggle Theme"
             title={
               theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
@@ -227,7 +249,11 @@ export default function Navbar() {
           {/* Mobile Theme Switcher (Red primary color #B90101) */}
           <button
             onClick={() => dispatch(toggleTheme())}
-            className="w-[40px] h-[40px] rounded-[35px] bg-[#1A1F25]/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-[#B90101]"
+            className={`w-[40px] h-[40px] rounded-full backdrop-blur-md flex items-center justify-center text-[#B90101] shadow-xs cursor-pointer transition-colors ${
+              isTransparentHeroMode
+                ? "bg-[#1A1F25]/20 hover:bg-[#1A1F25]/40 border border-white/20"
+                : "bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 border border-neutral-200 dark:border-white/15"
+            }`}
             aria-label="Toggle Theme"
           >
             {theme === "dark" ? (
@@ -239,7 +265,11 @@ export default function Navbar() {
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-neutral-800 dark:text-white rounded-[20px] bg-[#1A1F25]/10 border border-white/20 backdrop-blur-md"
+            className={`p-2 rounded-[20px] backdrop-blur-md shadow-xs cursor-pointer transition-colors ${
+              isTransparentHeroMode
+                ? "text-white bg-[#1A1F25]/20 hover:bg-[#1A1F25]/40 border border-white/20"
+                : "text-neutral-800 dark:text-white bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 border border-neutral-200 dark:border-white/15"
+            }`}
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
@@ -253,10 +283,7 @@ export default function Navbar() {
 
       {/* Mobile Dropdown Menu */}
       {isMobileMenuOpen && (
-        <div
-          className="md:hidden border-t bg-white dark:bg-neutral-950 px-6 py-4 space-y-3 transition-colors"
-          style={{ borderColor: "rgba(158, 5, 5, 0.20)" }}
-        >
+        <div className="md:hidden border-t bg-white/95 dark:bg-neutral-950/95 backdrop-blur-xl px-6 py-4 space-y-3 transition-colors border-neutral-200 dark:border-[#9E0505]/20 shadow-xl">
           <NavLink
             to="/"
             onClick={() => setIsMobileMenuOpen(false)}

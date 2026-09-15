@@ -185,7 +185,7 @@ const FilmstripRibbon = ({ className = "" }) => {
 export default function SpidermanLoader({
   fullScreen = false,
   size = "md", // 'sm' | 'md' | 'lg'
-  text = "LOADING FILM ZONE...",
+  text = "LOADING...",
 }) {
   const sizeMap = {
     sm: {
@@ -337,9 +337,9 @@ export default function SpidermanLoader({
       <div className="flex flex-col items-center text-center gap-2">
         <div className="flex items-center gap-2">
           {/* Cinema Badge */}
-          <span className="px-2.5 py-0.5 rounded-full bg-[#B90101] text-white text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1">
+          {/* <span className="px-2.5 py-0.5 rounded-full bg-[#B90101] text-white text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1">
             <span>🍿</span> FILMZONE
-          </span>
+          </span> */}
           <p
             className={`font-black tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-300 to-red-500 animate-pulse ${currentSize.text}`}
           >
