@@ -1,21 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router";
-import {
-  FileText,
-  Clock,
-  Calendar,
-  ShieldAlert,
-  Play,
-  ArrowLeft,
-} from "lucide-react";
+import { FileText, Clock, Calendar, Play, ArrowLeft } from "lucide-react";
 import {
   useGetMovieDetailsQuery,
   useGetMovieTrailersQuery,
 } from "../services/api/movieApi";
 import { useGetTVDetailsQuery } from "../services/api/tvApi";
 import ShowtimeSection from "../components/booking/ShowtimeSection";
-import SpidermanLoader from "../components/common/SpidermanLoader";
-import BookingTypeModal from "../components/booking/BookingTypeModal";
 import MovieDetailSkeleton from "../components/common/MovieDetailSkeleton";
 import { formatMovieRuntime } from "../utils/formatRuntime";
 
@@ -491,7 +482,11 @@ export default function MovieDetailPage() {
 
       {/* 3. Showtime Section (Locations, Date Selector, Branch Cards) */}
       <div className="max-w-6xl mx-auto px-2 sm:px-4">
-        <ShowtimeSection movieId={id} />
+        <ShowtimeSection
+          movieId={id}
+          isTV={Boolean(isExplicitTV || movie?.first_air_date || movie?.name)}
+          movie={movie}
+        />
       </div>
     </div>
   );

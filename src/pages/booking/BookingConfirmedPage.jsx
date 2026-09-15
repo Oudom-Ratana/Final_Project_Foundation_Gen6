@@ -8,6 +8,7 @@ import {
 } from "../../redux/slices/bookingSlice";
 import { addTicket } from "../../redux/slices/ticketSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
+import { useGetTVDetailsQuery } from "../../services/api/tvApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 
@@ -25,33 +26,81 @@ export default function BookingConfirmedPage() {
     searchParams.get("ref") ||
     `125273HJ${Math.floor(1000 + Math.random() * 9000)}`;
 
+  const booking = useSelector(selectBooking);
+  const reduxMovie = booking?.movie;
+  const isTV =
+    searchParams.get("mediaType") === "tv" ||
+    Boolean(
+      reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
+    );
+
   const { data: movieData } = useGetMovieDetailsQuery(movieId, {
-    skip: !movieId,
+    skip: !movieId || isTV || Boolean(reduxMovie?.id),
+  });
+  const { data: tvData } = useGetTVDetailsQuery(movieId, {
+    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
   });
 
-  const booking = useSelector(selectBooking);
   const reduxSelectedSeats = useSelector(selectSelectedSeats);
 
-  const selectedSeats =
-    reduxSelectedSeats.length > 0
-      ? reduxSelectedSeats
-      : [
-          { id: "D8", price: 4.0, row: "D", number: 8 },
-          { id: "D9", price: 4.0, row: "D", number: 9 },
-        ];
+  const isGold = hallType.includes("gold");
+  const hallNumber = isGold ? "Hall 4" : "Hall 3";
+  const seatsParam = searchParams.get("seats");
+  const concessionsParam = searchParams.get("concessions");
 
-  const concessions = booking.concessions || [];
+  const selectedSeats = useMemo(() => {
+    if (reduxSelectedSeats && reduxSelectedSeats.length > 0) {
+      return reduxSelectedSeats;
+    }
+    if (seatsParam) {
+      const seatIds = seatsParam
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const seatPrice = isGold ? 10.0 : 5.0;
+      return seatIds.map((id) => {
+        const row = id.charAt(0);
+        const num = parseInt(id.slice(1), 10) || 1;
+        return {
+          id,
+          row,
+          number: num,
+          type: isGold ? "gold" : "single",
+          price: seatPrice,
+        };
+      });
+    }
+    return [
+      { id: "A1", price: 5.0, row: "A", number: 1 },
+      { id: "A2", price: 5.0, row: "A", number: 2 },
+    ];
+  }, [reduxSelectedSeats, seatsParam, isGold]);
 
-  const movie = movieData ||
-    booking.movie || {
+  const concessions = useMemo(() => {
+    if (booking.concessions && booking.concessions.length > 0) {
+      return booking.concessions;
+    }
+    if (concessionsParam) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(concessionsParam));
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse concessions param", e);
+      }
+    }
+    return [];
+  }, [booking.concessions, concessionsParam]);
+
+  const movie = reduxMovie ||
+    (isTV ? tvData : movieData || tvData) || {
       title: "Spider-Man: Brand New Day",
       poster_path: null,
     };
 
   const rawScreenType =
     searchParams.get("screenType") || searchParams.get("format");
-  const isGold = hallType.includes("gold");
-  const hallNumber = isGold ? "Hall 4" : "Hall 3";
 
   const formatBadge = useMemo(() => {
     if (rawScreenType) return rawScreenType;
@@ -73,14 +122,14 @@ export default function BookingConfirmedPage() {
   }, [rawScreenType, booking.showtime, branch, time, isGold]);
 
   const seatIds = selectedSeats.map((s) => s.id).join(", ");
-  const pricePerSeat = selectedSeats[0]?.price || 4.0;
+  const pricePerSeat = selectedSeats[0]?.price || (isGold ? 10.0 : 5.0);
 
   const ticketsTotal = selectedSeats.reduce(
-    (acc, s) => acc + (s.price || 4.0),
+    (acc, s) => acc + (s.price || (isGold ? 10.0 : 5.0)),
     0,
   );
   const concessionsTotal = concessions.reduce(
-    (acc, c) => acc + c.price * c.quantity,
+    (acc, c) => acc + (c.price || 0) * (c.quantity || 0),
     0,
   );
   const totalPaid = ticketsTotal + concessionsTotal;
@@ -369,20 +418,14 @@ export default function BookingConfirmedPage() {
               </div>
             </div>
 
-            {/* Go to My Tickets & Back To Home Button Container */}
-            <div className="w-full max-w-sm pt-2 flex flex-col items-center gap-2.5">
+            {/* Go to My Tickets Button Container */}
+            <div className="w-full max-w-sm pt-2 flex justify-center">
               <Link
                 to="/my-tickets"
                 className="w-full max-w-xs py-3 px-8 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm text-center uppercase tracking-wider transition active:scale-95 shadow-md border border-white/20 flex items-center justify-center gap-2"
               >
                 <Ticket className="w-4 h-4" />
                 <span>Go to My Tickets</span>
-              </Link>
-              <Link
-                to="/"
-                className="text-xs font-bold text-neutral-500 hover:text-[#B90101] dark:text-neutral-400 dark:hover:text-white transition py-1"
-              >
-                Back To Home
               </Link>
             </div>
           </div>

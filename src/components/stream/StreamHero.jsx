@@ -1,19 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router";
-import {
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  ArrowRight,
-  Star,
-  X,
-} from "lucide-react";
+import { Link } from "react-router";
+import { ChevronLeft, ChevronRight, ArrowRight, Star } from "lucide-react";
 import { useGetTrendingTVQuery } from "../../services/api/tvApi";
 
-export default function StreamHero({ onSearch, initialQuery = "" }) {
-  const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState(initialQuery);
-  const [isFocused, setIsFocused] = useState(false);
+export default function StreamHero() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Fetch trending TV series for featured streaming banner
@@ -40,49 +30,6 @@ export default function StreamHero({ onSearch, initialQuery = "" }) {
     setCurrentIndex((prev) => (prev + 1) % totalSlides);
   };
 
-  // Sync searchTerm when initialQuery is updated externally (e.g. Clear Search clicked or URL navigation)
-  useEffect(() => {
-    if (initialQuery === "") {
-      setSearchTerm("");
-    } else if (!isFocused && searchTerm.trim() !== initialQuery) {
-      setSearchTerm(initialQuery);
-    }
-  }, [initialQuery, isFocused]);
-
-  // Instant auto-search as user types (debounced 300ms)
-  useEffect(() => {
-    const trimmed = searchTerm.trim();
-    // Avoid redundant search if identical to current active query
-    if (trimmed === initialQuery) return;
-
-    const timer = setTimeout(() => {
-      if (onSearch) {
-        onSearch(trimmed);
-      } else if (trimmed) {
-        navigate(`/stream?q=${encodeURIComponent(trimmed)}`);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm, initialQuery, onSearch, navigate]);
-
-  const handleClear = () => {
-    setSearchTerm("");
-    if (onSearch) {
-      onSearch("");
-    }
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    const trimmed = searchTerm.trim();
-    if (onSearch) {
-      onSearch(trimmed);
-    } else if (trimmed) {
-      navigate(`/stream?q=${encodeURIComponent(trimmed)}`);
-    }
-  };
-
   if (isLoading || totalSlides === 0) {
     return (
       <div className="w-full space-y-6">
@@ -96,7 +43,7 @@ export default function StreamHero({ onSearch, initialQuery = "" }) {
   return (
     <div className="w-full space-y-6 font-sans">
       {/* 1. Main Featured Banner Container with Rounded Corners */}
-      <div className="relative w-full aspect-[21/9] min-h-[320px] sm:min-h-[380px] md:min-h-[440px] rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 dark:border-white/10 select-none flex flex-col justify-between p-6 sm:p-8">
+      <div className="relative w-full aspect-[21/9] min-h-[320px] sm:min-h-[380px] md:min-h-[440px] rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 dark:border-white/10 select-none flex flex-col justify-end p-6 sm:p-8">
         {/* Background Images with Cross-Fade */}
         <div className="absolute inset-0 z-0 bg-black">
           {bannerSlides.map((slide, index) => {
@@ -126,38 +73,6 @@ export default function StreamHero({ onSearch, initialQuery = "" }) {
           })}
         </div>
 
-        {/* 2. Top Floating Search Bar */}
-        <div className="relative z-20 flex justify-center w-full">
-          <form onSubmit={handleSearchSubmit} className="w-full max-w-md">
-            <div className="relative flex items-center">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white/70 pointer-events-none" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                placeholder="Search movies or TV shows..."
-                className="w-full pl-11 pr-10 py-2.5 sm:py-3 rounded-full border backdrop-blur-md text-[15px] text-white placeholder-white/70 focus:outline-none focus:border-[#B90101] transition shadow-inner"
-                style={{
-                  backgroundColor: "rgba(26, 31, 37, 0.45)",
-                  borderColor: "rgba(255, 255, 255, 0.25)",
-                }}
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer"
-                  aria-label="Clear search"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
-
         {/* 3. Left & Right Navigation Chevrons */}
         <button
           type="button"
@@ -180,25 +95,27 @@ export default function StreamHero({ onSearch, initialQuery = "" }) {
         </button>
 
         {/* 4. Bottom Slide Indicator / Title Preview */}
-        <div className="relative z-20 flex items-center justify-between gap-4">
+        <div className="relative z-20 flex items-end justify-between gap-4">
           <Link
             to={`/stream/${activeMovie.id}?type=tv`}
-            className="group/title flex items-center gap-2 max-w-lg truncate"
+            className="group/title flex flex-col items-start gap-1.5 max-w-lg truncate"
           >
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#B90101] text-white shadow-sm">
-              TV Series
-            </span>
-            <span className="text-lg sm:text-2xl font-black text-white drop-shadow group-hover/title:text-[#B90101] transition-colors truncate">
+            <span className="text-xl sm:text-3xl font-black text-white drop-shadow group-hover/title:text-[#B90101] transition-colors truncate">
               {activeMovie.name || activeMovie.title}
             </span>
-            <div className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/30 text-amber-300 text-xs font-bold">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-              <span>{activeMovie.vote_average?.toFixed(1)}</span>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-[13px] font-black uppercase tracking-wider bg-[#B90101] text-white shadow-sm">
+                TV Series
+              </span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#C8961E]/20 border border-[#C8961E]/40 text-[#C8961E] text-[15px] font-bold">
+                <Star className="w-4 h-4 fill-[#C8961E] text-[#C8961E]" />
+                <span>{activeMovie.vote_average?.toFixed(1)}</span>
+              </div>
             </div>
           </Link>
 
           {/* Dots */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 mb-2">
             {bannerSlides.map((_, dotIdx) => (
               <button
                 key={dotIdx}
@@ -220,7 +137,7 @@ export default function StreamHero({ onSearch, initialQuery = "" }) {
         <Link
           to="/favourite"
           // to="/stream?filter=favourite"
-          className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-white font-bold card-description shadow-lg hover:brightness-110 active:scale-95 transition"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-white font-bold text-[18px] shadow-lg hover:brightness-110 active:scale-95 transition"
           style={{ backgroundColor: "#B90101" }}
         >
           <span>Favourite Movies</span>

@@ -2,8 +2,10 @@ import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { selectTheme } from "../../redux/slices/uiSlice";
-import istadLogo from "../../assets/logo/ISTAD_Light.png";
+import istadLightLogo from "../../assets/logo/ISTAD_Light.png";
+import istadDarkLogo from "../../assets/logo/istad-Dark.png";
 import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
+import { bg } from "zod/v4/locales";
 
 // --- Static content -------------------------------------------------
 // Keeping these as plain arrays (instead of hardcoding JSX) makes it easy
@@ -11,17 +13,18 @@ import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
 
 const QUICK_LINKS = [
   { label: "Home", to: "/" },
-  { label: "Promo", to: "/promo" },
-  { label: "Stream", to: "/stream" },
+  // { label: "Promo", to: "/promo" },
+  { label: "Movies", to: "/stream" },
   { label: "About", to: "/about" },
 ];
 
 // NOTE: these pages don't exist in the router yet (see main.jsx).
 // Swap `to` for the real path once the team builds them.
 const MORE_LINKS = [
-  { label: "Free Movie", to: "/stream" },
+  // { label: "Free Movie", to: "/stream" },
   { label: "My Ticket", to: "/my-tickets" },
-  { label: "All Cinemas", to: "/cinemas" },
+  { label: "Promo", to: "/promo" },
+  { label: "Favourite", to: "/favourite" },
   { label: "How to Book", to: "/how-to-book" },
 ];
 
@@ -124,7 +127,9 @@ export default function Footer() {
             </p>
 
             <div>
-              <p className="font-bold text-[16px] text-[#B90101] mb-2.5">
+              <p
+                className={`font-bold text-[16px] ${isDark ? "text-neutral" : "text-[#B90101]"} mb-2.5`}
+              >
                 Connect With Us
               </p>
               <div className="flex items-center gap-2.5">
@@ -223,7 +228,9 @@ export default function Footer() {
               </li>
             </ul>
 
-            <p className="font-bold text-[16px] text-[#B90101] mt-4 mb-2">
+            <p
+              className={`font-bold text-[16px] ${isDark ? "text-neutral" : "text-[#B90101]"} mt-4 mb-2`}
+            >
               Sponsored and Organized
             </p>
             {/* Official ISTAD Partner & Organizer Badge */}
@@ -235,7 +242,7 @@ export default function Footer() {
               title="Institute of Science and Technology Advanced Development"
             >
               <img
-                src={istadLogo}
+                src={isDark ? istadDarkLogo : istadLightLogo}
                 alt="ISTAD Logo"
                 className="h-15 w-auto object-contain"
               />

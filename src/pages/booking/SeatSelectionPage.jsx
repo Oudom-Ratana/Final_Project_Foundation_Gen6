@@ -8,9 +8,11 @@ import {
   selectSelectedSeats,
   setShowtime,
   setMovie,
+  selectBooking,
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
+import { useGetTVDetailsQuery } from "../../services/api/tvApi";
 
 // Modular Subcomponents & Data
 import BookingStepper from "../../components/booking/BookingStepper";
@@ -20,6 +22,8 @@ import SeatPricingCards from "../../components/booking/SeatPricingCards";
 import BookingCheckoutBar from "../../components/booking/BookingCheckoutBar";
 import GoldClassSeatMap from "../../components/booking/GoldClassSeatMap";
 import StandardHallSeatMap from "../../components/booking/StandardHallSeatMap";
+import GroupBookingLinkModal from "../../components/booking/GroupBookingLinkModal";
+import GroupSeatLegend from "../../components/booking/GroupSeatLegend";
 import {
   GOLD_PRICE,
   STANDARD_SINGLE_PRICE,
@@ -57,8 +61,25 @@ export default function SeatSelectionPage() {
     searchParams.get("screenType") || searchParams.get("format");
   const screenType = rawScreenType || (hallType === "gold" ? "GOLD" : "2D");
 
-  // Fetch movie details
-  const { data: movie } = useGetMovieDetailsQuery(movieId, { skip: !movieId });
+  // Check if title is a TV series or if Redux already contains the movie/show
+  const booking = useSelector(selectBooking);
+  const reduxMovie = booking?.movie;
+  const mediaTypeParam = searchParams.get("mediaType");
+  const isTV =
+    mediaTypeParam === "tv" ||
+    Boolean(
+      reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
+    );
+
+  // Fetch movie or TV details if not already present in Redux
+  const { data: movieData } = useGetMovieDetailsQuery(movieId, {
+    skip: !movieId || isTV || Boolean(reduxMovie?.id),
+  });
+  const { data: tvData } = useGetTVDetailsQuery(movieId, {
+    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
+  });
+
+  const movie = reduxMovie || (isTV ? tvData : movieData || tvData);
 
   // Redux Selected Seats & Theme
   const selectedSeats = useSelector(selectSelectedSeats);
@@ -67,6 +88,7 @@ export default function SeatSelectionPage() {
 
   // 3-Minute Countdown Timer
   const [timeLeft, setTimeLeft] = useState(180);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -81,17 +103,22 @@ export default function SeatSelectionPage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Clear selected seats whenever showtime, hall, or booking type changes
+  // Clear selected seats whenever showtime or hall changes
   useEffect(() => {
     dispatch(clearSeats());
+    // In group booking mode, preselect C3 for the user so they see their seat with avatar immediately
+    if (bookingType === "group") {
+      dispatch(
+        toggleSeat({
+          id: "C3",
+          row: "C",
+          number: 3,
+          type: "single",
+          price: STANDARD_SINGLE_PRICE,
+        }),
+      );
+    }
   }, [movieId, time, date, hallType, bookingType, dispatch]);
-
-  // Clear selected seats when leaving the seat selection page
-  useEffect(() => {
-    return () => {
-      dispatch(clearSeats());
-    };
-  }, [dispatch]);
 
   // Dynamic showtime-specific reserved seats
   const reservedSeatsSet = useMemo(() => {
@@ -101,8 +128,50 @@ export default function SeatSelectionPage() {
   const isSeatSelected = (seatId) => selectedSeats.some((s) => s.id === seatId);
   const isSeatReserved = (seatId) => reservedSeatsSet.has(seatId);
 
+  // Group seat avatars: shows live presence members on the map
+  // Friends took F6 & B8; You took your selected seats (default C3)
+  const groupSeatAvatars = useMemo(() => {
+    if (bookingType !== "group") return {};
+
+    const map = {
+      F6: {
+        avatar:
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+        color: "#3B82F6",
+        name: "Capibarra",
+        initials: "C",
+        isLocked: true,
+      },
+      B8: {
+        avatar:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+        color: "#10B981",
+        name: "Kapoy",
+        initials: "K",
+        isLocked: true,
+      },
+    };
+
+    // Current user's selected seats get the gold ring avatar
+    selectedSeats.forEach((seat) => {
+      map[seat.id] = {
+        avatar:
+          "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80",
+        color: "#FFD700",
+        name: "You",
+        initials: "U",
+        isLocked: false,
+      };
+    });
+
+    return map;
+  }, [bookingType, selectedSeats]);
+
   // Switch Booking Type (Standard vs Group)
   const handleBookingTypeChange = (newType) => {
+    if (newType === "group") {
+      setIsGroupModalOpen(true);
+    }
     if (newType === bookingType) return;
     const params = new URLSearchParams(searchParams);
     params.set("type", newType);
@@ -112,6 +181,13 @@ export default function SeatSelectionPage() {
 
   // Interactive Click Handler
   const handleSeatClick = (row, colNumber, isCouple = false) => {
+    const seatId = `${row}${colNumber}`;
+
+    // Friends' seats in group mode cannot be selected/deselected by you
+    if (bookingType === "group" && (seatId === "F6" || seatId === "B8")) {
+      return;
+    }
+
     if (isCouple) {
       const pair = getCouplePair(colNumber);
       if (!pair) return;
@@ -154,7 +230,6 @@ export default function SeatSelectionPage() {
     }
 
     // Normal single seat toggle
-    const seatId = `${row}${colNumber}`;
     if (isSeatReserved(seatId)) return;
 
     const seatPrice = hallType === "gold" ? GOLD_PRICE : STANDARD_SINGLE_PRICE;
@@ -170,14 +245,14 @@ export default function SeatSelectionPage() {
     );
   };
 
-  // Total price calculation with optional Group Booking discount (10% off for 4+ seats)
+  // Each user chooses their own seat and pays for their own seat!
   const isGroupDiscount = bookingType === "group" && selectedSeats.length >= 4;
   const rawTotalPrice = useMemo(() => {
     return selectedSeats.reduce((acc, seat) => acc + (seat.price || 0), 0);
   }, [selectedSeats]);
   const totalPrice = isGroupDiscount ? rawTotalPrice * 0.9 : rawTotalPrice;
 
-  // Proceed to Booking Details
+  // Proceed to Booking Details (only user's own seats are checked out and paid for)
   const handleProceed = () => {
     if (selectedSeats.length === 0) return;
     if (movie) {
@@ -201,6 +276,8 @@ export default function SeatSelectionPage() {
     params.set("type", bookingType);
     params.set("hall", hallType);
     params.set("screenType", screenType);
+    params.set("mediaType", isTV ? "tv" : "movie");
+    params.set("seats", selectedSeats.map((s) => s.id).join(","));
     navigate(`/booking/details?${params.toString()}`);
   };
 
@@ -217,7 +294,7 @@ export default function SeatSelectionPage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-[#B90101] dark:hover:text-[#B90101] transition"
+            className="flex items-center gap-2 text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-[#B90101] dark:hover:text-[#B90101] transition cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
@@ -233,9 +310,9 @@ export default function SeatSelectionPage() {
             <h1 className="text-base sm:text-lg font-black text-[#B90101] tracking-tight">
               Select Seat(s)
             </h1>
-            {movie?.title && (
+            {(movie?.title || movie?.name) && (
               <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
-                {movie.title} • {branch} • {time}
+                {movie.title || movie.name} • {branch} • {time}
               </p>
             )}
           </div>
@@ -247,7 +324,7 @@ export default function SeatSelectionPage() {
           </div>
         </div>
 
-        {/* Booking Type Switcher Bar (Standard Booking vs Group Booking Only) */}
+        {/* Booking Type Switcher Bar (Standard Booking vs Group Booking) */}
         <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-neutral-100 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 shadow-xs">
           <div className="flex items-center gap-2">
             <span className="text-xs sm:text-sm font-bold text-neutral-600 dark:text-neutral-400">
@@ -303,28 +380,43 @@ export default function SeatSelectionPage() {
               isSeatReserved={isSeatReserved}
               isSeatSelected={isSeatSelected}
               onSeatClick={handleSeatClick}
+              groupSeatAvatars={groupSeatAvatars}
             />
           ) : (
             <StandardHallSeatMap
               isSeatReserved={isSeatReserved}
               isSeatSelected={isSeatSelected}
               onSeatClick={handleSeatClick}
+              groupSeatAvatars={groupSeatAvatars}
             />
           )}
         </div>
 
-        {/* 5. Legend: Available, Selected, Reserved */}
-        <SeatLegend />
-
-        {/* 6. Pricing Cards */}
+        {/* 5. Pricing Cards (Always shown in both Standard and Group Booking modes) */}
         <SeatPricingCards hallType={hallType} />
 
-        {/* 7. Floating Checkout Bar */}
+        {/* 6. Legend: Standard or Group Legend with Live Presence */}
+        {bookingType === "group" ? (
+          <GroupSeatLegend mySeats={selectedSeats.map((s) => s.id)} />
+        ) : (
+          <SeatLegend />
+        )}
+
+        {/* 7. Floating Checkout Bar (Charges only for current user's chosen seats) */}
         <BookingCheckoutBar
           selectedSeats={selectedSeats}
           totalPrice={totalPrice}
           isGroupDiscount={isGroupDiscount}
+          isGroupMode={bookingType === "group"}
           onProceed={handleProceed}
+        />
+
+        {/* 8. Group Booking Link Modal Popup */}
+        <GroupBookingLinkModal
+          isOpen={isGroupModalOpen}
+          onClose={() => setIsGroupModalOpen(false)}
+          onContinue={() => setIsGroupModalOpen(false)}
+          groupCode="ABCD1234"
         />
       </div>
     </div>

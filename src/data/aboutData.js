@@ -52,7 +52,7 @@ export const TEAM_MEMBERS = [
   },
   {
     id: 3,
-    name: "Sen Sengthanu",
+    name: "San Sengthanu",
     role: "Frontend",
     image: ThanuImg,
     telegram: "#",
@@ -70,7 +70,7 @@ export const TEAM_MEMBERS = [
   },
   {
     id: 5,
-    name: "Chanreaksmey",
+    name: "Chan Reaksmey",
     role: "Frontend",
     image: ReaksmeyImg,
     telegram: "#",
