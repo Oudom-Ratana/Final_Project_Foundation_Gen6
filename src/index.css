@@ -2,20 +2,59 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+
+@font-face {
+  font-family: "Google Sans";
+  src: url("/fonts/ProductSans-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Google Sans";
+  src: url("/fonts/ProductSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Google Sans";
+  src: url("/fonts/ProductSans-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Google Sans";
+  src: url("/fonts/ProductSans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Google Sans";
+  src: url("/fonts/ProductSans-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-primary: #b90101;
   --color-primary-dark: #8b0101;
 
-  --color-accent-gold: #ffd700;
+  --color-accent-gold: #c8961e;
   --color-bg-light: #f6f7f9;
 
   --text-light: #828282;
   --text-black: rgba(255, 255, 255, 0.7);
 
   /* Typography */
-  --font-sans:
-    "Google Sans", "Product Sans", "Open Sans", system-ui, -apple-system,
-    sans-serif;
+  --font-sans: "Google Sans", sans-serif;
 
   --text-h1: 96px;
   --text-h2: 44px;
@@ -36,7 +75,7 @@
 @layer base {
   :root {
     --primary-red: #b90101;
-    --accent-gold: #ffd700;
+    --accent-gold: #c8961e;
     --bg-light: #f6f7f9;
     --bg-pop-up-light-mode: rgba(39, 42, 48, 0.25); /*[#272A30]/25*/
     --bg-pop-up-dark-mode: rgba(26, 31, 37, 0.4); /*[#1A1F25]/40*/
@@ -71,21 +110,14 @@
 
   html {
     font-size: 18px;
+    font-family: "Google Sans", sans-serif !important;
   }
 
-  body {
+  body,
+  #root {
     background-color: #f6f7f9;
     color: #171717;
-    font-family:
-      "Google Sans",
-      "Product Sans",
-      "Open Sans",
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
+    font-family: "Google Sans", sans-serif !important;
     font-size: 18px;
     line-height: 1.6;
     min-height: 100vh;
@@ -103,17 +135,22 @@
 
   *,
   *::before,
-  *::after {
-    font-family:
-      "Google Sans",
-      "Product Sans",
-      "Open Sans",
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
+  *::after,
+  input,
+  button,
+  textarea,
+  select,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  a,
+  label {
+    font-family: "Google Sans", sans-serif !important;
   }
 }
 
@@ -144,7 +181,7 @@
 }
 
 .text-accent-gold {
-  color: #ffd700 !important;
+  color: #c8961e !important;
 }
 
 .text-dark {
@@ -152,11 +189,17 @@
 }
 
 .bg-accent-gold {
-  background-color: #ffd700 !important;
+  background-color: #c8961e !important;
 }
 
 .fill-accent-gold {
-  fill: #ffd700 !important;
+  fill: #c8961e !important;
+}
+
+/* Standard description typography utility */
+.card-description,
+.description-text {
+  font-size: 18px !important;
 }
 
 .bg-light-theme {

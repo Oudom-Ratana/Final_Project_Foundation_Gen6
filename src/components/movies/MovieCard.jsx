@@ -40,16 +40,16 @@ export default function MovieCard({ movie }) {
           loading="lazy"
         />
 
-        {/* Top-Right Star Rating Badge with #FFD700 */}
+        {/* Top-Right Star Rating Badge with #C8961E */}
         <div
-          className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[16px] font-bold border border-[#FFD700]/40 shadow-lg"
-          style={{ color: "#FFD700" }}
+          className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[18px] font-bold border border-[#C8961E]/40 shadow-lg"
+          style={{ color: "#C8961E" }}
         >
           <Star
             className="w-4 h-4"
-            style={{ fill: "#FFD700", color: "#FFD700" }}
+            style={{ fill: "#C8961E", color: "#C8961E" }}
           />
-          <span style={{ color: "#FFD700" }}>{rating}</span>
+          <span style={{ color: "#C8961E" }}>{rating}</span>
         </div>
       </div>
 

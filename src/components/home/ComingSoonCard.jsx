@@ -56,7 +56,7 @@ export default function ComingSoonCard({ item }) {
           {title}
         </h3>
         <p
-          className="font-semibold text-[15px] sm:text-[16px] tracking-wide"
+          className="font-semibold text-[18px] tracking-wide"
           style={{ color: "#C8961E" }}
         >
           {formattedDate}
