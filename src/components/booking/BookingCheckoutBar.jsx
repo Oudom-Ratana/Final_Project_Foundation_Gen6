@@ -6,6 +6,7 @@ export default function BookingCheckoutBar({
   selectedSeats = [],
   totalPrice = 0,
   isGroupDiscount = false,
+  isGroupMode = false,
   onProceed,
 }) {
   const theme = useSelector(selectTheme);
@@ -29,9 +30,14 @@ export default function BookingCheckoutBar({
           : "var(--border-light-mode)",
       }}
     >
-      {/* Left: Seat list and Total */}
+      {/* Left: Seat list and Total (User's own chosen seats) */}
       <div className="space-y-0.5 min-w-0 pr-3">
         <div className="text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-200 truncate">
+          {isGroupMode && (
+            <span className="text-[11px] uppercase tracking-wider font-extrabold text-[#B90101] mr-1.5">
+              [GROUP]
+            </span>
+          )}
           <span>{label}: </span>
           <span className="text-[#B90101] font-extrabold">{seatList}</span>
         </div>
@@ -52,7 +58,7 @@ export default function BookingCheckoutBar({
       <button
         type="button"
         onClick={onProceed}
-        className="px-5 sm:px-7 py-2.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all shadow-md active:scale-95 flex items-center gap-1.5 shrink-0 border border-white/20"
+        className="px-5 sm:px-7 py-2.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all shadow-md active:scale-95 flex items-center gap-1.5 shrink-0 border border-white/20 cursor-pointer"
       >
         <span>BOOKING DETAILS</span>
         <ChevronRight className="w-4 h-4 stroke-[3]" />

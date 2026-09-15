@@ -4,17 +4,17 @@ import { useGetMovieRuntimeQuery } from "../../services/api/movieApi";
 import { formatMovieRuntime } from "../../utils/formatRuntime";
 
 export default function MovieCard({ movie, basePath = "/movies" }) {
-  if (!movie) return null;
-
   const isTV = Boolean(
-    movie.media_type === "tv" ||
-    movie.first_air_date ||
-    (movie.name && !movie.title),
+    movie?.media_type === "tv" ||
+    movie?.first_air_date ||
+    (movie?.name && !movie?.title),
   );
 
-  const { data: fetchedRuntime } = useGetMovieRuntimeQuery(movie.id, {
-    skip: isTV || !movie.id || Boolean(movie.runtime),
+  const { data: fetchedRuntime } = useGetMovieRuntimeQuery(movie?.id, {
+    skip: !movie?.id || isTV || Boolean(movie?.runtime),
   });
+
+  if (!movie) return null;
 
   const targetUrl = movie.id
     ? `${basePath}/${movie.id}${isTV ? "?type=tv" : ""}`

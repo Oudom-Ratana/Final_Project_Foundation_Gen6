@@ -38,6 +38,9 @@ const bookingSlice = createSlice({
         state.selectedSeats.push(seat);
       }
     },
+    setSelectedSeats: (state, action) => {
+      state.selectedSeats = action.payload;
+    },
     clearSeats: (state) => {
       state.selectedSeats = [];
     },
@@ -77,6 +80,7 @@ export const {
   setCinema,
   setShowtime,
   toggleSeat,
+  setSelectedSeats,
   clearSeats,
   updateConcessionQuantity,
   setCustomerInfo,
