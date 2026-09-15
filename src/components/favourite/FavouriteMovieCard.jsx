@@ -5,7 +5,7 @@ import { Heart, Trash2, Play } from "lucide-react";
 import { removeFromFavourite } from "../../redux/slices/favouriteSlice";
 import { useAddFavoriteMutation } from "../../services/api/accountApi";
 
-export default function MovieCard({
+export default function FavouriteMovieCard({
   id,
   title,
   posterUrl,
@@ -110,7 +110,7 @@ export default function MovieCard({
         )}
 
         {description && (
-          <p className="mt-3 max-w-[950px] text-sm leading-relaxed text-[var(--text-light)] dark:text-white line-clamp-3">
+          <p className="mt-3 max-w-[950px] text-[18px] leading-relaxed text-[var(--text-light)] dark:text-white line-clamp-3">
             {description}
           </p>
         )}

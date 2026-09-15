@@ -8,7 +8,16 @@ import { useDiscoverTVQuery, useSearchTVQuery } from "../services/api/tvApi";
 import MovieCardSkeleton from "../components/home/MovieCardSkeleton";
 import ScrollReveal from "../components/common/ScrollReveal";
 import StreamHero from "../components/stream/StreamHero";
-import { ChevronLeft, ChevronRight, Tv, Film, Flame, Star } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Tv,
+  Film,
+  Flame,
+  Star,
+  Search,
+  X,
+} from "lucide-react";
 import StreamCard from "../components/stream/StreamCard";
 
 // Official TMDB TV Genres
@@ -230,10 +239,46 @@ export default function StreamPage() {
     window.scrollTo({ top: 460, behavior: "smooth" });
   };
 
-  const handleHeroSearch = (term) => {
+  const [searchTerm, setSearchTerm] = useState(queryParam);
+
+  // Sync search input if URL queryParam changes externally
+  useEffect(() => {
+    setSearchTerm(queryParam);
+  }, [queryParam]);
+
+  // Debounced auto-search (350ms)
+  useEffect(() => {
+    const trimmed = searchTerm.trim();
+    if (trimmed === queryParam) return;
+
+    const timer = setTimeout(() => {
+      const newParams = new URLSearchParams(searchParams);
+      if (trimmed) {
+        newParams.set("q", trimmed);
+      } else {
+        newParams.delete("q");
+      }
+      newParams.set("page", "1");
+      setSearchParams(newParams, { preventScrollReset: true });
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, queryParam, searchParams, setSearchParams]);
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
     const newParams = new URLSearchParams(searchParams);
-    if (term) {
-      newParams.set("q", term);
+    newParams.delete("q");
+    newParams.set("page", "1");
+    setSearchParams(newParams, { preventScrollReset: true });
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const trimmed = searchTerm.trim();
+    const newParams = new URLSearchParams(searchParams);
+    if (trimmed) {
+      newParams.set("q", trimmed);
     } else {
       newParams.delete("q");
     }
@@ -243,10 +288,38 @@ export default function StreamPage() {
 
   return (
     <div className="w-full space-y-10 pb-20 font-sans">
-      {/* 1. Featured Stream Hero Banner with Search & Favourite Button */}
-      <StreamHero onSearch={handleHeroSearch} initialQuery={queryParam} />
+      {/* 1. Featured Stream Hero Banner with Favourite Button */}
+      <StreamHero />
 
-      {/* 2. Stream Catalog Section */}
+      {/* 2. Top Search Bar - Placed Above "Popular TV Series & Shows" Section */}
+      <div className="flex justify-center w-full px-2">
+        <form onSubmit={handleSearchSubmit} className="w-full max-w-xl">
+          <div className="relative flex items-center">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-white/60 pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={
+                isTV ? "Search TV shows, series..." : "Search movies..."
+              }
+              className="w-full pl-12 pr-11 py-3 rounded-full border text-[18px] font-medium text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-white/50 focus:outline-none focus:border-[#B90101] focus:ring-2 focus:ring-[#B90101]/20 transition-all shadow-md dark:shadow-xl bg-white/90 dark:bg-[#1A1F25]/60 border-neutral-300/80 dark:border-white/15 backdrop-blur-md"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:text-white/60 dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-white/10 transition cursor-pointer"
+                aria-label="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* 3. Stream Catalog Section */}
       <section className="space-y-6">
         {/* Section Header with Red Bar & Controls (Category Switcher + Sort Selector) */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -269,7 +342,7 @@ export default function StreamPage() {
             {queryParam && (
               <button
                 type="button"
-                onClick={() => handleHeroSearch("")}
+                onClick={handleClearSearch}
                 className="text-sm font-bold text-[#B90101] hover:underline mr-2 cursor-pointer"
               >
                 Clear Search
@@ -278,7 +351,7 @@ export default function StreamPage() {
 
             {/* Sort Options Bar (Popular, Top Rated, Newest) */}
             {!queryParam && (
-              <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300/80 dark:border-white/10 text-xs font-bold shadow-xs">
+              <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300/80 dark:border-white/10 text-[18px] font-bold shadow-xs">
                 {SORT_OPTIONS.map((opt) => {
                   const isSortActive = sortBy === opt.value;
                   const IconComp = opt.icon;
@@ -287,13 +360,13 @@ export default function StreamPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => handleSortChange(opt.value)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-[18px] font-bold transition-all whitespace-nowrap ${
                         isSortActive
                           ? "bg-[#B90101] text-white shadow-sm"
                           : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                       }`}
                     >
-                      <IconComp className="w-3.5 h-3.5" />
+                      <IconComp className="w-4 h-4" />
                       <span className="hidden sm:inline">{opt.label}</span>
                     </button>
                   );
@@ -302,30 +375,30 @@ export default function StreamPage() {
             )}
 
             {/* Category Toggle Pills (TV Series vs Movies) */}
-            <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300/80 dark:border-white/10 text-xs font-bold shadow-xs">
+            <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300/80 dark:border-white/10 text-[18px] font-bold shadow-xs">
               <button
                 type="button"
                 onClick={() => handleCategoryChange("tv")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[18px] font-bold transition-all ${
                   isTV
                     ? "bg-[#B90101] text-white shadow-sm"
                     : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                 }`}
               >
-                <Tv className="w-3.5 h-3.5" />
+                <Tv className="w-4 h-4" />
                 <span>Series</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleCategoryChange("movie")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[18px] font-bold transition-all ${
                   !isTV
                     ? "bg-[#B90101] text-white shadow-sm"
                     : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                 }`}
               >
-                <Film className="w-3.5 h-3.5" />
+                <Film className="w-4 h-4" />
                 <span>Movies</span>
               </button>
             </div>
@@ -334,7 +407,7 @@ export default function StreamPage() {
 
         {/* 3. Horizontal Genre Filter Pills Bar */}
         {!queryParam && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 select-none scrollbar-none">
+          <div className="flex items-center gap-2.5 overflow-x-auto pb-2 pt-1 select-none scrollbar-none">
             {activeGenreList.map((g) => {
               const isGenreActive = selectedGenre === g.id;
               return (
@@ -342,7 +415,7 @@ export default function StreamPage() {
                   key={g.id}
                   type="button"
                   onClick={() => handleGenreChange(g.id)}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap transition-all shrink-0 ${
+                  className={`px-5 py-2 rounded-full text-[18px] font-bold tracking-wide whitespace-nowrap transition-all shrink-0 ${
                     isGenreActive
                       ? "bg-[#B90101] text-white shadow-md shadow-red-950/40 scale-105"
                       : "bg-neutral-100 dark:bg-neutral-900/90 text-neutral-700 dark:text-neutral-300 border border-neutral-300/80 dark:border-white/10 hover:border-[#B90101]/50 hover:text-neutral-900 dark:hover:text-white"
@@ -428,7 +501,7 @@ export default function StreamPage() {
                   key={`page-${pageNumber}`}
                   type="button"
                   onClick={() => handlePageChange(pageNumber)}
-                  className={`w-10 h-10 rounded-full font-black text-sm flex items-center justify-center transition-all ${
+                  className={`w-11 h-11 rounded-full font-black text-[18px] flex items-center justify-center transition-all ${
                     currentPage === pageNumber
                       ? "bg-[#B90101] text-white shadow-md"
                       : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"

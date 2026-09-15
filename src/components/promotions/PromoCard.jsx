@@ -59,7 +59,8 @@ export default function PromoCard({ promo }) {
           {title}
         </h3>
         <p
-          className={`mt-1 text-[16px] sm:text-[16px] leading-relaxed line-clamp-2 ${
+          
+          className={`mt-1 text-[18px] leading-relaxed line-clamp-2 ${
             isDark ? "text-neutral-400" : "text-neutral-600"
           }`}
         >

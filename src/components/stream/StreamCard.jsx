@@ -157,42 +157,69 @@ export default function StreamCard({ movie, activeGenreId }) {
 
   return (
     <div className="group flex flex-col space-y-3 font-sans cursor-pointer">
-      {/* Poster Container with Mixed Corner Radius and Dark Blur Hover Overlay (Same as HomePage) */}
-      <Link
-        to={targetUrl}
-        className="relative aspect-[291/386] w-full overflow-hidden shadow-md dark:shadow-2xl bg-neutral-900 border border-neutral-200/80 dark:border-white/10 transition-all duration-300 rounded-tl-[25px] rounded-br-[25px] rounded-tr-none rounded-bl-none"
-        style={{
-          borderTopLeftRadius: "25px",
-          borderBottomRightRadius: "25px",
-          borderTopRightRadius: "0px",
-          borderBottomLeftRadius: "0px",
-        }}
-      >
-        <img
-          src={posterUrl}
-          alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
-          loading="lazy"
-        />
+      {/* Poster Container with Top-Right Favorite Button */}
+      <div className="relative">
+        <Link
+          to={targetUrl}
+          className="relative aspect-[291/386] w-full overflow-hidden block shadow-md dark:shadow-2xl bg-neutral-900 border border-neutral-200/80 dark:border-white/10 transition-all duration-300 rounded-tl-[25px] rounded-br-[25px] rounded-tr-none rounded-bl-none"
+          style={{
+            borderTopLeftRadius: "25px",
+            borderBottomRightRadius: "25px",
+            borderTopRightRadius: "0px",
+            borderBottomLeftRadius: "0px",
+          }}
+        >
+          <img
+            src={posterUrl}
+            alt={title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
+            loading="lazy"
+          />
 
-        {/* Dark Blur Hover Overlay with Description Pop-up (Active for both Light & Dark modes) */}
-        <div className="absolute inset-0 bg-black/75 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-center p-4 sm:p-5 text-center">
-          <div className="transform translate-y-3 mx-auto group-hover:translate-y-0 transition-transform duration-300 space-y-2">
-            <span
-              className="inline-flex items-center justify-center px-4 py-1 rounded-full text-white font-black text-[12px] sm:text-[13px] uppercase tracking-wider shadow-md border border-white/20"
-              style={{ backgroundColor: "#B90101" }}
-            >
-              {genreName.toUpperCase()}
-            </span>
-            <p className="text-white text-xs sm:text-[18px] leading-relaxed line-clamp-4 font-normal drop-shadow">
-              {overviewText}
-            </p>
-            <span className="inline-flex items-center text-[16px] font-bold text-neutral-300 group-hover:text-accent-gold pt-1">
-              Stream Now →
-            </span>
+          {/* Dark Blur Hover Overlay with Description Pop-up (Active for both Light & Dark modes) */}
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-center p-4 sm:p-5 text-center">
+            <div className="transform translate-y-3 mx-auto group-hover:translate-y-0 transition-transform duration-300 space-y-2">
+              <span
+                className="inline-flex items-center justify-center px-4 py-1 rounded-full text-white font-black text-[12px] sm:text-[13px] uppercase tracking-wider shadow-md border border-white/20"
+                style={{ backgroundColor: "#B90101" }}
+              >
+                {genreName.toUpperCase()}
+              </span>
+              <p className="text-white text-[18px] leading-relaxed line-clamp-4 font-normal drop-shadow">
+                {overviewText}
+              </p>
+              <span className="inline-flex items-center text-[16px] font-bold text-neutral-300 group-hover:text-accent-gold pt-1">
+                Stream Now →
+              </span>
+            </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+
+        {/* Favorite Heart Button: Positioned on the Card Top Right */}
+        <button
+          type="button"
+          onClick={handleToggleFavorite}
+          className="absolute top-2.5 right-2.5 z-20 w-9 h-9 rounded-full bg-black/60 hover:bg-black/85 backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-90 hover:scale-110 shadow-lg"
+          aria-label={
+            isFavourite
+              ? `Remove ${title} from favourites`
+              : `Add ${title} to favourites`
+          }
+          title={
+            isFavourite
+              ? `Remove ${title} from favourites`
+              : `Add ${title} to favourites`
+          }
+        >
+          <Heart
+            className={`w-5 h-5 transition-colors ${
+              isFavourite
+                ? "fill-[#B90101] text-[#B90101]"
+                : "text-white hover:text-[#B90101]"
+            }`}
+          />
+        </button>
+      </div>
 
       {/* Title & Metadata */}
       <div className="space-y-1 px-0.5 pt-0.5">
@@ -202,45 +229,18 @@ export default function StreamCard({ movie, activeGenreId }) {
           </h3>
         </Link>
 
-        {/* Time, Rating, and Favorite Heart Row */}
+        {/* Time and Rating Row */}
         <div className="flex items-center justify-between pt-0.5">
-          <p className="text-[15px] sm:text-[16px] text-neutral-500 dark:text-neutral-400 font-semibold tracking-tight">
+          <p className="text-[18px] text-neutral-500 dark:text-neutral-400 font-semibold tracking-tight">
             {runtime} • {releaseYear}
           </p>
 
-          {/* Right Side: Rating + Favorite Heart Button */}
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1 text-[#FFD700]">
-              <Star className="w-4 h-4 fill-[#FFD700] text-[#FFD700]" />
-              <span className="text-[15px] sm:text-[16px] font-black leading-none">
-                {rating}
-              </span>
-            </div>
-
-            {/* Favorite Heart Button (Only on Stream Page) */}
-            <button
-              type="button"
-              onClick={handleToggleFavorite}
-              className="p-1 rounded-full hover:bg-neutral-200/60 dark:hover:bg-white/10 transition cursor-pointer active:scale-90"
-              aria-label={
-                isFavourite
-                  ? `Remove ${title} from favourites`
-                  : `Add ${title} to favourites`
-              }
-              title={
-                isFavourite
-                  ? `Remove ${title} from favourites`
-                  : `Add ${title} to favourites`
-              }
-            >
-              <Heart
-                className={`w-4.5 h-4.5 transition-colors ${
-                  isFavourite
-                    ? "fill-[#B90101] text-[#B90101]"
-                    : "text-neutral-400 hover:text-[#B90101]"
-                }`}
-              />
-            </button>
+          {/* Right Side: Rating */}
+          <div className="flex items-center gap-1 text-[#C8961E]">
+            <Star className="w-4 h-4 fill-[#C8961E] text-[#C8961E]" />
+            <span className="text-[18px] font-black leading-none">
+              {rating}
+            </span>
           </div>
         </div>
       </div>

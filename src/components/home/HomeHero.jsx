@@ -99,7 +99,7 @@ export default function HomeHero() {
                 className="w-full h-full object-cover object-center filter brightness-90"
               />
               {/* Cinematic Vignette Gradients */}
-              {/* <div className="absolute inset-0 bg-gradient-to-r from-black/170 via-black/50 to-black/140 sm:to-transparent" /> */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/140 sm:to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/60" />
               <div className="absolute inset-0 bg-radial-at-c from-transparent via-black/20 to-black/80" />
             </div>
@@ -168,7 +168,7 @@ export default function HomeHero() {
             </div>
 
             {/* Description */}
-            <p className="text-neutral-200 text-[15px] sm:text-[16px] leading-relaxed max-w-lg line-clamp-3 drop-shadow">
+            <p className="text-neutral-200 text-[18px] leading-relaxed max-w-lg line-clamp-3 drop-shadow">
               {activeMovie.overview}
             </p>
 
@@ -176,7 +176,7 @@ export default function HomeHero() {
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link
                 to={`/movies/${activeMovie.id}`}
-                className="flex items-center justify-center gap-2.5 h-[54px] px-8 rounded-[30px] text-white font-black text-[15px] uppercase tracking-wider hover:brightness-110 active:scale-95 transition"
+                className="flex items-center justify-center gap-2.5 h-[54px] px-8 rounded-[30px] text-white font-black text-[18px] uppercase tracking-wider hover:brightness-110 active:scale-95 transition"
                 style={{
                   backgroundColor: "#B90101",
                   borderRadius: "30px",
@@ -189,7 +189,7 @@ export default function HomeHero() {
               {/* Watch Trailer Button - Exact Figma Spec (213x54, Fill #FFFFFF 10%, Stroke #FFFFFF 20%, Radius 30px, Blur 12px) */}
               <Link
                 to={`/movies/${activeMovie.id}`}
-                className="flex items-center justify-center gap-3 h-[54px] min-w-[213px] px-7 rounded-[30px] border text-white font-bold text-[15px] uppercase tracking-wider transition hover:bg-white/20 active:scale-95 shadow-md group select-none"
+                className="flex items-center justify-center gap-3 h-[54px] min-w-[213px] px-7 rounded-[30px] border text-white font-bold text-[18px] uppercase tracking-wider transition hover:bg-white/20 active:scale-95 shadow-md group select-none"
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.10)",
                   borderColor: "rgba(255, 255, 255, 0.20)",

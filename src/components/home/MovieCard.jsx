@@ -99,7 +99,7 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
             >
               {genreName.toUpperCase()}
             </span>
-            <p className="text-white text-xs sm:text-[18px] leading-8 line-clamp-4 font-normal drop-shadow">
+            <p className="text-white text-xs sm:text-[18px] leading-7 line-clamp-4 font-light drop-shadow">
               {overviewText}
             </p>
             <span className="inline-flex items-center text-[16px] font-bold text-neutral-300 group-hover:text-accent-gold pt-1">
@@ -119,14 +119,14 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
 
         {/* Time and Rating Row */}
         <div className="flex items-center justify-between pt-0.5">
-          <p className="text-[15px] sm:text-[16px] text-neutral-500 dark:text-neutral-400 font-semibold tracking-tight">
+          <p className="text-[18px] text-neutral-500 dark:text-neutral-400 font-semibold tracking-tight">
             {runtime} • {releaseYear}
           </p>
 
           {/* Right Side: Rating */}
-          <div className="flex items-center gap-1 text-[#FFD700]">
-            <Star className="w-4 h-4 fill-[#FFD700] text-[#FFD700]" />
-            <span className="text-[15px] sm:text-[16px] font-black leading-none">
+          <div className="flex items-center gap-1 text-[#C8961E]">
+            <Star className="w-4 h-4 fill-[#C8961E] text-[#C8961E]" />
+            <span className="text-[18px] font-black leading-none">
               {rating}
             </span>
           </div>

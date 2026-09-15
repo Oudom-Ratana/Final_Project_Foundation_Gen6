@@ -1,21 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router";
-import {
-  FileText,
-  Clock,
-  Calendar,
-  ShieldAlert,
-  Play,
-  ArrowLeft,
-} from "lucide-react";
+import { FileText, Clock, Calendar, Play, ArrowLeft } from "lucide-react";
 import {
   useGetMovieDetailsQuery,
   useGetMovieTrailersQuery,
 } from "../services/api/movieApi";
 import { useGetTVDetailsQuery } from "../services/api/tvApi";
 import ShowtimeSection from "../components/booking/ShowtimeSection";
-import SpidermanLoader from "../components/common/SpidermanLoader";
-import BookingTypeModal from "../components/booking/BookingTypeModal";
 import MovieDetailSkeleton from "../components/common/MovieDetailSkeleton";
 import { formatMovieRuntime } from "../utils/formatRuntime";
 
