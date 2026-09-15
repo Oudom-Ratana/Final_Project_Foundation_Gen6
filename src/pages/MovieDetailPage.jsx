@@ -482,7 +482,11 @@ export default function MovieDetailPage() {
 
       {/* 3. Showtime Section (Locations, Date Selector, Branch Cards) */}
       <div className="max-w-6xl mx-auto px-2 sm:px-4">
-        <ShowtimeSection movieId={id} />
+        <ShowtimeSection
+          movieId={id}
+          isTV={Boolean(isExplicitTV || movie?.first_air_date || movie?.name)}
+          movie={movie}
+        />
       </div>
     </div>
   );

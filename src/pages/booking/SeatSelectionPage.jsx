@@ -8,9 +8,11 @@ import {
   selectSelectedSeats,
   setShowtime,
   setMovie,
+  selectBooking,
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
+import { useGetTVDetailsQuery } from "../../services/api/tvApi";
 
 // Modular Subcomponents & Data
 import BookingStepper from "../../components/booking/BookingStepper";
@@ -59,8 +61,25 @@ export default function SeatSelectionPage() {
     searchParams.get("screenType") || searchParams.get("format");
   const screenType = rawScreenType || (hallType === "gold" ? "GOLD" : "2D");
 
-  // Fetch movie details
-  const { data: movie } = useGetMovieDetailsQuery(movieId, { skip: !movieId });
+  // Check if title is a TV series or if Redux already contains the movie/show
+  const booking = useSelector(selectBooking);
+  const reduxMovie = booking?.movie;
+  const mediaTypeParam = searchParams.get("mediaType");
+  const isTV =
+    mediaTypeParam === "tv" ||
+    Boolean(
+      reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
+    );
+
+  // Fetch movie or TV details if not already present in Redux
+  const { data: movieData } = useGetMovieDetailsQuery(movieId, {
+    skip: !movieId || isTV || Boolean(reduxMovie?.id),
+  });
+  const { data: tvData } = useGetTVDetailsQuery(movieId, {
+    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
+  });
+
+  const movie = reduxMovie || (isTV ? tvData : movieData || tvData);
 
   // Redux Selected Seats & Theme
   const selectedSeats = useSelector(selectSelectedSeats);
@@ -257,6 +276,7 @@ export default function SeatSelectionPage() {
     params.set("type", bookingType);
     params.set("hall", hallType);
     params.set("screenType", screenType);
+    params.set("mediaType", isTV ? "tv" : "movie");
     params.set("seats", selectedSeats.map((s) => s.id).join(","));
     navigate(`/booking/details?${params.toString()}`);
   };
@@ -290,9 +310,9 @@ export default function SeatSelectionPage() {
             <h1 className="text-base sm:text-lg font-black text-[#B90101] tracking-tight">
               Select Seat(s)
             </h1>
-            {movie?.title && (
+            {(movie?.title || movie?.name) && (
               <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
-                {movie.title} • {branch} • {time}
+                {movie.title || movie.name} • {branch} • {time}
               </p>
             )}
           </div>

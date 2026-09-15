@@ -8,6 +8,7 @@ import {
 } from "../../redux/slices/bookingSlice";
 import { addTicket } from "../../redux/slices/ticketSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
+import { useGetTVDetailsQuery } from "../../services/api/tvApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 
@@ -25,11 +26,21 @@ export default function BookingConfirmedPage() {
     searchParams.get("ref") ||
     `125273HJ${Math.floor(1000 + Math.random() * 9000)}`;
 
+  const booking = useSelector(selectBooking);
+  const reduxMovie = booking?.movie;
+  const isTV =
+    searchParams.get("mediaType") === "tv" ||
+    Boolean(
+      reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
+    );
+
   const { data: movieData } = useGetMovieDetailsQuery(movieId, {
-    skip: !movieId,
+    skip: !movieId || isTV || Boolean(reduxMovie?.id),
+  });
+  const { data: tvData } = useGetTVDetailsQuery(movieId, {
+    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
   });
 
-  const booking = useSelector(selectBooking);
   const reduxSelectedSeats = useSelector(selectSelectedSeats);
 
   const isGold = hallType.includes("gold");
@@ -82,8 +93,8 @@ export default function BookingConfirmedPage() {
     return [];
   }, [booking.concessions, concessionsParam]);
 
-  const movie = movieData ||
-    booking.movie || {
+  const movie = reduxMovie ||
+    (isTV ? tvData : movieData || tvData) || {
       title: "Spider-Man: Brand New Day",
       poster_path: null,
     };

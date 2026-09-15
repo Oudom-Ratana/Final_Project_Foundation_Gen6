@@ -79,7 +79,7 @@ export default function HomeHero() {
   const activeMovie = slides[currentIndex] || slides[0];
 
   return (
-    <section className="relative w-full min-h-[680px] sm:min-h-[800px] lg:min-h-[980px] overflow-hidden select-none font-sans flex flex-col justify-between">
+    <section className="relative w-full min-h-[680px] sm:min-h-[700px] lg:min-h-[880px] overflow-hidden select-none font-sans flex flex-col justify-between">
       {/* 1. Full-Width Background Slides Layer with Smooth Cross-Fade */}
       <div className="absolute inset-0 z-0  bg-black ">
         {slides.map((slide, index) => {
@@ -168,7 +168,7 @@ export default function HomeHero() {
             </div>
 
             {/* Description */}
-            <p className="text-neutral-200 text-[18px] leading-relaxed max-w-lg line-clamp-3 drop-shadow">
+            <p className="text-neutral-200 font-sans text-[18px] leading-relaxed max-w-lg line-clamp-3 drop-shadow">
               {activeMovie.overview}
             </p>
 

@@ -11,6 +11,7 @@ import {
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
+import { useGetTVDetailsQuery } from "../../services/api/tvApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import { CONCESSIONS } from "../../data/concessionsData";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
@@ -41,11 +42,21 @@ export default function BookingDetailsPage() {
   const branch = searchParams.get("branch") || "FilmZone SenSok";
   const date = searchParams.get("date") || "Sat, 6 Sep";
 
+  const booking = useSelector(selectBooking);
+  const reduxMovie = booking?.movie;
+  const isTV =
+    searchParams.get("mediaType") === "tv" ||
+    Boolean(
+      reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
+    );
+
   const { data: movieData } = useGetMovieDetailsQuery(movieId, {
-    skip: !movieId,
+    skip: !movieId || isTV || Boolean(reduxMovie?.id),
+  });
+  const { data: tvData } = useGetTVDetailsQuery(movieId, {
+    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
   });
 
-  const booking = useSelector(selectBooking);
   const reduxSelectedSeats = useSelector(selectSelectedSeats);
   const seatsParam = searchParams.get("seats");
 
@@ -90,8 +101,8 @@ export default function BookingDetailsPage() {
 
   const concessions = booking.concessions || [];
 
-  const movie = movieData ||
-    booking.movie || {
+  const movie = reduxMovie ||
+    (isTV ? tvData : movieData || tvData) || {
       title: "Spider-Man: Brand New Day",
       poster_path: null,
     };

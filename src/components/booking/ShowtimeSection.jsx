@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ChevronDown, Volume2, MessageCircleMore } from "lucide-react";
 import { useNavigate } from "react-router";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { selectTheme } from "../../redux/slices/uiSlice";
+import { setMovie } from "../../redux/slices/bookingSlice";
 import {
   LOCATIONS,
   DATES,
@@ -15,8 +16,13 @@ import {
  * Each branch shows all its halls grouped separately.
  * Uses glassmorphism styling (--primary-color-5 / --primary-color-30).
  */
-export default function ShowtimeSection({ movieId }) {
+export default function ShowtimeSection({
+  movieId,
+  isTV = false,
+  movie = null,
+}) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
@@ -50,9 +56,14 @@ export default function ShowtimeSection({ movieId }) {
     const slotKey = `${hall.id}-${time}`;
     setSelectedTimeSlot(slotKey);
 
+    if (movie) {
+      dispatch(setMovie(movie));
+    }
+
     // Navigate directly to seat selection — hall type decides the seat map
     const params = new URLSearchParams({
       movie: movieId || "",
+      mediaType: isTV ? "tv" : "movie",
       hall: hall.goldClass ? "gold" : "standard",
       screenType: hall.screenType || (hall.goldClass ? "GOLD" : "2D"),
       time,
