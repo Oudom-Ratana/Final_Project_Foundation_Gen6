@@ -4,7 +4,9 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import heroImage from "../../assets/others/cinema.png";
 import { setCredentials } from "../../redux/slices/authSlice";
-import { loginUser, googleLogin } from "../../services/mockAuthService";
+import { loginUser } from "../../services/mockAuthService";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../../firebase/config";
 
 const LoginComponent = () => {
   const navigate = useNavigate();
@@ -44,24 +46,38 @@ const LoginComponent = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     try {
-      const result = googleLogin();
-      dispatch(setCredentials(result));
-      toast.success(`Welcome, ${result.user.name}!`);
+      setIsSubmitting(true);
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const fbUser = userCredential.user;
+
+      const authData = {
+        user: {
+          id: fbUser.uid,
+          name: fbUser.displayName || "Google User",
+          email: fbUser.email,
+          role: "user",
+          avatar:
+            fbUser.photoURL ||
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+              fbUser.displayName || "User",
+            )}`,
+          createdAt: new Date().toISOString(),
+        },
+        token: await fbUser.getIdToken(),
+      };
+
+      dispatch(setCredentials(authData));
+      toast.success(`Welcome back, ${authData.user.name}!`);
       navigate("/");
     } catch (err) {
-      toast.error("Google sign in failed");
+      if (err.code !== "auth/popup-closed-by-user") {
+        toast.error(err.message || "Google sign in failed");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  const handleFillDemo = (type = "user") => {
-    if (type === "admin") {
-      setFormData({ email: "admin@filmzone.com", password: "admin123" });
-    } else {
-      setFormData({ email: "user@filmzone.com", password: "password123" });
-    }
-    setErrorMsg("");
   };
 
   return (
@@ -187,28 +203,6 @@ const LoginComponent = () => {
               {isSubmitting ? "Logging In..." : "Login"}
             </button>
           </form>
-
-          {/* Quick Demo Credentials */}
-          <div className="mt-3 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 px-1">
-            <span>Quick test:</span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleFillDemo("user")}
-                className="text-xs font-bold text-[#B90101] hover:underline cursor-pointer"
-              >
-                Demo User
-              </button>
-              <span>•</span>
-              <button
-                type="button"
-                onClick={() => handleFillDemo("admin")}
-                className="text-xs font-bold text-[#B90101] hover:underline cursor-pointer"
-              >
-                Demo Admin
-              </button>
-            </div>
-          </div>
 
           <div className="my-4 sm:my-5 flex items-center gap-3">
             <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-700" />
