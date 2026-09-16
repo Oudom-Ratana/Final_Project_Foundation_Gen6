@@ -2,37 +2,41 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import heroImage from "../../assets/others/cinema.png";
 import { setCredentials } from "../../redux/slices/authSlice";
 import { loginUser } from "../../services/mockAuthService";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase/config";
+import { loginSchema } from "../../schemas/authSchema";
 
 const LoginComponent = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
-  const handleChange = (e) => {
+  const onSubmit = (data) => {
     setErrorMsg("");
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setErrorMsg("");
-    setIsSubmitting(true);
 
     try {
       const result = loginUser({
-        email: formData.email,
-        password: formData.password,
+        email: data.email,
+        password: data.password,
       });
       dispatch(setCredentials(result));
       toast.success(`Welcome back, ${result.user.name}!`);
@@ -41,14 +45,12 @@ const LoginComponent = () => {
       const message = err.message || "Invalid credentials. Please try again.";
       setErrorMsg(message);
       toast.error(message);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
-      setIsSubmitting(true);
+      setIsSocialSubmitting(true);
       const userCredential = await signInWithPopup(auth, googleProvider);
       const fbUser = userCredential.user;
 
@@ -76,7 +78,7 @@ const LoginComponent = () => {
         toast.error(err.message || "Google sign in failed");
       }
     } finally {
-      setIsSubmitting(false);
+      setIsSocialSubmitting(false);
     }
   };
 
@@ -135,7 +137,8 @@ const LoginComponent = () => {
           )}
 
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
             className="mt-5 sm:mt-6 space-y-4 sm:space-y-4.5"
           >
             <div>
@@ -148,13 +151,19 @@ const LoginComponent = () => {
               <input
                 type="email"
                 id="email"
-                name="email"
                 placeholder="Enter your email address"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
+                {...register("email")}
+                className={`w-full rounded-full border ${
+                  errors.email
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-neutral-200 dark:border-neutral-700 focus:border-primary-red"
+                } bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none transition shadow-xs`}
               />
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-500 font-medium pl-2">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -168,12 +177,13 @@ const LoginComponent = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  name="password"
                   placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 pr-11 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
+                  {...register("password")}
+                  className={`w-full rounded-full border ${
+                    errors.password
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-neutral-200 dark:border-neutral-700 focus:border-primary-red"
+                  } bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 pr-11 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none transition shadow-xs`}
                 />
                 <button
                   type="button"
@@ -184,6 +194,11 @@ const LoginComponent = () => {
                   {showPassword ? <EyeIcon /> : <EyeOffIcon />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-500 font-medium pl-2">
+                  {errors.password.message}
+                </p>
+              )}
 
               <div className="mt-1.5 text-right">
                 <Link
@@ -197,7 +212,7 @@ const LoginComponent = () => {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isSocialSubmitting}
               className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-1 disabled:opacity-60"
             >
               {isSubmitting ? "Logging In..." : "Login"}

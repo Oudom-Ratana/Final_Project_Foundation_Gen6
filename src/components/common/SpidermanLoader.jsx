@@ -7,7 +7,6 @@ const PopcornKernel = ({ className = "", style = {} }) => (
   <img
     src={popcornKernelImg}
     alt="Popcorn"
-    className={`absolute pointer-events-none object-contain select-none filter drop-shadow-[0_4px_12px_rgba(245,158,11,0.65)] ${className}`}
     className={`absolute pointer-events-none object-contain select-none ${className}`}
     style={style}
     draggable="false"
@@ -293,7 +292,6 @@ export default function SpidermanLoader({
           <img
             src={popcornBucketImg}
             alt="Cinema Popcorn Bucket"
-            className="w-full h-full object-contain select-none pointer-events-none filter drop-shadow-[0_12px_28px_rgba(185,1,1,0.55)]"
             className="w-full h-full object-contain select-none pointer-events-none"
             draggable="false"
           />

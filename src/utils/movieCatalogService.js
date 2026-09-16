@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { TMDB_100_MOVIES } from "./tmdbCatalog";
 
 const STORAGE_KEY = "admin_movies_catalog";
-const CATALOG_EVENT = "flixzone_catalog_updated";
+const CATALOG_EVENT = "filmzone_catalog_updated";
 
 /**
  * Get all active movies set by Admin (or fallback safely to full 100 TMDB movies)

@@ -1,27 +1,36 @@
 import React, { useState } from "react";
 import { Link } from "react-router";
 import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, CheckCircle2, ArrowLeft } from "lucide-react";
 import heroImage from "../../assets/others/cinema.png";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../firebase/config";
+import { forgotPasswordSchema } from "../../schemas/authSchema";
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!email.trim()) return;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
 
+  const onSubmit = async (data) => {
     try {
-      setIsSubmitting(true);
-      await sendPasswordResetEmail(auth, email.trim());
+      await sendPasswordResetEmail(auth, data.email.trim());
+      setSubmittedEmail(data.email.trim());
       setIsSuccess(true);
       toast.success("Password reset link sent to your email!");
     } catch (err) {
-      // Clean friendly error message
       let message = "Failed to send reset email. Please try again.";
       if (err.code === "auth/user-not-found") {
         message = "No account found with this email address.";
@@ -29,8 +38,6 @@ const ForgotPassword = () => {
         message = "Please enter a valid email address.";
       }
       toast.error(message);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -88,7 +95,7 @@ const ForgotPassword = () => {
                 We've sent a password reset link to:
                 <br />
                 <span className="font-bold text-neutral-900 dark:text-white">
-                  {email}
+                  {submittedEmail}
                 </span>
               </p>
               <p className="text-xs text-neutral-400">
@@ -121,7 +128,11 @@ const ForgotPassword = () => {
                 link.
               </p>
 
-              <form onSubmit={handleSubmit} className="mt-5 sm:mt-6 space-y-4">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                noValidate
+                className="mt-5 sm:mt-6 space-y-4"
+              >
                 <div>
                   <label
                     htmlFor="email"
@@ -134,13 +145,20 @@ const ForgotPassword = () => {
                       type="email"
                       id="email"
                       placeholder="Enter your email address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs pr-10"
+                      {...register("email")}
+                      className={`w-full rounded-full border ${
+                        errors.email
+                          ? "border-red-500 focus:border-red-500"
+                          : "border-neutral-200 dark:border-neutral-700 focus:border-primary-red"
+                      } bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none transition shadow-xs pr-10`}
                     />
                     <Mail className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
                   </div>
+                  {errors.email && (
+                    <p className="mt-1 text-xs text-red-500 font-medium pl-2">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
 
                 <button

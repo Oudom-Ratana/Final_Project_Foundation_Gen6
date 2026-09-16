@@ -4,26 +4,26 @@
 const MOCK_STORAGE_KEY = "filmzone_mock_users";
 
 // Default accounts available right out of the box
-const DEFAULT_ACCOUNTS = [
-  {
-    id: "user_demo_1",
-    name: "Oudom Ratana",
-    email: "user@filmzone.com",
-    password: "password123",
-    role: "user",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Oudom",
-    createdAt: "2025-01-15T08:00:00.000Z",
-  },
-  {
-    id: "admin_demo_1",
-    name: "Cinema Admin",
-    email: "admin@filmzone.com",
-    password: "admin123",
-    role: "admin",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
-    createdAt: "2025-01-01T08:00:00.000Z",
-  },
-];
+// const DEFAULT_ACCOUNTS = [
+//   {
+//     id: "user_demo_1",
+//     name: "Oudom Ratana",
+//     email: "user@filmzone.com",
+//     password: "password123",
+//     role: "user",
+//     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Oudom",
+//     createdAt: "2025-01-15T08:00:00.000Z",
+//   },
+//   {
+//     id: "admin_demo_1",
+//     name: "Cinema Admin",
+//     email: "admin@filmzone.com",
+//     password: "admin123",
+//     role: "admin",
+//     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
+//     createdAt: "2025-01-01T08:00:00.000Z",
+//   },
+// ];
 
 /**
  * Retrieve all registered users (defaults + localStorage)
