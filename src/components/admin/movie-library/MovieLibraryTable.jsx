@@ -18,59 +18,67 @@ export default function MovieLibraryTable({
   currentPage,
   onPageChange,
 }) {
+  const isManaged = activePanelId === "MANAGED";
+
   return (
     <div className="bg-white rounded-3xl border border-neutral-200/80 shadow-xs overflow-hidden">
       <div className="overflow-x-auto lg:overflow-x-visible">
         <table className="w-full table-fixed text-left border-collapse">
           <thead>
-            <tr className="bg-[#b90101] text-white text-[11px] sm:text-xs font-black uppercase tracking-wider">
-              <th className="py-3 px-3 sm:px-4 w-[28%] md:w-[30%]">
+            <tr className="bg-[#b90101] text-white text-[18px] font-black uppercase tracking-wider">
+              <th className={`py-3.5 px-4 ${isManaged ? "w-[30%]" : "w-[32%]"}`}>
                 TITLE & MEDIA
               </th>
-              <th className="py-3 px-3 sm:px-4 w-[16%] md:w-[14%] whitespace-nowrap">
-                RELEASE / AIR
+              <th className={`py-3.5 px-4 ${isManaged ? "w-[18%]" : "w-[18%]"} whitespace-nowrap`}>
+                {isManaged ? "SCHEDULE / HALL" : "RELEASE / AIR"}
               </th>
-              <th className="py-3 px-3 sm:px-4 w-[13%] md:w-[12%] whitespace-nowrap">
+              <th className="py-3.5 px-4 w-[14%] whitespace-nowrap">
                 RATING
               </th>
-              <th className="py-3 px-3 sm:px-4 w-[17%] md:w-[18%]">GENRES</th>
-              <th className="py-3 px-3 sm:px-4 w-[13%] text-center whitespace-nowrap">
-                STATUS
+              <th className={`py-3.5 px-4 ${isManaged ? "w-[16%]" : "w-[18%]"}`}>
+                GENRES
               </th>
-              <th className="py-3 px-3 sm:px-4 w-[13%] text-center whitespace-nowrap">
+              {isManaged && (
+                <th className="py-3.5 px-4 w-[10%] text-center whitespace-nowrap">
+                  STATUS
+                </th>
+              )}
+              <th className={`py-3.5 px-4 ${isManaged ? "w-[12%]" : "w-[18%]"} text-center whitespace-nowrap`}>
                 ACTIONS
               </th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-neutral-100 text-xs sm:text-sm font-semibold text-neutral-800">
+          <tbody className="divide-y divide-neutral-100 text-[18px] font-semibold text-neutral-800">
             {isLoading
               ? // Loading Skeleton Rows
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="py-3 px-3 sm:px-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-12 bg-neutral-200 rounded-lg shrink-0" />
-                        <div className="space-y-1.5 flex-1 min-w-0">
-                          <div className="w-28 h-3.5 bg-neutral-200 rounded" />
-                          <div className="w-16 h-2.5 bg-neutral-200 rounded" />
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-14 bg-neutral-200 rounded-lg shrink-0" />
+                        <div className="space-y-2 flex-1 min-w-0">
+                          <div className="w-32 h-4 bg-neutral-200 rounded" />
+                          <div className="w-20 h-3 bg-neutral-200 rounded" />
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-3 sm:px-4">
-                      <div className="w-16 h-3.5 bg-neutral-200 rounded" />
+                    <td className="py-3.5 px-4">
+                      <div className="w-24 h-4 bg-neutral-200 rounded" />
                     </td>
-                    <td className="py-3 px-3 sm:px-4">
-                      <div className="w-12 h-3.5 bg-neutral-200 rounded" />
+                    <td className="py-3.5 px-4">
+                      <div className="w-16 h-4 bg-neutral-200 rounded" />
                     </td>
-                    <td className="py-3 px-3 sm:px-4">
-                      <div className="w-20 h-3.5 bg-neutral-200 rounded" />
+                    <td className="py-3.5 px-4">
+                      <div className="w-24 h-4 bg-neutral-200 rounded" />
                     </td>
-                    <td className="py-3 px-3 sm:px-4 text-center">
-                      <div className="w-16 h-5 bg-neutral-200 rounded-full mx-auto" />
-                    </td>
-                    <td className="py-3 px-3 sm:px-4 text-center">
-                      <div className="w-20 h-7 bg-neutral-200 rounded-full mx-auto" />
+                    {isManaged && (
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="w-16 h-6 bg-neutral-200 rounded-full mx-auto" />
+                      </td>
+                    )}
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="w-24 h-8 bg-neutral-200 rounded-full mx-auto" />
                     </td>
                   </tr>
                 ))
