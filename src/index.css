@@ -2,7 +2,6 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-
 @font-face {
   font-family: "Google Sans";
   src: url("/fonts/ProductSans-Light.woff2") format("woff2");
@@ -230,4 +229,143 @@ html,
 body {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+/* ========================================================
+   Cinema 404 Animations & Visual Utilities
+   ======================================================== */
+
+@keyframes cinema-float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-16px) rotate(3deg);
+  }
+}
+
+@keyframes cinema-float-delayed {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(-4deg);
+  }
+}
+
+@keyframes cinema-float-slow {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+@keyframes cinema-spotlight {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+    opacity: 0.85;
+  }
+  50% {
+    transform: rotate(5deg);
+    opacity: 1;
+  }
+}
+
+@keyframes cinema-projector-beam {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
+  60% {
+    opacity: 0.3;
+    transform: scale(0.99);
+  }
+  80% {
+    opacity: 0.55;
+    transform: scale(1.01);
+  }
+}
+
+@keyframes cinema-audience-bob {
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.005);
+  }
+}
+
+@keyframes cinema-flicker {
+  0%,
+  100% {
+    opacity: 1;
+    text-shadow:
+      0 0 35px rgba(185, 1, 1, 0.75),
+      0 0 70px rgba(185, 1, 1, 0.4);
+  }
+  25% {
+    opacity: 0.94;
+    text-shadow:
+      0 0 25px rgba(185, 1, 1, 0.6),
+      0 0 50px rgba(185, 1, 1, 0.3);
+  }
+  50% {
+    opacity: 1;
+    text-shadow:
+      0 0 40px rgba(185, 1, 1, 0.8),
+      0 0 80px rgba(185, 1, 1, 0.45);
+  }
+  75% {
+    opacity: 0.92;
+    text-shadow:
+      0 0 28px rgba(185, 1, 1, 0.65),
+      0 0 55px rgba(185, 1, 1, 0.35);
+  }
+}
+
+.animate-cinema-float {
+  animation: cinema-float 6s ease-in-out infinite;
+}
+
+.animate-cinema-float-delayed {
+  animation: cinema-float-delayed 7s ease-in-out infinite 1.5s;
+}
+
+.animate-cinema-float-slow {
+  animation: cinema-float-slow 8.5s ease-in-out infinite 0.75s;
+}
+
+.animate-cinema-spotlight {
+  animation: cinema-spotlight 7s ease-in-out infinite alternate;
+  transform-origin: top left;
+}
+
+.animate-cinema-projector-beam {
+  animation: cinema-projector-beam 3.5s ease-in-out infinite;
+}
+
+.animate-cinema-audience {
+  animation: cinema-audience-bob 5s ease-in-out infinite;
+}
+
+.animate-cinema-flicker {
+  animation: cinema-flicker 4s ease-in-out infinite;
+}
+
+.cinema-glow-red {
+  text-shadow:
+    0 0 30px rgba(185, 1, 1, 0.7),
+    0 0 60px rgba(185, 1, 1, 0.35);
 }

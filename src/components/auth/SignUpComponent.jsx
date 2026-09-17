@@ -4,7 +4,9 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import heroImage from "../../assets/others/cinema.png";
 import { setCredentials } from "../../redux/slices/authSlice";
-import { registerUser, googleLogin } from "../../services/mockAuthService";
+import { registerUser } from "../../services/mockAuthService";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../../firebase/config";
 
 const SignUpComponent = () => {
   const navigate = useNavigate();
@@ -57,14 +59,37 @@ const SignUpComponent = () => {
     }
   };
 
-  const handleGoogleSignUp = () => {
+  const handleGoogleSignUp = async () => {
     try {
-      const result = googleLogin();
-      dispatch(setCredentials(result));
-      toast.success(`Welcome, ${result.user.name}!`);
+      setIsSubmitting(true);
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const fbUser = userCredential.user;
+
+      const authData = {
+        user: {
+          id: fbUser.uid,
+          name: fbUser.displayName || "Google User",
+          email: fbUser.email,
+          role: "user",
+          avatar:
+            fbUser.photoURL ||
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+              fbUser.displayName || "User",
+            )}`,
+          createdAt: new Date().toISOString(),
+        },
+        token: await fbUser.getIdToken(),
+      };
+
+      dispatch(setCredentials(authData));
+      toast.success(`Welcome to FilmZone, ${authData.user.name}!`);
       navigate("/");
     } catch (err) {
-      toast.error("Google sign in failed");
+      if (err.code !== "auth/popup-closed-by-user") {
+        toast.error(err.message || "Google sign up failed");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

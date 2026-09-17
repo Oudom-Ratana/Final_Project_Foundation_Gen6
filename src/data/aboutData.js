@@ -18,7 +18,7 @@ export const MENTORS = [
     image: LyzhiaImg,
     telegram: "https://t.me/eunglyzhia",
     github: "https://github.com/eunglyzhia",
-    portfolio: "#",
+    email: "#",
   },
   {
     id: 2,
@@ -27,7 +27,7 @@ export const MENTORS = [
     image: BunvarnImg,
     telegram: "https://t.me/rinbunvarn",
     github: "https://github.com/rinbunvarn",
-    portfolio: "#",
+    email: "#",
   },
 ];
 
@@ -39,7 +39,7 @@ export const TEAM_MEMBERS = [
     image: OudomImg,
     telegram: "https://t.me/ratanaoudom",
     github: "https://github.com/Oudom-Ratana",
-    portfolio: "#",
+    email: "mailto:ratanaoudom997@gmail.com",
   },
   {
     id: 2,
@@ -47,8 +47,8 @@ export const TEAM_MEMBERS = [
     role: "Frontend",
     image: LeaknaImg,
     telegram: "https://t.me/heng_soleakna",
-    github: "#",
-    portfolio: "#",
+    github: "https://github.com/Soleakna",
+    email: "mailto:soleakna2023495@gmail.com",
   },
   {
     id: 3,
@@ -56,8 +56,8 @@ export const TEAM_MEMBERS = [
     role: "Frontend",
     image: ThanuImg,
     telegram: "https://t.me/thanut4",
-    github: "#",
-    portfolio: "#",
+    github: "https://github.com/Thanu-san",
+    email: "mailto:thanusanseng@gmail.com",
   },
   {
     id: 4,
@@ -65,8 +65,8 @@ export const TEAM_MEMBERS = [
     role: "Frontend",
     image: KhemaImg,
     telegram: "https://t.me/ihateeeeeu",
-    github: "#",
-    portfolio: "#",
+    github: "https://github.com/khemaseng",
+    email: "mailto:khemaseng17@gmail.com",
   },
   {
     id: 5,
@@ -74,8 +74,8 @@ export const TEAM_MEMBERS = [
     role: "Frontend",
     image: ReaksmeyImg,
     telegram: "https://t.me/smey1213",
-    github: "#",
-    portfolio: "#",
+    github: "https://github.com/Reaksmey8",
+    email: "mailto:reaksmeychan427@gmail.com",
   },
   {
     id: 6,
@@ -83,8 +83,8 @@ export const TEAM_MEMBERS = [
     role: "Frontend",
     image: ChingseanImg,
     telegram: "https://t.me/sxsec_scanbot",
-    github: "#",
-    portfolio: "#",
+    github: "https://github.com/jayz-schhing18",
+    email: "mailto:chhingseansong456@gmail.com",
   },
   {
     id: 7,
@@ -92,8 +92,8 @@ export const TEAM_MEMBERS = [
     role: "Frontend",
     image: PanhaleapImg,
     telegram: "https://t.me/AllyNhaa",
-    github: "#",
-    portfolio: "#",
+    github: "https://github.com/AllyNhaa",
+    email: "mailto:ppanhaleap1.student@puthisastra.edu.kh",
   },
   {
     id: 8,
@@ -101,7 +101,7 @@ export const TEAM_MEMBERS = [
     role: "Frontend",
     image: SithaImg,
     telegram: "https://t.me/ronalsimar28",
-    github: "#",
-    portfolio: "#",
+    github: "https://github.com/heansitha",
+    email: "mailto:sithahean.it@gmail.com",
   },
 ];
