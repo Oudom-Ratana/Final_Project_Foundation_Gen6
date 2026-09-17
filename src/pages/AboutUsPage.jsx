@@ -1,3 +1,4 @@
+
 import AboutHero from '../components/about/AboutHero';
 import MentorSection from '../components/about/MentorSection';
 import TeamSection from '../components/about/TeamSection';
@@ -8,7 +9,7 @@ import ContactInfo from '../components/about/ContactInfo';
 export default function AboutUsPage() {
   return (
     <div className="space-y-16 pb-20 font-sans">
-      {/* 1. About DigiFilm Hero Section */}
+      {/* 1. About FilmZone Hero Section */}
       <AboutHero />
 
       {/* 2. OUR MENTORS Section */}
@@ -48,4 +49,3 @@ export default function AboutUsPage() {
     </div>
   );
 }
-

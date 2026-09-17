@@ -5,7 +5,7 @@ export default function MemberCard({ member }) {
   const { name, role, image, telegram, github, portfolio, email } = member;
 
   return (
-    <div className="relative group p-6 pt-7 pb-6 rounded-[24px] bg-[#EFEFEF] dark:bg-[#1A1F25]/40 border border-neutral-200/80 dark:border-white/20 shadow-sm dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[240px] mx-auto transition-colors duration-300 font-sans">
+    <div className="relative group p-6 pt-7 pb-6 rounded-[24px] bg-white/80 dark:bg-[#1A1F25]/40 backdrop-blur-md border border-neutral-200/90 dark:border-white/20 shadow-md dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[240px] mx-auto transition-colors duration-300 font-sans">
       
       {/* Red Outer Frame with Gap between Dots */}
       <div className="absolute inset-3.5 pointer-events-none">
@@ -25,7 +25,7 @@ export default function MemberCard({ member }) {
       </div>
 
       {/* Profile Image */}
-      <div className="relative z-10 w-36 h-36 mt-1 rounded-full overflow-hidden bg-white dark:bg-neutral-800 shadow-sm shrink-0 border border-neutral-200 dark:border-transparent">
+      <div className="relative z-10 w-36 h-36 mt-1 rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-800 shadow-sm shrink-0 border border-neutral-200 dark:border-transparent">
         <img
           src={image}
           alt={name}
@@ -54,7 +54,7 @@ export default function MemberCard({ member }) {
           href={telegram || '#'}
           target="_blank"
           rel="noreferrer"
-          className="w-9 h-9 rounded-full bg-white dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
+          className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
           aria-label={`${name}'s Telegram`}
         >
           <Send className="w-4 h-4 -ml-0.5" />
@@ -65,7 +65,7 @@ export default function MemberCard({ member }) {
           href={github || '#'}
           target="_blank"
           rel="noreferrer"
-          className="w-9 h-9 rounded-full bg-white dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
+          className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
           aria-label={`${name}'s GitHub`}
         >
           <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@ export default function MemberCard({ member }) {
           href={email ? `mailto:${email}` : (portfolio || '#')}
           target="_blank"
           rel="noreferrer"
-          className="w-9 h-9 rounded-full bg-white dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
+          className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
           aria-label={`${name}'s Email`}
         >
           <Mail className="w-4 h-4" />

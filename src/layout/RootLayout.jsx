@@ -30,13 +30,13 @@ export default function RootLayout() {
         minHeight: "100vh",
       }}
     >
-      <Navbar />
+      {!isAuthPage && <Navbar />}
       <main
         className={`flex-1 w-full ${
           isHomePage
             ? "pb-12"
             : isAuthPage
-              ? "h-[calc(100dvh-3.5rem)] mt-12 sm:mt-13.5 overflow-hidden"
+              ? "h-screen w-full overflow-hidden"
               : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-15 sm:pt-17.5 pb-12"
         }`}
       >
