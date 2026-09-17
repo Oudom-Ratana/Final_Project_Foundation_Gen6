@@ -1,55 +1,333 @@
-import { useDiscoverMoviesQuery } from "../../services/api/movieApi";
-import ComingSoonCard from "./ComingSoonCard";
-import ComingSoonCardSkeleton from "./ComingSoonCardSkeleton";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Link } from "react-router";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Sparkles,
+  Ticket,
+  Maximize2,
+  Share2,
+  Clock,
+  Flame,
+} from "lucide-react";
+import { useGetUpcomingMoviesQuery } from "../../services/api/movieApi";
 import ScrollReveal from "../common/ScrollReveal";
 
 export default function ComingSoonSection() {
-  // Fetch newest movies ordered by primary_release_date.desc
-  const { data: tmdbNewest, isLoading } = useDiscoverMoviesQuery({
-    sort_by: "primary_release_date.desc",
-    page: 1,
-  });
+  const { data: upcomingData, isLoading } = useGetUpcomingMoviesQuery(1);
 
-  const rawList = Array.isArray(tmdbNewest)
-    ? tmdbNewest
-    : tmdbNewest?.results || [];
+  const movies = (
+    Array.isArray(upcomingData) ? upcomingData : upcomingData?.results || []
+  )
+    .filter((m) => Boolean(m.poster_path || m.backdrop_path))
+    .slice(0, 10);
 
-  const upcomingToDisplay =
-    rawList.length > 0
-      ? rawList
-          .filter((m) => Boolean(m.backdrop_path || m.poster_path))
-          .slice(0, 3)
-      : [];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(1000);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const updateSize = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  const len = movies.length;
+
+  const next = useCallback(() => {
+    if (!len) return;
+    setActiveIndex((prev) => (prev + 1) % len);
+  }, [len]);
+
+  const prev = useCallback(() => {
+    if (!len) return;
+    setActiveIndex((prev) => (prev - 1 + len) % len);
+  }, [len]);
+
+  // Autoplay every 4 seconds smoothly
+  const nextRef = useRef(next);
+  nextRef.current = next;
+
+  useEffect(() => {
+    if (!len) return;
+    const timer = setInterval(() => {
+      nextRef.current?.();
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [len]);
+
+  if (isLoading || !len) {
+    return (
+      <section className="space-y-6 font-sans py-4">
+        <div className="flex items-center gap-2.5">
+          <span className="w-1.5 h-6 rounded-full inline-block bg-[#FFD700]" />
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
+            Coming Soon
+          </h2>
+        </div>
+        <div className="h-[480px] w-full rounded-3xl bg-neutral-100 dark:bg-white/5 animate-pulse flex items-center justify-center text-neutral-400">
+          Loading Upcoming Blockbusters...
+        </div>
+      </section>
+    );
+  }
+
+  const activeMovie = movies[activeIndex];
+
+  // Dynamic card sizing for responsive curved carousel
+  const cardWidth = Math.min(340, Math.round(containerWidth * 0.7));
+  const cardHeight = Math.round(cardWidth * 1.48);
+  const spacing = Math.round(cardWidth * 0.58);
+
+  const formatReleaseDate = (dateStr) => {
+    if (!dateStr) return "Coming Soon";
+    const parsed = new Date(dateStr);
+    return !isNaN(parsed.getTime())
+      ? parsed.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : dateStr;
+  };
 
   return (
-    <section className="space-y-6 font-sans">
-      {/* Section Header */}
-      <div className="flex items-center gap-2.5">
-        <span
-          className="w-1.5 h-6 rounded-full inline-block"
-          style={{ backgroundColor: "#FFD700" }}
-        />
-        <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
-          Coming Soon
-        </h2>
+    <section
+      className="space-y-8 font-sans select-none relative"
+      ref={containerRef}
+    >
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5 mb-2">
+            <span className="w-1.5 h-6 rounded-full inline-block bg-[#FFD700]" />
+            <p className="text-xs font-black uppercase tracking-widest text-[#EAB308]">
+              Future Premieres
+            </p>
+          </div>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
+            Upcoming Movies
+          </h2>
+          <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-xl">
+            Immerse in next season&apos;s theatrical releases. Click or swipe
+            through the interactive 3D curved gallery.
+          </p>
+        </div>
+
+        {/* Counter Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-300 text-xs font-bold self-start sm:self-auto">
+          <Sparkles className="w-3.5 h-3.5 text-[#EAB308]" />
+          <span>
+            {activeIndex + 1} of {len} Upcoming
+          </span>
+        </div>
       </div>
 
-      {/* 3 Landscape Banners Grid (3 Cards or 3 Skeletons) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {isLoading || upcomingToDisplay.length === 0
-          ? Array.from({ length: 3 }).map((_, index) => (
-              <ComingSoonCardSkeleton key={`skeleton-coming-${index}`} />
-            ))
-          : upcomingToDisplay.map((item, index) => (
-              <ScrollReveal
-                key={item.id || index}
-                delay={index * 120}
-                duration={750}
-                distance="translate-y-12"
-              >
-                <ComingSoonCard item={item} />
-              </ScrollReveal>
-            ))}
+      {/* 3D Curved Apple Vision Glassmorphic Stage */}
+      <div
+        className="relative w-full py-8 overflow-hidden rounded-[36px] bg-gradient-to-b from-neutral-100/70 via-neutral-100/30 to-neutral-200/40 dark:from-[#0B0F15]/90 dark:via-[#0E131C]/60 dark:to-[#080B10] border border-neutral-200/70 dark:border-white/10 shadow-2xl backdrop-blur-xl flex flex-col items-center justify-center min-h-[580px] sm:min-h-[640px]"
+        style={{ perspective: "1400px" }}
+      >
+        {/* Soft Ambient Spotlight Glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[340px] bg-gradient-to-r from-[#B90101]/15 via-[#FFD700]/10 to-[#B90101]/15 rounded-full blur-[90px] pointer-events-none" />
+
+        {/* Curved Cards Fan Track */}
+        <div className="relative w-full h-[460px] sm:h-[500px] flex items-center justify-center">
+          <AnimatePresence initial={false}>
+            {movies.map((movie, idx) => {
+              // Minimal signed distance for cyclic loop
+              let diff = idx - activeIndex;
+              if (diff > len / 2) diff -= len;
+              if (diff < -len / 2) diff += len;
+
+              const absDiff = Math.abs(diff);
+              // Show only up to 2 cards on left and right for pristine focus
+              if (absDiff > 2) return null;
+
+              const isActive = diff === 0;
+
+              // 3D Spatial Geometry matching reference image
+              const rotateY = diff * -22; // Inward curve angle
+              const translateX = diff * spacing;
+              const translateZ = isActive ? 120 : -absDiff * 140;
+              const scale = isActive ? 1.05 : 0.88 - absDiff * 0.05;
+              const opacity = isActive
+                ? 1
+                : Math.max(0.4, 0.85 - absDiff * 0.22);
+              const zIndex = 50 - absDiff * 10;
+
+              const posterUrl = movie.poster_path
+                ? `https://image.tmdb.org/t/p/w780${movie.poster_path}`
+                : movie.backdrop_path
+                  ? `https://image.tmdb.org/t/p/w780${movie.backdrop_path}`
+                  : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop&q=80";
+
+              return (
+                <motion.div
+                  key={movie.id}
+                  onClick={() => setActiveIndex(idx)}
+                  className={`absolute rounded-[28px] overflow-hidden cursor-pointer will-change-transform shadow-2xl transition-all duration-300 ${
+                    isActive
+                      ? "ring-2 ring-white/60 dark:ring-white/40 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)]"
+                      : "hover:opacity-90 ring-1 ring-white/20 dark:ring-white/10"
+                  }`}
+                  style={{
+                    width: cardWidth,
+                    height: cardHeight,
+                    zIndex,
+                    transformStyle: "preserve-3d",
+                  }}
+                  animate={{
+                    x: translateX,
+                    z: translateZ,
+                    rotateY,
+                    scale,
+                    opacity,
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 170,
+                    damping: 24,
+                    mass: 0.8,
+                  }}
+                >
+                  {/* Poster Image */}
+                  <img
+                    src={posterUrl}
+                    alt={movie.title}
+                    className="w-full h-full object-cover select-none"
+                    draggable={false}
+                  />
+
+                  {/* Glassmorphic Cinema Frosted Bottom Shading */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent pointer-events-none" />
+
+                  {/* Card Corner Badges */}
+                  <div className="absolute top-3.5 inset-x-3.5 flex items-center justify-between z-20">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/60 backdrop-blur-md text-white border border-white/15">
+                      {formatReleaseDate(movie.release_date)}
+                    </span>
+
+                    {isActive && (
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-[#B90101] text-white shadow-md flex items-center gap-1">
+                        <Flame className="w-3 h-3" />
+                        Next Up
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Card Content Bar */}
+                  <div className="absolute bottom-0 inset-x-0 p-5 z-20 flex flex-col justify-end text-white">
+                    <h3 className="text-lg sm:text-xl font-black tracking-tight line-clamp-1 drop-shadow-md">
+                      {movie.title}
+                    </h3>
+
+                    {isActive ? (
+                      <div className="mt-1.5 space-y-2">
+                        <p className="text-xs text-neutral-300 line-clamp-2 leading-relaxed drop-shadow">
+                          {movie.overview ||
+                            "Get ready for this upcoming blockbuster premiere at FilmZone Cinemas."}
+                        </p>
+
+                        <div className="pt-2 flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-[#FFD700] flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {formatReleaseDate(movie.release_date)}
+                          </span>
+
+                          <Link
+                            to={`/movies/${movie.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#B90101] hover:bg-[#8F0101] text-white text-[11px] font-black uppercase tracking-wider shadow-lg shadow-[#B90101]/30 transition hover:scale-105 active:scale-95"
+                          >
+                            <Ticket className="w-3.5 h-3.5" />
+                            <span>Preview</span>
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-neutral-400 line-clamp-1 mt-0.5">
+                        {formatReleaseDate(movie.release_date)}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+
+        {/* Floating Vision Pill Controller (Bottom Center) */}
+        <div className="relative z-30 mt-4 sm:mt-6 flex items-center justify-center">
+          <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-black/60 dark:bg-black/80 backdrop-blur-xl border border-white/20 shadow-2xl text-white">
+            {/* Prev Button */}
+            <button
+              onClick={prev}
+              type="button"
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/25 active:scale-90 transition text-white cursor-pointer"
+              aria-label="Previous movie"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {/* Thumbnail Circle of Active Movie */}
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 shrink-0 bg-neutral-800">
+              <img
+                src={
+                  activeMovie?.poster_path
+                    ? `https://image.tmdb.org/t/p/w185${activeMovie.poster_path}`
+                    : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=200&auto=format&fit=crop&q=80"
+                }
+                alt={activeMovie?.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Active Movie Mini Text */}
+            <div className="text-left max-w-[140px] sm:max-w-[200px]">
+              <p className="text-xs font-black truncate leading-tight">
+                {activeMovie?.title}
+              </p>
+              <p className="text-[10px] text-neutral-400 font-medium truncate">
+                {formatReleaseDate(activeMovie?.release_date)}
+              </p>
+            </div>
+
+            {/* Next Button */}
+            <button
+              onClick={next}
+              type="button"
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/25 active:scale-90 transition text-white cursor-pointer"
+              aria-label="Next movie"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Pagination Dots */}
+        <div className="flex items-center justify-center gap-1.5 mt-3 z-30">
+          {movies.map((_, dotIdx) => (
+            <button
+              key={dotIdx}
+              onClick={() => setActiveIndex(dotIdx)}
+              className={`transition-all duration-300 rounded-full cursor-pointer ${
+                dotIdx === activeIndex
+                  ? "w-6 h-1.5 bg-[#B90101] shadow-[0_0_8px_#B90101]"
+                  : "w-1.5 h-1.5 bg-white/30 hover:bg-white/60"
+              }`}
+              aria-label={`Go to slide ${dotIdx + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
