@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import { ArrowLeft } from "lucide-react";
 import heroImage from "../../assets/others/cinema.png";
 import { setCredentials } from "../../redux/slices/authSlice";
 import { registerUser } from "../../services/mockAuthService";
@@ -94,7 +95,16 @@ const SignUpComponent = () => {
   };
 
   return (
-    <div className="flex h-full w-full">
+    <div className="relative flex h-full w-full">
+      {/* Back to Home - top-left corner on the image side (like the Stream Movie Detail page) */}
+      <Link
+        to="/"
+        aria-label="Back to Home"
+        className="absolute top-4 sm:top-6 left-4 sm:left-8 z-20 inline-flex w-10 h-10 sm:w-11 sm:h-11 items-center justify-center rounded-full bg-[#B90101] text-white shadow-lg shadow-red-950/10 hover:brightness-110 active:scale-95 transition"
+      >
+        <ArrowLeft className="w-5 h-5" />
+      </Link>
+
       {/* Left Hero Section */}
       <div className="relative hidden w-1/2 md:block h-full">
         <img
@@ -139,7 +149,7 @@ const SignUpComponent = () => {
             <button
               type="button"
               onClick={handleGoogleSignUp}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
+              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-(--border-light-mode) bg-[var(--primary-color-5)] dark:border-neutral-700 dark:bg-neutral-800/70 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
             >
               <GoogleIcon />
               <span>Google</span>
@@ -151,7 +161,7 @@ const SignUpComponent = () => {
                   "Facebook registration coming soon! Try Google or Email.",
                 )
               }
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
+              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-(--border-light-mode) bg-[var(--primary-color-5)] dark:border-neutral-700  dark:bg-neutral-800/70 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
             >
               <FacebookIcon />
               <span>Facebook</span>
@@ -186,7 +196,7 @@ const SignUpComponent = () => {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
-                className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
+                className="w-full rounded-full border border-(--border-light-mode) bg-[var(--primary-color-5)] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
               />
             </div>
 
@@ -205,7 +215,7 @@ const SignUpComponent = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
+                className="w-full rounded-full border border-(--border-light-mode) bg-[var(--primary-color-5)] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
               />
             </div>
 
@@ -226,7 +236,7 @@ const SignUpComponent = () => {
                   onChange={handleChange}
                   required
                   minLength={6}
-                  className="w-full rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2.5 sm:py-3 pr-11 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
+                  className="w-full rounded-full border border-(--border-light-mode) bg-[var(--primary-color-5)] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] px-4 py-2.5 sm:py-3 pr-11 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs"
                 />
                 <button
                   type="button"
