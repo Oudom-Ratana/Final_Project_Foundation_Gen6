@@ -15,6 +15,7 @@ import {
   Clapperboard,
   Sparkles,
   Tv,
+  X,
 } from "lucide-react";
 import {
   useGetMovieDetailsQuery,
@@ -31,6 +32,7 @@ import {
   addToFavourite,
   removeFromFavourite,
 } from "../redux/slices/favouriteSlice";
+import { selectIsAuthenticated } from "../redux/slices/authSlice";
 import { useAddFavoriteMutation } from "../services/api/accountApi";
 
 export default function StreamMovieDetailPage() {
@@ -66,7 +68,9 @@ export default function StreamMovieDetailPage() {
 
   const dispatch = useDispatch();
   const favouriteMovies = useSelector((state) => state.favourite.movies);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const [addFavorite] = useAddFavoriteMutation();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const isFavourite = favouriteMovies.some((m) => String(m.id) === String(id));
 
@@ -219,6 +223,12 @@ export default function StreamMovieDetailPage() {
   };
 
   const toggleFavourite = async () => {
+    // Users must have an account before they can add to favourites
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
     const nextFavState = !isFavourite;
 
     // 1. Instant local/optimistic update
@@ -461,6 +471,40 @@ export default function StreamMovieDetailPage() {
         totalEpisodes={totalEpisodes}
         onEpisodeChange={(ep) => setSelectedEpisode(ep)}
       />
+
+      {/* Login Required Popup - shown center of the page, can only be dismissed via the X */}
+      {showLoginPrompt && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="relative w-full max-w-md rounded-2xl bg-white dark:bg-[#1A1F25] border border-neutral-200 dark:border-white/10 p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowLoginPrompt(false)}
+              aria-label="Close"
+              className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="w-12 h-12 rounded-full bg-[#B90101]/10 flex items-center justify-center">
+                <Heart className="w-6 h-6 text-[#B90101]" />
+              </div>
+              <h3 className="text-lg font-black text-neutral-900 dark:text-white">
+                Login Required
+              </h3>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                You must have an account first before add to favourite
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

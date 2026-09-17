@@ -138,10 +138,10 @@ export default function Footer() {
                     key={social.name}
                     href={social.href}
                     aria-label={social.name}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:bg-[#B90101] ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 bg-[#B90101] ${
                       isDark
-                        ? "bg-white/10 text-neutral-300"
-                        : "bg-neutral-400/80 text-white"
+                        ? "bg-[#B90101] text-white"
+                        : "bg-[#B90101] text-white"
                     }`}
                   >
                     <svg
