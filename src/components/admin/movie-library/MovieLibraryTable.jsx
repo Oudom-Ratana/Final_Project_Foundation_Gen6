@@ -22,20 +22,28 @@ export default function MovieLibraryTable({
 
   return (
     <div className="bg-white rounded-3xl border border-neutral-200/80 shadow-xs overflow-hidden">
-      <div className="overflow-x-auto lg:overflow-x-visible">
-        <table className="w-full table-fixed text-left border-collapse">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[920px] xl:min-w-0 table-fixed text-left border-collapse">
           <thead>
             <tr className="bg-[#b90101] text-white text-[18px] font-black uppercase tracking-wider">
-              <th className={`py-3.5 px-4 ${isManaged ? "w-[30%]" : "w-[32%]"}`}>
+              <th
+                className={`py-3.5 px-4 ${isManaged ? "w-[28%]" : "w-[32%]"}`}
+              >
                 TITLE & MEDIA
               </th>
-              <th className={`py-3.5 px-4 ${isManaged ? "w-[18%]" : "w-[18%]"} whitespace-nowrap`}>
-                {isManaged ? "SCHEDULE / HALL" : "RELEASE / AIR"}
+              <th
+                className={`py-3.5 px-4 ${isManaged ? "w-[22%]" : "w-[18%]"} whitespace-nowrap`}
+              >
+                {isManaged ? "SCHEDULE DATE" : "RELEASE DATE"}
               </th>
-              <th className="py-3.5 px-4 w-[14%] whitespace-nowrap">
+              <th
+                className={`py-3.5 px-3 sm:px-4 ${isManaged ? "w-[12%]" : "w-[14%]"} whitespace-nowrap`}
+              >
                 RATING
               </th>
-              <th className={`py-3.5 px-4 ${isManaged ? "w-[16%]" : "w-[18%]"}`}>
+              <th
+                className={`py-3.5 px-4 ${isManaged ? "w-[16%]" : "w-[18%]"}`}
+              >
                 GENRES
               </th>
               {isManaged && (
@@ -43,7 +51,9 @@ export default function MovieLibraryTable({
                   STATUS
                 </th>
               )}
-              <th className={`py-3.5 px-4 ${isManaged ? "w-[12%]" : "w-[18%]"} text-center whitespace-nowrap`}>
+              <th
+                className={`py-3.5 px-4 ${isManaged ? "w-[12%]" : "w-[18%]"} text-center whitespace-nowrap`}
+              >
                 ACTIONS
               </th>
             </tr>

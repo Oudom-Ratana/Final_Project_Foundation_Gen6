@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
-import { User, Bell, Sun, Moon, Menu, X, LogOut, Heart } from "lucide-react";
+import {
+  User,
+  Bell,
+  Sun,
+  Moon,
+  Menu,
+  X,
+  LogOut,
+  Heart,
+  LayoutDashboard,
+} from "lucide-react";
 import {
   selectCurrentUser,
   selectIsAuthenticated,
@@ -20,18 +30,24 @@ export default function Navbar() {
   const theme = useSelector(selectTheme);
   const favouriteMovies = useSelector(selectFavouriteMovies) || [];
   const favoriteCount = favouriteMovies.length;
+  const isAdmin = user?.role === "admin" || user?.role === "ADMIN";
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef(null);
+  const mobileProfileDropdownRef = useRef(null);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
+      const clickedDesktop =
         profileDropdownRef.current &&
-        !profileDropdownRef.current.contains(event.target)
-      ) {
+        profileDropdownRef.current.contains(event.target);
+      const clickedMobile =
+        mobileProfileDropdownRef.current &&
+        mobileProfileDropdownRef.current.contains(event.target);
+
+      if (!clickedDesktop && !clickedMobile) {
         setIsProfileDropdownOpen(false);
       }
     };
@@ -44,9 +60,10 @@ export default function Navbar() {
     };
   }, [isProfileDropdownOpen]);
 
-  // Close mobile menu on route change
+  // Close menus on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsProfileDropdownOpen(false);
   }, [location.pathname]);
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -214,9 +231,21 @@ export default function Navbar() {
                     )}
                   </Link>
 
+                  {/* 3. Admin Dashboard Option (Only for admin) */}
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-[#B90101] dark:hover:text-[#B90101] transition"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-[#B90101]" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
+
                   <div className="my-1 border-t border-neutral-100 dark:border-white/5" />
 
-                  {/* 3. Logout Option */}
+                  {/* 4. Logout Option */}
                   <button
                     type="button"
                     onClick={() => {
@@ -244,7 +273,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Hamburger Button */}
+        {/* Mobile Action Controls */}
         <div className="flex md:hidden items-center gap-2">
           {/* Mobile Theme Switcher (Red primary color #B90101) */}
           <button
@@ -263,6 +292,7 @@ export default function Navbar() {
             )}
           </button>
 
+          {/* Mobile Hamburger Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`p-2 rounded-[20px] backdrop-blur-md shadow-xs cursor-pointer transition-colors ${
@@ -281,7 +311,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu */}
+      {/* Mobile Dropdown Menu (Matches user mockup) */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t bg-white/95 dark:bg-neutral-950/95 backdrop-blur-xl px-6 py-4 space-y-3 transition-colors border-neutral-200 dark:border-[#9E0505]/20 shadow-xl">
           <NavLink
@@ -291,15 +321,7 @@ export default function Navbar() {
           >
             Home
           </NavLink>
-          <div />
-          {/* <NavLink
-            to="/promo"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
-          >
-            Promo
-          </NavLink> */}
-          <div />
+
           <NavLink
             to="/stream"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -307,15 +329,18 @@ export default function Navbar() {
           >
             Movies
           </NavLink>
-          <div />
-          <NavLink
-            to="/favourite"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
-          >
-            Favorites {favoriteCount > 0 && `(${favoriteCount})`}
-          </NavLink>
-          <div />
+
+          {/* Favorites: ONLY appears on the nav when logged in */}
+          {isAuthenticated && user && (
+            <NavLink
+              to="/favourite"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={navLinkClass}
+            >
+              Favorites {favoriteCount > 0 && `(${favoriteCount})`}
+            </NavLink>
+          )}
+
           <NavLink
             to="/about"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -323,17 +348,21 @@ export default function Navbar() {
           >
             About
           </NavLink>
-          <div />
-          <NavLink
-            to="/admin"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
-          >
-            Admin Dashboard
-          </NavLink>
 
+          {/* Admin Dashboard: ONLY appears when user is Admin */}
+          {isAuthenticated && isAdmin && (
+            <NavLink
+              to="/admin"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={navLinkClass}
+            >
+              Admin Dashboard
+            </NavLink>
+          )}
+
+          {/* Bottom Account Card or Login Button */}
           <div
-            className="pt-3 border-t flex flex-col gap-2"
+            className="pt-3 border-t flex flex-col gap-2.5"
             style={{ borderColor: "rgba(158, 5, 5, 0.20)" }}
           >
             {isAuthenticated && user ? (
@@ -347,25 +376,29 @@ export default function Navbar() {
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="w-8 h-8 rounded-full object-cover bg-white/20 border border-white/40 shrink-0"
+                      className="w-9 h-9 rounded-full object-cover bg-white/20 border border-white/40 shrink-0"
                     />
                   ) : (
                     <User className="w-5 h-5 fill-white shrink-0" />
                   )}
                   <div className="truncate">
-                    <p className="text-sm font-bold truncate">{user.name}</p>
+                    <p className="text-sm font-bold truncate leading-tight">
+                      {user.name}
+                    </p>
                     <p className="text-xs text-white/70 truncate">
                       {user.email}
                     </p>
                   </div>
                 </Link>
+
                 <button
+                  type="button"
                   onClick={() => {
                     dispatch(logout());
                     setIsMobileMenuOpen(false);
                     toast.info("Logged out successfully");
                   }}
-                  className="p-2 rounded-xl bg-black/20 hover:bg-black/30 transition text-white cursor-pointer"
+                  className="p-2 rounded-xl bg-black/20 hover:bg-black/30 transition text-white cursor-pointer ml-2"
                   title="Logout"
                 >
                   <LogOut className="w-4 h-4" />

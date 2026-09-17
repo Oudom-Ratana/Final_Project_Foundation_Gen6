@@ -34,6 +34,26 @@ export default function MovieLibraryRow({
     ? Number(item.vote_average.toFixed(1))
     : 8.0;
 
+  // Format managed date range & duration tag cleanly into 2 lines
+  const scheduleInfo = (() => {
+    const rawDate = item.date || "20-25/09/2026";
+    if (rawDate.includes(" to ")) {
+      const [startPart, rest] = rawDate.split(" to ");
+      let endPart = rest || "";
+      let durationTag = "";
+      if (endPart.includes(" (")) {
+        const parts = endPart.split(" (");
+        endPart = parts[0].trim();
+        durationTag = parts[1].replace(")", "").trim();
+      }
+      return {
+        range: `${startPart} → ${endPart}`,
+        durationText: durationTag,
+      };
+    }
+    return { range: rawDate, durationText: "" };
+  })();
+
   return (
     <tr className="hover:bg-neutral-50/80 transition-colors">
       {/* Column 1: Poster & Title */}
@@ -68,38 +88,25 @@ export default function MovieLibraryRow({
         </div>
       </td>
 
-      {/* Column 2: Date / Schedule */}
-      <td className="py-3 px-3 sm:px-4 font-medium text-neutral-700 whitespace-nowrap">
-        {isManagedItem ? (
-          <div>
-            <span className="font-bold text-neutral-900 text-[18px] block">
-              {item.date || "20-25/09/2026"}
-            </span>
-            <span className="text-[14px] text-neutral-500 block truncate">
-              {item.hall || "FilmZone SenSok"}
-            </span>
-          </div>
-        ) : (
-          <div>
-            <span className="font-bold text-neutral-900 text-[18px] block">
-              {releaseDate}
-            </span>
-            <span className="text-[14px] text-neutral-400 block truncate">
-              TMDB Release
-            </span>
-          </div>
-        )}
+      {/* Column 2: Date */}
+      <td className="py-3 px-3 sm:px-4 font-medium text-neutral-700">
+        <span
+          className="font-bold text-neutral-900 text-[18px] block truncate"
+          title={isManagedItem ? scheduleInfo.range : releaseDate}
+        >
+          {isManagedItem ? scheduleInfo.range : releaseDate}
+        </span>
       </td>
 
       {/* Column 3: Rating */}
-      <td className="py-3 px-3 sm:px-4 whitespace-nowrap">
+      <td className="py-3 px-2 sm:px-4 whitespace-nowrap">
         <div className="flex items-center gap-1.5">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-black text-[18px] shadow-xs">
-            <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-black text-[17px] xl:text-[18px] shadow-xs">
+            <Star className="w-4 h-4 text-amber-500 fill-amber-500 shrink-0" />
             <span>{ratingVal}</span>
           </div>
           {item.vote_count && (
-            <span className="text-[14px] text-neutral-400 font-semibold">
+            <span className="text-[13px] text-neutral-400 font-semibold hidden xl:inline">
               ({item.vote_count.toLocaleString()})
             </span>
           )}
