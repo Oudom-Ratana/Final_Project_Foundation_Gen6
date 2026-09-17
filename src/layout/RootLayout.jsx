@@ -36,8 +36,8 @@ export default function RootLayout() {
           isHomePage
             ? "pb-12"
             : isAuthPage
-              ? "h-[calc(100dvh-5rem)] mt-20 overflow-hidden"
-              : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12"
+              ? "h-[calc(100dvh-3.5rem)] mt-12 sm:mt-13.5 overflow-hidden"
+              : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-15 sm:pt-17.5 pb-12"
         }`}
       >
         <Outlet />
