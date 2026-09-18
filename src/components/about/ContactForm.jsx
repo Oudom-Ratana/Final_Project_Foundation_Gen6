@@ -1,50 +1,64 @@
-
-import { useState } from 'react';
-import { Send } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { useState, useEffect } from "react";
+import { Send } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: '',
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
     agree: false,
   });
+
+  useEffect(() => {
+    const handleSelectTopic = (event) => {
+      if (event.detail) {
+        setFormData((prev) => ({ ...prev, subject: event.detail }));
+      }
+    };
+    window.addEventListener("select-support-topic", handleSelectTopic);
+    return () => {
+      window.removeEventListener("select-support-topic", handleSelectTopic);
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
-      toast.error('Please fill in all required fields.');
+      toast.error("Please fill in all required fields.");
       return;
     }
     if (!formData.agree) {
-      toast.warning('Please accept the data processing terms.');
+      toast.warning("Please accept the data processing terms.");
       return;
     }
 
-    toast.success('Thank you! Your message has been sent to our cinema team.');
+    toast.success("Thank you! Your message has been sent to our cinema team.");
     setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      subject: '',
-      message: '',
+      name: "",
+      email: "",
+      phone: "",
+      subject: "",
+      message: "",
       agree: false,
     });
   };
 
   return (
-    <div className="p-8 sm:p-10 rounded-3xl bg-white/80 dark:bg-[#1A1F25]/40 backdrop-blur-md border border-neutral-200/90 dark:border-white/20 shadow-md dark:shadow-2xl space-y-8 font-sans transition-colors duration-300">
+    <div
+      id="contact-form"
+      className="p-8 sm:p-10 rounded-3xl bg-white/80 dark:bg-[#1A1F25]/40 backdrop-blur-md border border-neutral-200/90 dark:border-white/20 shadow-md dark:shadow-2xl space-y-8 font-sans transition-colors duration-300"
+    >
       <div>
         <h3 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
           Send Us a Message
@@ -149,7 +163,8 @@ export default function ContactForm() {
             htmlFor="agree"
             className="text-xs sm:text-sm text-neutral-600 dark:text-[rgba(255,255,255,0.8)] cursor-pointer select-none"
           >
-            I agree that ISTAD AngkorCine may use my information to this request.
+            I agree that ISTAD AngkorCine may use my information to this
+            request.
           </label>
         </div>
 

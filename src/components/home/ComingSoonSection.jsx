@@ -25,6 +25,7 @@ export default function ComingSoonSection() {
     .slice(0, 10);
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(1000);
 
@@ -52,17 +53,17 @@ export default function ComingSoonSection() {
     setActiveIndex((prev) => (prev - 1 + len) % len);
   }, [len]);
 
-  // Autoplay every 4 seconds smoothly
+  // Autoplay every 3 seconds smoothly (paused when user hovers)
   const nextRef = useRef(next);
   nextRef.current = next;
 
   useEffect(() => {
-    if (!len) return;
+    if (!len || isHovered) return;
     const timer = setInterval(() => {
       nextRef.current?.();
-    }, 4000);
+    }, 3000);
     return () => clearInterval(timer);
-  }, [len]);
+  }, [len, isHovered]);
 
   if (isLoading || !len) {
     return (
@@ -103,6 +104,8 @@ export default function ComingSoonSection() {
     <section
       className="space-y-8 font-sans select-none relative"
       ref={containerRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -133,11 +136,11 @@ export default function ComingSoonSection() {
 
       {/* 3D Curved Apple Vision Glassmorphic Stage */}
       <div
-        className="relative w-full py-8 overflow-hidden rounded-[36px] bg-gradient-to-b from-neutral-100/70 via-neutral-100/30 to-neutral-200/40 dark:from-[#0B0F15]/90 dark:via-[#0E131C]/60 dark:to-[#080B10] border border-neutral-200/70 dark:border-white/10 shadow-2xl backdrop-blur-xl flex flex-col items-center justify-center min-h-[580px] sm:min-h-[640px]"
+        className="relative w-full py-8 overflow-hidden rounded-[36px] bg-gradient-to-b from-neutral-100/70 via-neutral-100/30 to-neutral-200/40 dark:from-[#0B0F15]/90 dark:via-[#0E131C]/60 dark:to-[#080B10] border border-neutral-200/70 dark:border-white/10 shadow-xs dark:shadow-none backdrop-blur-xl flex flex-col items-center justify-center min-h-[580px] sm:min-h-[640px]"
         style={{ perspective: "1400px" }}
       >
         {/* Soft Ambient Spotlight Glow */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[340px] bg-gradient-to-r from-[#B90101]/15 via-[#FFD700]/10 to-[#B90101]/15 rounded-full blur-[90px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[340px] bg-gradient-to-r from-[#B90101]/10 via-[#FFD700]/5 to-[#B90101]/10 rounded-full blur-[100px] pointer-events-none" />
 
         {/* Curved Cards Fan Track */}
         <div className="relative w-full h-[460px] sm:h-[500px] flex items-center justify-center">
@@ -149,19 +152,30 @@ export default function ComingSoonSection() {
               if (diff < -len / 2) diff += len;
 
               const absDiff = Math.abs(diff);
-              // Show only up to 2 cards on left and right for pristine focus
-              if (absDiff > 2) return null;
+              // Render up to 3 cards for seamless edge fade transitions (no sudden pop)
+              if (absDiff > 3) return null;
 
               const isActive = diff === 0;
+              const isEdgeBuffer = absDiff === 3;
 
-              // 3D Spatial Geometry matching reference image
-              const rotateY = diff * -22; // Inward curve angle
+              // 3D Spatial Geometry matching reference curved arc
+              const rotateY = diff * -20; // Inward curve angle
               const translateX = diff * spacing;
-              const translateZ = isActive ? 120 : -absDiff * 140;
-              const scale = isActive ? 1.05 : 0.88 - absDiff * 0.05;
-              const opacity = isActive
-                ? 1
-                : Math.max(0.4, 0.85 - absDiff * 0.22);
+              const translateZ = isEdgeBuffer
+                ? -360
+                : isActive
+                  ? 120
+                  : -absDiff * 130;
+              const scale = isEdgeBuffer
+                ? 0.76
+                : isActive
+                  ? 1.05
+                  : 0.88 - absDiff * 0.05;
+              const opacity = isEdgeBuffer
+                ? 0
+                : isActive
+                  ? 1
+                  : Math.max(0.35, 0.85 - absDiff * 0.22);
               const zIndex = 50 - absDiff * 10;
 
               const posterUrl = movie.poster_path
@@ -174,16 +188,17 @@ export default function ComingSoonSection() {
                 <motion.div
                   key={movie.id}
                   onClick={() => setActiveIndex(idx)}
-                  className={`absolute rounded-[28px] overflow-hidden cursor-pointer will-change-transform shadow-2xl transition-all duration-300 ${
+                  className={`absolute rounded-[28px] overflow-hidden cursor-pointer will-change-transform ${
                     isActive
-                      ? "ring-2 ring-white/60 dark:ring-white/40 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)]"
-                      : "hover:opacity-90 ring-1 ring-white/20 dark:ring-white/10"
+                      ? "ring-2 ring-white/60 dark:ring-white/40 shadow-[0_8px_20px_-4px_rgba(0,0,0,0.14)]"
+                      : "ring-1 ring-white/20 dark:ring-white/10 shadow-xs"
                   }`}
                   style={{
                     width: cardWidth,
                     height: cardHeight,
                     zIndex,
                     transformStyle: "preserve-3d",
+                    pointerEvents: isEdgeBuffer ? "none" : "auto",
                   }}
                   animate={{
                     x: translateX,
@@ -194,9 +209,9 @@ export default function ComingSoonSection() {
                   }}
                   transition={{
                     type: "spring",
-                    stiffness: 170,
-                    damping: 24,
-                    mass: 0.8,
+                    stiffness: 240,
+                    damping: 28,
+                    mass: 0.6,
                   }}
                 >
                   {/* Poster Image */}
@@ -246,7 +261,7 @@ export default function ComingSoonSection() {
                           <Link
                             to={`/movies/${movie.id}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#B90101] hover:bg-[#8F0101] text-white text-[11px] font-black uppercase tracking-wider shadow-lg shadow-[#B90101]/30 transition hover:scale-105 active:scale-95"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#B90101] hover:bg-[#8F0101] text-white text-[11px] font-black uppercase tracking-wider shadow-xs hover:shadow-sm transition hover:scale-105 active:scale-95"
                           >
                             <Ticket className="w-3.5 h-3.5" />
                             <span>Preview</span>
@@ -267,7 +282,7 @@ export default function ComingSoonSection() {
 
         {/* Floating Vision Pill Controller (Bottom Center) */}
         <div className="relative z-30 mt-4 sm:mt-6 flex items-center justify-center">
-          <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-black/60 dark:bg-black/80 backdrop-blur-xl border border-white/20 shadow-2xl text-white">
+          <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-black/60 dark:bg-black/80 backdrop-blur-xl border border-white/20 shadow-sm text-white">
             {/* Prev Button */}
             <button
               onClick={prev}
@@ -279,24 +294,31 @@ export default function ComingSoonSection() {
             </button>
 
             {/* Thumbnail Circle of Active Movie */}
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 shrink-0 bg-neutral-800">
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 shrink-0 bg-neutral-800 relative">
               <img
+                key={activeMovie?.id}
                 src={
                   activeMovie?.poster_path
                     ? `https://image.tmdb.org/t/p/w185${activeMovie.poster_path}`
                     : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=200&auto=format&fit=crop&q=80"
                 }
                 alt={activeMovie?.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-opacity duration-300"
               />
             </div>
 
             {/* Active Movie Mini Text */}
             <div className="text-left max-w-[140px] sm:max-w-[200px]">
-              <p className="text-xs font-black truncate leading-tight">
+              <p
+                key={`title-${activeMovie?.id}`}
+                className="text-xs font-black truncate leading-tight transition-all duration-300"
+              >
                 {activeMovie?.title}
               </p>
-              <p className="text-[10px] text-neutral-400 font-medium truncate">
+              <p
+                key={`date-${activeMovie?.id}`}
+                className="text-[10px] text-neutral-400 font-medium truncate"
+              >
                 {formatReleaseDate(activeMovie?.release_date)}
               </p>
             </div>

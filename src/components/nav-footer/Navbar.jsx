@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { flushSync } from "react-dom";
 import { Link, NavLink, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -36,6 +37,59 @@ export default function Navbar() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef(null);
   const mobileProfileDropdownRef = useRef(null);
+
+  // Circular Theme Toggle via View Transitions API
+  const handleThemeToggle = (e) => {
+    const isAppearanceTransition =
+      typeof document !== "undefined" &&
+      document.startViewTransition &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!isAppearanceTransition) {
+      dispatch(toggleTheme());
+      return;
+    }
+
+    const rect = e?.currentTarget?.getBoundingClientRect?.();
+    const x =
+      e?.clientX ?? (rect ? rect.left + rect.width / 2 : window.innerWidth / 2);
+    const y =
+      e?.clientY ??
+      (rect ? rect.top + rect.height / 2 : window.innerHeight / 2);
+
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
+
+    document.documentElement.style.setProperty("--theme-x", `${x}px`);
+    document.documentElement.style.setProperty("--theme-y", `${y}px`);
+    document.documentElement.style.setProperty("--theme-r", `${endRadius}px`);
+
+    const transition = document.startViewTransition(() => {
+      flushSync(() => {
+        dispatch(toggleTheme());
+      });
+    });
+
+    transition.ready
+      .then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`,
+            ],
+          },
+          {
+            duration: 650,
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+            pseudoElement: "::view-transition-new(root)",
+          },
+        );
+      })
+      .catch(() => {});
+  };
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -150,7 +204,7 @@ export default function Navbar() {
 
           {/* Theme Switcher Toggle Button */}
           <button
-            onClick={() => dispatch(toggleTheme())}
+            onClick={handleThemeToggle}
             className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full border backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-xs cursor-pointer ${
               isTransparentHeroMode
                 ? "bg-[#1A1F25]/20 hover:bg-[#1A1F25]/35 border-white/20"
@@ -277,7 +331,7 @@ export default function Navbar() {
         <div className="flex md:hidden items-center gap-2">
           {/* Mobile Theme Switcher (Red primary color #B90101) */}
           <button
-            onClick={() => dispatch(toggleTheme())}
+            onClick={handleThemeToggle}
             className={`w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center text-[#B90101] shadow-xs cursor-pointer transition-colors ${
               isTransparentHeroMode
                 ? "bg-[#1A1F25]/20 hover:bg-[#1A1F25]/40 border border-white/20"

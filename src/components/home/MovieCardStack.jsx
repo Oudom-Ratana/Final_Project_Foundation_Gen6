@@ -15,10 +15,24 @@ export default function MovieCardStack({
 
   // Prepare movie items for the card stack
   const movieItems = useMemo(() => {
-    const sourceList =
-      managedMovies && managedMovies.length > 0
-        ? managedMovies
-        : tmdbMovies || [];
+    // If managedMovies has fewer items, supplement with TMDB movies so stack always has 7 cards
+    let sourceList = [];
+    if (managedMovies && managedMovies.length > 0) {
+      sourceList = [...managedMovies];
+      if (
+        sourceList.length < maxMovies &&
+        tmdbMovies &&
+        tmdbMovies.length > 0
+      ) {
+        const existingIds = new Set(sourceList.map((m) => m.id || m.tmdbId));
+        const extraMovies = tmdbMovies.filter(
+          (m) => !existingIds.has(m.id || m.tmdbId),
+        );
+        sourceList = [...sourceList, ...extraMovies];
+      }
+    } else {
+      sourceList = tmdbMovies || [];
+    }
 
     if (!sourceList.length) return [];
 
@@ -40,14 +54,20 @@ export default function MovieCardStack({
           : `https://image.tmdb.org/t/p/w500${movie.poster_path}`
         : backdrop;
 
+      // Robust full genre resolution (handles "Anime, Action", ["Anime"], or genre_ids)
       let genreName = "BLOCKBUSTER";
-      if (movie.genreLabel) genreName = movie.genreLabel;
-      else if (movie.genre) genreName = movie.genre;
-      else if (movie.genres?.[0])
+      if (movie.genreLabel) {
+        genreName = movie.genreLabel;
+      } else if (typeof movie.genre === "string") {
+        genreName = movie.genre.split(",")[0].trim();
+      } else if (typeof movie.genres === "string") {
+        genreName = movie.genres.split(",")[0].trim();
+      } else if (Array.isArray(movie.genres) && movie.genres.length > 0) {
         genreName =
           typeof movie.genres[0] === "string"
             ? movie.genres[0]
-            : movie.genres[0].name;
+            : movie.genres[0]?.name || "BLOCKBUSTER";
+      }
 
       return {
         id: movie.id || index,
