@@ -26,6 +26,7 @@ export default function ComingSoonSection() {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isInView, setIsInView] = useState(false);
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(1000);
 
@@ -41,6 +42,20 @@ export default function ComingSoonSection() {
     return () => window.removeEventListener("resize", updateSize);
   }, []);
 
+  // IntersectionObserver: automatically start / run auto-switch when scrolled into view
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.2 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const len = movies.length;
 
   const next = useCallback(() => {
@@ -53,17 +68,17 @@ export default function ComingSoonSection() {
     setActiveIndex((prev) => (prev - 1 + len) % len);
   }, [len]);
 
-  // Autoplay every 3 seconds smoothly (paused when user hovers)
+  // Autoplay every 3 seconds smoothly when in view (paused only when hovering active card/controls)
   const nextRef = useRef(next);
   nextRef.current = next;
 
   useEffect(() => {
-    if (!len || isHovered) return;
+    if (!len || !isInView || isHovered) return;
     const timer = setInterval(() => {
       nextRef.current?.();
     }, 3000);
     return () => clearInterval(timer);
-  }, [len, isHovered]);
+  }, [len, isInView, isHovered]);
 
   if (isLoading || !len) {
     return (
@@ -104,8 +119,6 @@ export default function ComingSoonSection() {
     <section
       className="space-y-8 font-sans select-none relative"
       ref={containerRef}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -119,10 +132,7 @@ export default function ComingSoonSection() {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
             Upcoming Movies
           </h2>
-          <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-xl">
-            Immerse in next season&apos;s theatrical releases. Click or swipe
-            through the interactive 3D curved gallery.
-          </p>
+
         </div>
 
         {/* Counter Badge */}
@@ -188,6 +198,8 @@ export default function ComingSoonSection() {
                 <motion.div
                   key={movie.id}
                   onClick={() => setActiveIndex(idx)}
+                  onMouseEnter={() => isActive && setIsHovered(true)}
+                  onMouseLeave={() => isActive && setIsHovered(false)}
                   className={`absolute rounded-[28px] overflow-hidden cursor-pointer will-change-transform ${
                     isActive
                       ? "ring-2 ring-white/60 dark:ring-white/40 shadow-[0_8px_20px_-4px_rgba(0,0,0,0.14)]"
@@ -239,34 +251,27 @@ export default function ComingSoonSection() {
                     )}
                   </div>
 
-                  {/* Card Content Bar */}
+                  {/* Card Content Bar (Clean: Title, Release Date, & Preview Button) */}
                   <div className="absolute bottom-0 inset-x-0 p-5 z-20 flex flex-col justify-end text-white">
                     <h3 className="text-lg sm:text-xl font-black tracking-tight line-clamp-1 drop-shadow-md">
                       {movie.title}
                     </h3>
 
                     {isActive ? (
-                      <div className="mt-1.5 space-y-2">
-                        <p className="text-xs text-neutral-300 line-clamp-2 leading-relaxed drop-shadow">
-                          {movie.overview ||
-                            "Get ready for this upcoming blockbuster premiere at FilmZone Cinemas."}
-                        </p>
+                      <div className="mt-2.5 flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-[#FFD700] flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {formatReleaseDate(movie.release_date)}
+                        </span>
 
-                        <div className="pt-2 flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-[#FFD700] flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {formatReleaseDate(movie.release_date)}
-                          </span>
-
-                          <Link
-                            to={`/movies/${movie.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#B90101] hover:bg-[#8F0101] text-white text-[11px] font-black uppercase tracking-wider shadow-xs hover:shadow-sm transition hover:scale-105 active:scale-95"
-                          >
-                            <Ticket className="w-3.5 h-3.5" />
-                            <span>Preview</span>
-                          </Link>
-                        </div>
+                        <Link
+                          to={`/movies/${movie.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#B90101] hover:bg-[#8F0101] text-white text-[11px] font-black uppercase tracking-wider shadow-xs hover:shadow-sm transition hover:scale-105 active:scale-95"
+                        >
+                          <Ticket className="w-3.5 h-3.5" />
+                          <span>Preview</span>
+                        </Link>
                       </div>
                     ) : (
                       <p className="text-[11px] text-neutral-400 line-clamp-1 mt-0.5">
@@ -281,7 +286,11 @@ export default function ComingSoonSection() {
         </div>
 
         {/* Floating Vision Pill Controller (Bottom Center) */}
-        <div className="relative z-30 mt-4 sm:mt-6 flex items-center justify-center">
+        <div
+          className="relative z-30 mt-4 sm:mt-6 flex items-center justify-center"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-black/60 dark:bg-black/80 backdrop-blur-xl border border-white/20 shadow-sm text-white">
             {/* Prev Button */}
             <button
@@ -335,21 +344,23 @@ export default function ComingSoonSection() {
           </div>
         </div>
 
-        {/* Bottom Pagination Dots */}
-        <div className="flex items-center justify-center gap-1.5 mt-3 z-30">
-          {movies.map((_, dotIdx) => (
-            <button
-              key={dotIdx}
-              onClick={() => setActiveIndex(dotIdx)}
-              className={`transition-all duration-300 rounded-full cursor-pointer ${
-                dotIdx === activeIndex
-                  ? "w-6 h-1.5 bg-[#B90101] shadow-[0_0_8px_#B90101]"
-                  : "w-1.5 h-1.5 bg-white/30 hover:bg-white/60"
-              }`}
-              aria-label={`Go to slide ${dotIdx + 1}`}
-            />
-          ))}
-        </div>
+        {/* Bottom Pagination Bar & Dots (High Contrast & Clear in Light & Dark Mode) */}
+        {/* <div className="flex items-center justify-center mt-3.5 z-30">
+          <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-900/10 dark:bg-black/50 backdrop-blur-md border border-neutral-300/60 dark:border-white/10 shadow-xs">
+            {movies.map((_, dotIdx) => (
+              <button
+                key={dotIdx}
+                onClick={() => setActiveIndex(dotIdx)}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  dotIdx === activeIndex
+                    ? "w-8 h-2.5 bg-[#B90101] shadow-sm shadow-[#B90101]/40"
+                    : "w-2 h-2 bg-neutral-400 dark:bg-neutral-500 hover:bg-neutral-600 dark:hover:bg-neutral-300"
+                }`}
+                aria-label={`Go to slide ${dotIdx + 1}`}
+              />
+            ))}
+          </div>
+        </div> */}
       </div>
     </section>
   );

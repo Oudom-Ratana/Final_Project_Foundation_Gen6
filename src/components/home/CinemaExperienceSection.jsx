@@ -106,7 +106,7 @@ export default function CinemaExperienceSection() {
               duration={600}
               distance="translate-y-8"
             >
-              <div className="group relative rounded-3xl p-6 transition-all duration-500 overflow-hidden border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#12161C] text-neutral-900 dark:text-white hover:-translate-y-3 hover:scale-[1.02] hover:shadow-[0_20px_40px_-10px_rgba(185,1,1,0.3)] flex flex-col justify-between min-h-[300px] h-full select-none">
+              <div className="group relative rounded-3xl p-6 transition-all duration-500 overflow-hidden border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#12161C] text-neutral-900 dark:text-white hover:-translate-y-2 hover:scale-[1.01] hover:shadow-[0_12px_28px_-10px_rgba(185,1,1,0.08)] dark:hover:shadow-[0_12px_28px_-10px_rgba(0,0,0,0.4)] flex flex-col justify-between min-h-[300px] h-full select-none">
                 {/* 1. Traveling Red Border on Hover (All 4 Edges) */}
                 <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-[#B90101] transition-colors duration-300 pointer-events-none z-20" />
 
@@ -136,7 +136,7 @@ export default function CinemaExperienceSection() {
                     </span>
 
                     {/* Icon container bounces & turns FilmZone Red on hover */}
-                    <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-white/5 group-hover:bg-[#B90101] group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-lg group-hover:shadow-[#B90101]/30 flex items-center justify-center transition-all duration-300">
+                    <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-white/5 group-hover:bg-[#B90101] group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-xs group-hover:shadow-[#B90101]/15 flex items-center justify-center transition-all duration-300">
                       <Icon className="w-6 h-6 text-[#B90101] group-hover:text-white transition-colors duration-300" />
                     </div>
                   </div>

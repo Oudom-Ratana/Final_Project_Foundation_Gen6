@@ -385,7 +385,7 @@ body {
 
 ::view-transition-new(root) {
   z-index: 99999;
-  animation: theme-circular-spread 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: theme-circular-spread 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes theme-circular-spread {
