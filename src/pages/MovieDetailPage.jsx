@@ -443,9 +443,7 @@ export default function MovieDetailPage() {
                     Top Cast
                   </h2>
                 </div>
-                <span className="text-xs font-semibold text-neutral-400 hidden sm:inline-block">
-                  Hover to pause
-                </span>
+                
               </div>
 
               {/* Seamless Auto-Scrolling Carousel Track with Edge Fades */}

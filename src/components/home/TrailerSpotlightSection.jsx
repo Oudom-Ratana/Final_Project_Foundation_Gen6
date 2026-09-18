@@ -91,7 +91,7 @@ export default function TrailerSpotlightSection() {
       <ScrollReveal duration={700} distance="translate-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Left / Main Player (8 columns on lg) */}
-          <div className="lg:col-span-8 flex flex-col rounded-3xl overflow-hidden bg-white dark:bg-[#12161C] border border-neutral-200 dark:border-white/10 shadow-xl transition-all duration-300">
+          <div className="lg:col-span-8 flex flex-col rounded-3xl overflow-hidden bg-white dark:bg-[#12161C] border border-neutral-200/90 dark:border-white/10 shadow-xs dark:shadow-none transition-all duration-300">
             {/* 16:9 Video Frame */}
             <div className="relative aspect-video w-full bg-black">
               <iframe
@@ -110,7 +110,7 @@ export default function TrailerSpotlightSection() {
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                   {/* Badges */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#B90101] text-white shadow-sm">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#B90101] text-white">
                       {selectedTrailer.release}
                     </span>
                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-white/10">
@@ -123,7 +123,7 @@ export default function TrailerSpotlightSection() {
 
                   <Link
                     to="/movies"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#B90101] hover:bg-[#8F0101] text-white text-xs font-black uppercase tracking-wider transition shadow-lg shadow-[#B90101]/25 hover:scale-105 active:scale-95"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#B90101] hover:bg-[#8F0101] text-white text-xs font-black uppercase tracking-wider transition shadow-xs hover:shadow-sm hover:scale-105 active:scale-95"
                   >
                     <Film className="w-4 h-4" />
                     <span>Book Tickets</span>
@@ -161,7 +161,7 @@ export default function TrailerSpotlightSection() {
           </div>
 
           {/* Right / Playlist Sidebar (4 columns on lg) */}
-          <div className="lg:col-span-4 rounded-3xl p-5 sm:p-6 bg-white dark:bg-[#12161C] border border-neutral-200 dark:border-white/10 shadow-xl flex flex-col justify-between">
+          <div className="lg:col-span-4 rounded-3xl p-5 sm:p-6 bg-white dark:bg-[#12161C] border border-neutral-200/90 dark:border-white/10 shadow-xs dark:shadow-none flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-neutral-100 dark:border-white/10">
                 <div className="flex items-center gap-2">
@@ -195,8 +195,8 @@ export default function TrailerSpotlightSection() {
                       type="button"
                       className={`w-full text-left p-3 rounded-2xl transition-all duration-300 flex items-center gap-3.5 group cursor-pointer relative overflow-hidden border ${
                         isActive
-                          ? "bg-neutral-100 dark:bg-white/[0.08] border-[#B90101] shadow-lg shadow-[#B90101]/15"
-                          : "bg-neutral-50 dark:bg-white/[0.03] hover:bg-neutral-100 dark:hover:bg-white/[0.06] border-neutral-200/70 dark:border-white/5"
+                          ? "bg-neutral-100 dark:bg-white/[0.08] border-[#B90101] shadow-xs"
+                          : "bg-neutral-50 dark:bg-white/[0.03] hover:bg-neutral-100 dark:hover:bg-white/[0.06] border-neutral-200/70 dark:border-white/5 shadow-none"
                       }`}
                     >
                       {/* Active Left Indicator Bar */}
@@ -205,7 +205,7 @@ export default function TrailerSpotlightSection() {
                       )}
 
                       {/* Thumbnail with overlay */}
-                      <div className="relative w-24 h-15 rounded-xl overflow-hidden shrink-0 bg-black shadow-sm">
+                      <div className="relative w-24 h-15 rounded-xl overflow-hidden shrink-0 bg-black">
                         <img
                           src={thumbUrl}
                           alt={trailer.title}
@@ -222,7 +222,7 @@ export default function TrailerSpotlightSection() {
                           <div
                             className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
                               isActive
-                                ? "bg-white text-[#B90101] shadow-md shadow-black/40"
+                                ? "bg-white text-[#B90101] shadow-xs"
                                 : "bg-white/90 text-neutral-900"
                             }`}
                           >

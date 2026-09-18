@@ -1,16 +1,15 @@
-
-import { Send, Mail } from 'lucide-react';
+import { Send, Mail } from "lucide-react";
 
 export default function MemberCard({ member }) {
   const { name, role, image, telegram, github, portfolio, email } = member;
 
   return (
-    <div className="relative group p-6 pt-7 pb-6 rounded-[24px] bg-white/80 dark:bg-[#1A1F25]/40 backdrop-blur-md border border-neutral-200/90 dark:border-white/20 shadow-md dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[240px] mx-auto transition-colors duration-300 font-sans overflow-hidden">
+    <div className="relative group p-6 pt-7 pb-6 rounded-[24px] bg-white/80 dark:bg-[#1A1F25]/40 backdrop-blur-md border border-neutral-200/90 dark:border-white/20 shadow-md dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[240px] mx-auto hover:-translate-y-2.5 hover:shadow-2xl hover:shadow-[rgba(185,1,1,0.2)] hover:border-[var(--primary-red)]/50 transition-all duration-300 font-sans overflow-hidden">
       
-      {/* Outer Border Line with Moving Segment */}
-      <div className="absolute inset-3.5 pointer-events-none z-0">
+      {/* Red Outer Frame with Gap & Moving Light Beam */}
+      <div className="absolute inset-3.5 pointer-events-none z-0 group-hover:drop-shadow-[0_0_8px_rgba(185,1,1,0.4)] transition-all duration-300">
         <svg className="w-full h-full overflow-visible">
-          {/* Base Static Red Line with Top Notch Cut Out */}
+          {/* Static Red Frame */}
           <rect
             x="1"
             y="1"
@@ -23,7 +22,8 @@ export default function MemberCard({ member }) {
             strokeWidth="2"
             strokeOpacity="0.4"
             style={{
-              clipPath: 'polygon(0 0, 28% 0, 28% 12px, 72% 12px, 72% 0, 100% 0, 100% 100%, 0 100%)'
+              clipPath:
+                "polygon(0 0, 28% 0, 28% 12px, 72% 12px, 72% 0, 100% 0, 100% 100%, 0 100%)",
             }}
           />
 
@@ -41,16 +41,17 @@ export default function MemberCard({ member }) {
             strokeDasharray="100 600"
             className="animate-line-trace"
             style={{
-              clipPath: 'polygon(0 0, 28% 0, 28% 12px, 72% 12px, 72% 0, 100% 0, 100% 100%, 0 100%)'
+              clipPath:
+                "polygon(0 0, 28% 0, 28% 12px, 72% 12px, 72% 0, 100% 0, 100% 100%, 0 100%)",
             }}
           />
         </svg>
 
         {/* Left Red Dot */}
-        <span className="absolute -top-[5px] left-[28%] -translate-x-1/2 h-3 w-3 rounded-full bg-[var(--primary-red)] z-10" />
+        <span className="absolute -top-[5px] left-[28%] -translate-x-1/2 h-3 w-3 rounded-full bg-[var(--primary-red)] shadow-[0_0_6px_rgba(185,1,1,0.8)] group-hover:scale-125 transition-transform duration-300 z-10" />
 
         {/* Right Red Dot */}
-        <span className="absolute -top-[5px] left-[72%] -translate-x-1/2 h-3 w-3 rounded-full bg-[var(--primary-red)] z-10" />
+        <span className="absolute -top-[5px] left-[72%] -translate-x-1/2 h-3 w-3 rounded-full bg-[var(--primary-red)] shadow-[0_0_6px_rgba(185,1,1,0.8)] group-hover:scale-125 transition-transform duration-300 z-10" />
       </div>
 
       {/* Profile Image */}
@@ -58,7 +59,7 @@ export default function MemberCard({ member }) {
         <img
           src={image}
           alt={name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
           loading="lazy"
         />
       </div>
@@ -78,7 +79,7 @@ export default function MemberCard({ member }) {
       <div className="relative z-10 flex items-center justify-center gap-2.5 mb-1">
         {/* Telegram */}
         <a
-          href={telegram || '#'}
+          href={telegram || "#"}
           target="_blank"
           rel="noreferrer"
           className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
@@ -89,7 +90,7 @@ export default function MemberCard({ member }) {
 
         {/* GitHub */}
         <a
-          href={github || '#'}
+          href={github || "#"}
           target="_blank"
           rel="noreferrer"
           className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
@@ -102,7 +103,7 @@ export default function MemberCard({ member }) {
 
         {/* Email */}
         <a
-          href={email ? (email.startsWith('mailto:') ? email : `mailto:${email}`) : (portfolio || '#')}
+          href={email ? `mailto:${email}` : portfolio || "#"}
           target="_blank"
           rel="noreferrer"
           className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-white/10 text-[var(--primary-red)] dark:text-white hover:bg-[var(--primary-red)] dark:hover:bg-[var(--primary-red)] hover:text-white dark:hover:text-white flex items-center justify-center transition-all border border-neutral-200 dark:border-transparent shadow-xs"
@@ -112,7 +113,7 @@ export default function MemberCard({ member }) {
         </a>
       </div>
 
-      {/* Animation Keyframes */}
+      {/* Animation Styles */}
       <style>{`
         @keyframes traceLine {
           0% {

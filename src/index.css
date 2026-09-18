@@ -369,3 +369,53 @@ body {
     0 0 30px rgba(185, 1, 1, 0.7),
     0 0 60px rgba(185, 1, 1, 0.35);
 }
+
+/* ==========================================================================
+   Circular Theme Transition (View Transitions API)
+   ========================================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 99999;
+  animation: theme-circular-spread 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes theme-circular-spread {
+  from {
+    clip-path: circle(0px at var(--theme-x, 50%) var(--theme-y, 50%));
+  }
+  to {
+    clip-path: circle(
+      var(--theme-r, 150vmax) at var(--theme-x, 50%) var(--theme-y, 50%)
+    );
+  }
+}
+
+/* ==========================================================================
+   Continuous Card Marquee (Left-to-Right)
+   ========================================================================== */
+@keyframes scroll-loop-ltr {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-scroll-ltr {
+  animation: scroll-loop-ltr 32s linear infinite;
+  will-change: transform;
+}
+
+.animate-scroll-ltr:hover {
+  animation-play-state: paused;
+}
