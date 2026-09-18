@@ -18,7 +18,7 @@ export const MENTORS = [
     image: LyzhiaImg,
     telegram: "https://t.me/eunglyzhia",
     github: "https://github.com/eunglyzhia",
-    email: "#",
+    email: "mailto:eunglyzhia@gmail.com",
   },
   {
     id: 2,
@@ -27,7 +27,7 @@ export const MENTORS = [
     image: BunvarnImg,
     telegram: "https://t.me/rinbunvarn",
     github: "https://github.com/rinbunvarn",
-    email: "#",
+    email: "mailto:rinbunvarn@gmail.com",
   },
 ];
 
