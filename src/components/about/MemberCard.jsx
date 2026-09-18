@@ -1,5 +1,4 @@
 
-
 import { Send, Mail } from 'lucide-react';
 
 export default function MemberCard({ member }) {
