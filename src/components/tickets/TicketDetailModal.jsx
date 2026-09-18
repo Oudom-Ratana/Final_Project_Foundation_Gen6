@@ -55,18 +55,24 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/65 backdrop-blur-sm animate-fadeIn select-none overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 dark:bg-black/75 backdrop-blur-md animate-fadeIn select-none overflow-y-auto"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Compact Modal Container - fits in one frame without scrolling */}
+      {/* Compact Modal Container with Glassmorphism */}
       <div
-        className={`relative w-full max-w-[800px] max-h-[96vh] overflow-y-auto rounded-3xl p-3.5 sm:p-4 shadow-2xl transition-all ${
-          isDark
-            ? "bg-[#161A20] text-white border border-white/10"
-            : "bg-[#F6F7F9] text-neutral-900 border border-neutral-200"
+        className={`relative w-full max-w-[800px] max-h-[96vh] overflow-y-auto rounded-3xl p-3.5 sm:p-4 shadow-2xl backdrop-blur-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] transition-all ${
+          isDark ? "text-white" : "text-neutral-900"
         }`}
+        style={{
+          backgroundColor: isDark
+            ? "var(--primary-color-30)"
+            : "rgba(255, 255, 255, 0.8)",
+          borderColor: isDark
+            ? "var(--border-dark-mode)"
+            : "var(--border-light-mode)",
+        }}
       >
         {/* Top-Left Back Button */}
         <div className="mb-2 sm:mb-2.5">
@@ -81,10 +87,20 @@ export default function TicketDetailModal({ ticket, onClose }) {
           </button>
         </div>
 
-        {/* ── Two Ticket Cards Side-by-Side (Matching Booking Summary & Successful Cards) ── */}
+        {/* ── Two Ticket Cards Side-by-Side (Matching Glassmorphism Styling) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 items-stretch justify-center max-w-[580px] mx-auto">
           {/* ──────────────── LEFT CARD: Movie Ticket ──────────────── */}
-          <div className="w-full rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#1E232B] shadow-md overflow-hidden flex flex-col justify-between">
+          <div
+            className="w-full rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md shadow-md overflow-hidden flex flex-col justify-between"
+            style={{
+              backgroundColor: isDark
+                ? "var(--primary-color-30)"
+                : "var(--primary-color-5)",
+              borderColor: isDark
+                ? "var(--border-dark-mode)"
+                : "var(--border-light-mode)",
+            }}
+          >
             {/* Top Red Header */}
             <div className="bg-[#B90101] text-white py-2 text-center font-extrabold text-xs sm:text-sm tracking-wide shrink-0">
               Movie Ticket
@@ -125,9 +141,23 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
                 {/* Perforated Ticket Tear Line with Notches */}
                 <div className="relative flex items-center justify-center my-2">
-                  <div className="absolute -left-5 sm:-left-5.5 w-4 h-4 rounded-full bg-[#F6F7F9] dark:bg-[#161A20] border-r border-neutral-200 dark:border-white/10" />
+                  <div
+                    className="absolute -left-5 sm:-left-5.5 w-4 h-4 rounded-full border-r border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
+                    style={{
+                      backgroundColor: isDark
+                        ? "var(--primary-color-30)"
+                        : "rgba(255, 255, 255, 0.8)",
+                    }}
+                  />
                   <div className="w-full border-b border-dashed border-neutral-300 dark:border-neutral-700" />
-                  <div className="absolute -right-5 sm:-right-5.5 w-4 h-4 rounded-full bg-[#F6F7F9] dark:bg-[#161A20] border-l border-neutral-200 dark:border-white/10" />
+                  <div
+                    className="absolute -right-5 sm:-right-5.5 w-4 h-4 rounded-full border-l border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
+                    style={{
+                      backgroundColor: isDark
+                        ? "var(--primary-color-30)"
+                        : "rgba(255, 255, 255, 0.8)",
+                    }}
+                  />
                 </div>
 
                 {/* 2-Column Metadata Grid */}
@@ -279,7 +309,17 @@ export default function TicketDetailModal({ ticket, onClose }) {
           </div>
 
           {/* ──────────────── RIGHT CARD: QR Ticket Pass ──────────────── */}
-          <div className="w-full rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#1E232B] shadow-md overflow-hidden flex flex-col justify-between">
+          <div
+            className="w-full rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md shadow-md overflow-hidden flex flex-col justify-between"
+            style={{
+              backgroundColor: isDark
+                ? "var(--primary-color-30)"
+                : "var(--primary-color-5)",
+              borderColor: isDark
+                ? "var(--border-dark-mode)"
+                : "var(--border-light-mode)",
+            }}
+          >
             {/* Top 3 Red Badges */}
             <div className="p-3 pb-1 shrink-0">
               <div className="grid grid-cols-3 gap-2">
@@ -314,9 +354,23 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
             {/* Perforated Ticket Tear Line with Notches */}
             <div className="relative flex items-center justify-center my-1.5 shrink-0">
-              <div className="absolute -left-2 w-4 h-4 rounded-full bg-[#F6F7F9] dark:bg-[#161A20] border-r border-neutral-200 dark:border-white/10" />
+              <div
+                className="absolute -left-2 w-4 h-4 rounded-full border-r border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
+                style={{
+                  backgroundColor: isDark
+                    ? "var(--primary-color-30)"
+                    : "rgba(255, 255, 255, 0.8)",
+                }}
+              />
               <div className="w-full border-b border-dashed border-neutral-300 dark:border-neutral-700" />
-              <div className="absolute -right-2 w-4 h-4 rounded-full bg-[#F6F7F9] dark:bg-[#161A20] border-l border-neutral-200 dark:border-white/10" />
+              <div
+                className="absolute -right-2 w-4 h-4 rounded-full border-l border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
+                style={{
+                  backgroundColor: isDark
+                    ? "var(--primary-color-30)"
+                    : "rgba(255, 255, 255, 0.8)",
+                }}
+              />
             </div>
 
             {/* Card Body: QR Code matching Booking Successful card */}
@@ -326,7 +380,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
               </span>
 
               {/* Scannable Lucide QR Code matching Booking Successful */}
-              <div className="p-2 sm:p-2.5 bg-white rounded-2xl shadow-xs border border-neutral-200/80 text-neutral-900 flex items-center justify-center">
+              <div className="p-2 sm:p-2.5 bg-white rounded-2xl shadow-xs border border-[var(--border-light-mode)] text-neutral-900 flex items-center justify-center">
                 <QrCode
                   className="w-24 h-24 sm:w-28 sm:h-28 text-neutral-900"
                   strokeWidth={1.5}

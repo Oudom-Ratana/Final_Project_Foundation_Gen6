@@ -42,9 +42,15 @@ export default function TicketCard({ ticket, onViewTicket }) {
 
   return (
     <div
-      className={`flex gap-4 sm:gap-5 rounded-2xl p-4 sm:p-5 border transition-shadow duration-200 hover:shadow-md ${
-        isDark ? "bg-white/5 border-white/10" : "bg-white border-neutral-200"
-      }`}
+      className="flex gap-4 sm:gap-5 rounded-2xl p-4 sm:p-5 border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md transition-all duration-200 hover:shadow-md"
+      style={{
+        backgroundColor: isDark
+          ? "var(--primary-color-30)"
+          : "var(--primary-color-5)",
+        borderColor: isDark
+          ? "var(--border-dark-mode)"
+          : "var(--border-light-mode)",
+      }}
     >
       {/* Left: Movie Poster */}
       <div className="shrink-0 w-[110px] sm:w-[145px] rounded-xl overflow-hidden aspect-[3/4] bg-neutral-900">
