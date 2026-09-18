@@ -195,13 +195,13 @@ export default function HomeHero() {
           </div>
 
           {/* Right Side: Mini 3D Fanned Card Slider (Shifted a bit left & further down) */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end mt-8 lg:mt-0 lg:-translate-x-12 lg:translate-y-16">
+          {/* <div className="lg:col-span-5 flex justify-center lg:justify-end mt-8 lg:mt-0 lg:-translate-x-12 lg:translate-y-16">
             <HeroMiniSlider
               slides={slides}
               currentIndex={currentIndex}
               onSelectIndex={setCurrentIndex}
             />
-          </div>
+          </div> */}
         </div>
       </div>
 

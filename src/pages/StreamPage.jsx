@@ -407,7 +407,7 @@ export default function StreamPage() {
 
         {/* 3. Horizontal Genre Filter Pills Bar */}
         {!queryParam && (
-          <div className="flex items-center gap-2.5 overflow-x-auto pb-2 pt-1 select-none scrollbar-none">
+          <div className="flex items-center gap-2.5 overflow-x-auto px-4 py-3 -mx-2 select-none scrollbar-none">
             {activeGenreList.map((g) => {
               const isGenreActive = selectedGenre === g.id;
               return (
@@ -415,10 +415,10 @@ export default function StreamPage() {
                   key={g.id}
                   type="button"
                   onClick={() => handleGenreChange(g.id)}
-                  className={`px-5 py-2 rounded-full text-[18px] font-bold tracking-wide whitespace-nowrap transition-all shrink-0 ${
+                  className={`px-6 py-2.5 rounded-full text-[18px] font-bold tracking-wide whitespace-nowrap transition-all duration-200 shrink-0 cursor-pointer ${
                     isGenreActive
-                      ? "bg-[#B90101] text-white shadow-md shadow-red-950/40 scale-105"
-                      : "bg-neutral-100 dark:bg-neutral-900/90 text-neutral-700 dark:text-neutral-300 border border-neutral-300/80 dark:border-white/10 hover:border-[#B90101]/50 hover:text-neutral-900 dark:hover:text-white"
+                      ? "bg-[#B90101] text-white shadow-lg shadow-[#B90101]/30 ring-2 ring-[#B90101]/50"
+                      : "bg-neutral-100 dark:bg-neutral-900/90 text-neutral-700 dark:text-neutral-300 border border-neutral-300/80 dark:border-white/10 hover:border-[#B90101]/50 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-white/5"
                   }`}
                 >
                   {g.label}
