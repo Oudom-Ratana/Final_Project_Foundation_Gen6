@@ -1,3 +1,4 @@
+
 import { Ticket, CreditCard, QrCode, Info } from "lucide-react";
 
 export default function ContactQuickCards() {
@@ -48,7 +49,7 @@ export default function ContactQuickCards() {
       <div
         key={key}
         onClick={() => handleCardClick(card.title)}
-        className="group p-6 rounded-3xl bg-white/80 dark:bg-[#1A1F25]/40 backdrop-blur-md hover:bg-white dark:hover:bg-[#1A1F25]/80 border border-neutral-200/90 dark:border-white/20 hover:border-[var(--primary-red)] dark:hover:border-[var(--primary-red)] transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-6 min-h-[170px] shadow-md hover:shadow-xl dark:shadow-2xl w-[280px] sm:w-[320px] shrink-0 select-none hover:-translate-y-1"
+        className="group p-6 rounded-3xl bg-white/80 dark:bg-[#1A1F25]/40 backdrop-blur-md hover:bg-white dark:hover:bg-[#1A1F25]/80 border border-neutral-200/90 dark:border-white/20 hover:border-[var(--primary-red)] dark:hover:border-[var(--primary-red)] transition-all duration-300 cursor-pointer flex flex-col justify-between h-[190px] w-[280px] sm:w-[320px] shrink-0 select-none hover:-translate-y-1 shadow-md hover:shadow-xl dark:shadow-2xl"
       >
         {/* Icon Container */}
         <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-white/10 border border-neutral-200 dark:border-transparent group-hover:bg-[var(--primary-red)] group-hover:border-[var(--primary-red)] flex items-center justify-center transition-colors shadow-xs">
