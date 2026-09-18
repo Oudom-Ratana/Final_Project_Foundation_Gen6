@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
-import { User, Bell, Sun, Moon, Menu, X, LogOut, Heart } from "lucide-react";
+import {
+  User,
+  Bell,
+  Sun,
+  Moon,
+  Menu,
+  X,
+  LogOut,
+  Heart,
+  LayoutDashboard,
+} from "lucide-react";
 import {
   selectCurrentUser,
   selectIsAuthenticated,
@@ -20,18 +30,24 @@ export default function Navbar() {
   const theme = useSelector(selectTheme);
   const favouriteMovies = useSelector(selectFavouriteMovies) || [];
   const favoriteCount = favouriteMovies.length;
+  const isAdmin = user?.role === "admin" || user?.role === "ADMIN";
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef(null);
+  const mobileProfileDropdownRef = useRef(null);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
+      const clickedDesktop =
         profileDropdownRef.current &&
-        !profileDropdownRef.current.contains(event.target)
-      ) {
+        profileDropdownRef.current.contains(event.target);
+      const clickedMobile =
+        mobileProfileDropdownRef.current &&
+        mobileProfileDropdownRef.current.contains(event.target);
+
+      if (!clickedDesktop && !clickedMobile) {
         setIsProfileDropdownOpen(false);
       }
     };
@@ -44,9 +60,10 @@ export default function Navbar() {
     };
   }, [isProfileDropdownOpen]);
 
-  // Close mobile menu on route change
+  // Close menus on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsProfileDropdownOpen(false);
   }, [location.pathname]);
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -69,9 +86,9 @@ export default function Navbar() {
   // - Top of homepage: Golden yellow text (#EAB308) matching the dark hero banner
   // - Scrolled / Other pages: Crisp charcoal (#1E293B / neutral-800) in light mode, Golden yellow in dark mode
   const navLinkClass = ({ isActive }) =>
-    `relative text-[18px] font-bold transition-all px-1 pb-1.5 ${
+    `relative text-[14px] lg:text-[18px] font-bold transition-all px-1 pb-0.5 ${
       isActive
-        ? 'text-[#B90101] font-black after:content-[""] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2.5px] after:bg-[#B90101] after:rounded-full'
+        ? 'text-[#B90101] font-black after:content-[""] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#B90101] after:rounded-full'
         : isTransparentHeroMode
           ? "text-[#EAB308] hover:text-[#B90101]"
           : "text-neutral-800 dark:text-[#EAB308] hover:text-[#B90101] dark:hover:text-[#B90101]"
@@ -85,22 +102,22 @@ export default function Navbar() {
           : "bg-white/55 dark:bg-black/40 backdrop-blur-md border-b border-neutral-200/80 dark:border-[#9E0505]/20 shadow-xs dark:shadow-none"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 sm:h-13.5 flex items-center justify-between gap-3">
         {/* 1. Left: FilmZone Logo */}
         <Link
           to="/"
-          className="flex items-center gap-2 group shrink-0 select-none py-1"
+          className="flex items-center gap-2 group shrink-0 select-none py-0.5"
           aria-label="FilmZone Home"
         >
           <img
             src={filmZoneLogo}
             alt="FilmZone Logo"
-            className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-sm"
+            className="h-6 sm:h-7.5 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-sm"
           />
         </Link>
 
         {/* 2. Center: Navigation Links (Home, Promo, Stream, About) */}
-        <nav className="hidden md:flex items-center gap-8 lg:gap-12">
+        <nav className="hidden md:flex items-center gap-6 lg:gap-8">
           <NavLink to="/" className={navLinkClass}>
             Home
           </NavLink>
@@ -116,11 +133,11 @@ export default function Navbar() {
         </nav>
 
         {/* 3. Right: Action Buttons (Notification Bell, Theme Switcher, Avatar/Login on far right) */}
-        <div className="hidden sm:flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-2">
           {/* Notification Bell Button — navigates to /my-tickets */}
           <Link
             to="/my-tickets"
-            className={`w-[46px] h-[46px] rounded-full border backdrop-blur-md flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-xs ${
+            className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full border backdrop-blur-md flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-xs ${
               isTransparentHeroMode
                 ? "bg-[#1A1F25]/20 hover:bg-[#1A1F25]/35 border-white/20 text-[#FFD700]"
                 : "bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 dark:hover:bg-[#1A1F25]/60 border-neutral-200 dark:border-white/15 text-[#B90101] dark:text-[#EAB308]"
@@ -128,13 +145,13 @@ export default function Navbar() {
             aria-label="My Tickets"
             title="My Tickets"
           >
-            <Bell className="w-5 h-5 fill-current" />
+            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
           </Link>
 
           {/* Theme Switcher Toggle Button */}
           <button
             onClick={() => dispatch(toggleTheme())}
-            className={`w-[46px] h-[46px] rounded-full border backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-xs cursor-pointer ${
+            className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full border backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-xs cursor-pointer ${
               isTransparentHeroMode
                 ? "bg-[#1A1F25]/20 hover:bg-[#1A1F25]/35 border-white/20"
                 : "bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 dark:hover:bg-[#1A1F25]/60 border-neutral-200 dark:border-white/15"
@@ -145,9 +162,9 @@ export default function Navbar() {
             }
           >
             {theme === "dark" ? (
-              <Sun className="w-5 h-5 text-[#B90101] transition-transform rotate-0 hover:rotate-90 duration-300" />
+              <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#B90101] transition-transform rotate-0 hover:rotate-90 duration-300" />
             ) : (
-              <Moon className="w-5 h-5 text-[#B90101] fill-[#B90101] transition-transform duration-300" />
+              <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#B90101] fill-[#B90101] transition-transform duration-300" />
             )}
           </button>
 
@@ -157,7 +174,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
-                className="w-[46px] h-[46px] rounded-full overflow-hidden border-2 border-[#B90101] hover:scale-105 active:scale-95 transition shadow-md flex items-center justify-center bg-neutral-200 dark:bg-neutral-800 cursor-pointer focus:outline-none"
+                className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full overflow-hidden border-2 border-[#B90101] hover:scale-105 active:scale-95 transition shadow-md flex items-center justify-center bg-neutral-200 dark:bg-neutral-800 cursor-pointer focus:outline-none"
                 aria-label="User profile menu"
                 title={user.name}
               >
@@ -169,7 +186,7 @@ export default function Navbar() {
                   />
                 ) : (
                   <div className="w-full h-full bg-[#B90101] flex items-center justify-center text-white">
-                    <User className="w-5 h-5 fill-white" />
+                    <User className="w-3.5 h-3.5 fill-white" />
                   </div>
                 )}
               </button>
@@ -214,9 +231,21 @@ export default function Navbar() {
                     )}
                   </Link>
 
+                  {/* 3. Admin Dashboard Option (Only for admin) */}
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-[#B90101] dark:hover:text-[#B90101] transition"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-[#B90101]" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
+
                   <div className="my-1 border-t border-neutral-100 dark:border-white/5" />
 
-                  {/* 3. Logout Option */}
+                  {/* 4. Logout Option */}
                   <button
                     type="button"
                     onClick={() => {
@@ -235,21 +264,21 @@ export default function Navbar() {
           ) : (
             <Link
               to="/login"
-              className="flex items-center gap-2 px-6 py-2.5 rounded-[35px] text-white font-bold text-[18px] shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer"
+              className="flex items-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-white font-bold text-xs sm:text-sm shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer"
               style={{ backgroundColor: "#B90101" }}
             >
-              <User className="w-4 h-4 fill-white" />
+              <User className="w-3.5 h-3.5 fill-white" />
               <span>Login</span>
             </Link>
           )}
         </div>
 
-        {/* Mobile Hamburger Button */}
+        {/* Mobile Action Controls */}
         <div className="flex md:hidden items-center gap-2">
           {/* Mobile Theme Switcher (Red primary color #B90101) */}
           <button
             onClick={() => dispatch(toggleTheme())}
-            className={`w-[40px] h-[40px] rounded-full backdrop-blur-md flex items-center justify-center text-[#B90101] shadow-xs cursor-pointer transition-colors ${
+            className={`w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center text-[#B90101] shadow-xs cursor-pointer transition-colors ${
               isTransparentHeroMode
                 ? "bg-[#1A1F25]/20 hover:bg-[#1A1F25]/40 border border-white/20"
                 : "bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 border border-neutral-200 dark:border-white/15"
@@ -257,15 +286,16 @@ export default function Navbar() {
             aria-label="Toggle Theme"
           >
             {theme === "dark" ? (
-              <Sun className="w-4 h-4 text-[#B90101]" />
+              <Sun className="w-3.5 h-3.5 text-[#B90101]" />
             ) : (
-              <Moon className="w-4 h-4 text-[#B90101] fill-[#B90101]" />
+              <Moon className="w-3.5 h-3.5 text-[#B90101] fill-[#B90101]" />
             )}
           </button>
 
+          {/* Mobile Hamburger Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`p-2 rounded-[20px] backdrop-blur-md shadow-xs cursor-pointer transition-colors ${
+            className={`p-1 rounded-lg backdrop-blur-md shadow-xs cursor-pointer transition-colors ${
               isTransparentHeroMode
                 ? "text-white bg-[#1A1F25]/20 hover:bg-[#1A1F25]/40 border border-white/20"
                 : "text-neutral-800 dark:text-white bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 border border-neutral-200 dark:border-white/15"
@@ -273,15 +303,15 @@ export default function Navbar() {
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             ) : (
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             )}
           </button>
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu */}
+      {/* Mobile Dropdown Menu (Matches user mockup) */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t bg-white/95 dark:bg-neutral-950/95 backdrop-blur-xl px-6 py-4 space-y-3 transition-colors border-neutral-200 dark:border-[#9E0505]/20 shadow-xl">
           <NavLink
@@ -291,15 +321,7 @@ export default function Navbar() {
           >
             Home
           </NavLink>
-          <div />
-          {/* <NavLink
-            to="/promo"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
-          >
-            Promo
-          </NavLink> */}
-          <div />
+
           <NavLink
             to="/stream"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -307,15 +329,18 @@ export default function Navbar() {
           >
             Movies
           </NavLink>
-          <div />
-          <NavLink
-            to="/favourite"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
-          >
-            Favorites {favoriteCount > 0 && `(${favoriteCount})`}
-          </NavLink>
-          <div />
+
+          {/* Favorites: ONLY appears on the nav when logged in */}
+          {isAuthenticated && user && (
+            <NavLink
+              to="/favourite"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={navLinkClass}
+            >
+              Favorites {favoriteCount > 0 && `(${favoriteCount})`}
+            </NavLink>
+          )}
+
           <NavLink
             to="/about"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -323,17 +348,21 @@ export default function Navbar() {
           >
             About
           </NavLink>
-          <div />
-          <NavLink
-            to="/admin"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
-          >
-            Admin Dashboard
-          </NavLink>
 
+          {/* Admin Dashboard: ONLY appears when user is Admin */}
+          {isAuthenticated && isAdmin && (
+            <NavLink
+              to="/admin"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={navLinkClass}
+            >
+              Admin Dashboard
+            </NavLink>
+          )}
+
+          {/* Bottom Account Card or Login Button */}
           <div
-            className="pt-3 border-t flex flex-col gap-2"
+            className="pt-3 border-t flex flex-col gap-2.5"
             style={{ borderColor: "rgba(158, 5, 5, 0.20)" }}
           >
             {isAuthenticated && user ? (
@@ -347,25 +376,29 @@ export default function Navbar() {
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="w-8 h-8 rounded-full object-cover bg-white/20 border border-white/40 shrink-0"
+                      className="w-9 h-9 rounded-full object-cover bg-white/20 border border-white/40 shrink-0"
                     />
                   ) : (
                     <User className="w-5 h-5 fill-white shrink-0" />
                   )}
                   <div className="truncate">
-                    <p className="text-sm font-bold truncate">{user.name}</p>
+                    <p className="text-sm font-bold truncate leading-tight">
+                      {user.name}
+                    </p>
                     <p className="text-xs text-white/70 truncate">
                       {user.email}
                     </p>
                   </div>
                 </Link>
+
                 <button
+                  type="button"
                   onClick={() => {
                     dispatch(logout());
                     setIsMobileMenuOpen(false);
                     toast.info("Logged out successfully");
                   }}
-                  className="p-2 rounded-xl bg-black/20 hover:bg-black/30 transition text-white cursor-pointer"
+                  className="p-2 rounded-xl bg-black/20 hover:bg-black/30 transition text-white cursor-pointer ml-2"
                   title="Logout"
                 >
                   <LogOut className="w-4 h-4" />
