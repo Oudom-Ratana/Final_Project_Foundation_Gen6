@@ -6,6 +6,7 @@ import { selectTheme } from "../redux/slices/uiSlice";
 import { selectAllTickets } from "../redux/slices/ticketSlice";
 import { TICKETS_PER_PAGE } from "../data/ticketData";
 import TicketCard from "../components/tickets/TicketCard";
+import TicketDetailModal from "../components/tickets/TicketDetailModal";
 import ScrollReveal from "../components/common/ScrollReveal";
 
 export default function MyTicketsPage() {
@@ -18,6 +19,7 @@ export default function MyTicketsPage() {
     tabParam === "history" ? "history" : "upcoming",
   );
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   useEffect(() => {
     if (tabParam === "history" || tabParam === "upcoming") {
@@ -126,7 +128,7 @@ export default function MyTicketsPage() {
                 duration={600}
                 distance="translate-y-6"
               >
-                <TicketCard ticket={ticket} />
+                <TicketCard ticket={ticket} onViewTicket={setSelectedTicket} />
               </ScrollReveal>
             ))
           )}
@@ -199,6 +201,14 @@ export default function MyTicketsPage() {
           </ScrollReveal>
         )}
       </div>
+
+      {/* ── Ticket Detail Pop-up Modal ── */}
+      {selectedTicket && (
+        <TicketDetailModal
+          ticket={selectedTicket}
+          onClose={() => setSelectedTicket(null)}
+        />
+      )}
     </div>
   );
 }

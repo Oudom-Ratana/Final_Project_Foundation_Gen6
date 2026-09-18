@@ -2,7 +2,7 @@ import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../../redux/slices/uiSlice";
 
-export default function TicketCard({ ticket }) {
+export default function TicketCard({ ticket, onViewTicket }) {
   const navigate = useNavigate();
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
@@ -19,6 +19,10 @@ export default function TicketCard({ ticket }) {
   const isUpcoming = status === "upcoming";
 
   const handleViewTicket = () => {
+    if (onViewTicket) {
+      onViewTicket(ticket);
+      return;
+    }
     if (ticket.viewUrl) {
       navigate(ticket.viewUrl);
     } else {
