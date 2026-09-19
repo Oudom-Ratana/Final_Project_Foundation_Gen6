@@ -33,7 +33,7 @@ export default function HomePage() {
 
       {/* 4. Concessions, Series, Trailers & Coming Soon (Constrained to max-w-7xl) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20 sm:space-y-24 pb-24">
-        {/* Concessions & Snack Combos */}
+        
         <PopcornBarSection />
 
         {/* Featured Series & Shows */}
