@@ -24,15 +24,27 @@ export default function RootLayout() {
         isDark ? "text-white" : "text-neutral-900"
       } ${isAuthPage ? "h-screen overflow-hidden" : ""}`}
       style={{
-        backgroundColor: isDark ? "transparent" : "#F6F7F9",
-        background: isDark ? "var(--bg-dark-mode)" : "#F6F7F9",
-        backgroundAttachment: isDark ? "fixed" : "scroll",
+        background: isDark ? "var(--bg-dark-mode)" : "var(--bg-light-mode)",
+        backgroundAttachment: "fixed",
+        backgroundSize: "cover",
         minHeight: "100vh",
       }}
     >
+      {/* ── Ambient Cinema Red Light Mesh in Light Mode (Active across each page) ── */}
+      {!isDark && !isAuthPage && (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          {/* Top Center FilmZone Red Spotlight */}
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-[radial-gradient(ellipse_at_center,rgba(185,1,1,0.18)_0%,rgba(185,1,1,0.06)_50%,transparent_75%)] rounded-full blur-3xl" />
+          {/* Right Side Cinema Warm Red Accent */}
+          <div className="absolute top-1/4 -right-28 w-[550px] h-[550px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.13)_0%,rgba(200,150,30,0.05)_45%,transparent_70%)] rounded-full blur-3xl" />
+          {/* Lower Left Soft Crimson Bloom */}
+          <div className="absolute bottom-1/4 -left-28 w-[550px] h-[550px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.11)_0%,transparent_70%)] rounded-full blur-3xl" />
+        </div>
+      )}
+
       {!isAuthPage && <Navbar />}
       <main
-        className={`flex-1 w-full ${
+        className={`flex-1 w-full relative z-10 ${
           isHomePage
             ? "pb-12"
             : isAuthPage

@@ -123,9 +123,25 @@ export function CardStack({
   const nextRef = React.useRef(next);
   nextRef.current = next;
 
-  // autoplay
+  const [isInView, setIsInView] = React.useState(false);
+
+  // IntersectionObserver: automatically start autoplay whenever scrolled into view
   React.useEffect(() => {
-    if (!autoAdvance || reduceMotion || !len) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [len]);
+
+  // autoplay forever when in view
+  React.useEffect(() => {
+    if (!autoAdvance || reduceMotion || !len || !isInView) return;
 
     const id = window.setInterval(
       () => {
@@ -136,7 +152,15 @@ export function CardStack({
     );
 
     return () => window.clearInterval(id);
-  }, [autoAdvance, intervalMs, hovering, pauseOnHover, reduceMotion, len]);
+  }, [
+    autoAdvance,
+    intervalMs,
+    hovering,
+    pauseOnHover,
+    reduceMotion,
+    len,
+    isInView,
+  ]);
 
   if (!len) return null;
 

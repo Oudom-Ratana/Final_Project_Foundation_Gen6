@@ -57,9 +57,7 @@ export default function MyTicketsPage() {
   };
 
   return (
-    <div
-      className={`min-h-screen font-sans pb-16 pt-6 transition-colors duration-300 ${isDark ? "" : "bg-[#F6F7F9]"}`}
-    >
+    <div className="min-h-screen font-sans pb-16 pt-6 transition-colors duration-300">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ── Tab Switcher ── */}
         <ScrollReveal delay={0} duration={600} distance="translate-y-4">

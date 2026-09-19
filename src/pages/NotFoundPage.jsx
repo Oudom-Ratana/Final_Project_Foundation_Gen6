@@ -18,9 +18,9 @@ export default function NotFoundPage() {
         isDark ? "text-white" : "text-neutral-900"
       }`}
       style={{
-        backgroundColor: isDark ? "transparent" : "#F6F7F9",
-        background: isDark ? "var(--bg-dark-mode)" : "#F6F7F9",
-        backgroundAttachment: isDark ? "fixed" : "scroll",
+        background: isDark ? "var(--bg-dark-mode)" : "var(--bg-light-mode)",
+        backgroundAttachment: "fixed",
+        backgroundSize: "cover",
         height: "100vh",
         maxHeight: "100vh",
       }}

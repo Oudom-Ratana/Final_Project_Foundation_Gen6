@@ -96,6 +96,33 @@
       ),
       #000000;
 
+    /* FilmZone Light Mode Background: Vibrant cinematic red ambient gradient mesh */
+    --bg-light-mode:
+      radial-gradient(
+        ellipse 80% 50% at 50% -8%,
+        rgba(185, 1, 1, 0.16) 0%,
+        rgba(185, 1, 1, 0.06) 45%,
+        transparent 75%
+      ),
+      radial-gradient(
+        circle 700px at 95% 35%,
+        rgba(185, 1, 1, 0.12) 0%,
+        rgba(200, 150, 30, 0.06) 40%,
+        transparent 65%
+      ),
+      radial-gradient(
+        circle 600px at 5% 75%,
+        rgba(185, 1, 1, 0.1) 0%,
+        transparent 60%
+      ),
+      linear-gradient(
+        180deg,
+        #fff5f5 0%,
+        #ffffff 18%,
+        #fbfbfc 50%,
+        #f1f4f8 100%
+      );
+
     /* ======= Dark mode ======
       For title's color: White (FFFFF)  or  --color-primary: #B90101;
        for description's : [#FFFFFF]/70 or  --text-black: rgba(255, 255, 255, 0.7);
@@ -114,7 +141,8 @@
 
   body,
   #root {
-    background-color: #f6f7f9;
+    background: var(--bg-light-mode);
+    background-attachment: fixed;
     color: #171717;
     font-family: "Google Sans", sans-serif !important;
     font-size: 18px;

@@ -24,8 +24,9 @@ export default function ComingSoonSection() {
     .filter((m) => Boolean(m.poster_path || m.backdrop_path))
     .slice(0, 10);
 
+  const len = movies.length;
+
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
   const [isInView, setIsInView] = useState(false);
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(1000);
@@ -42,21 +43,20 @@ export default function ComingSoonSection() {
     return () => window.removeEventListener("resize", updateSize);
   }, []);
 
-  // IntersectionObserver: automatically start / run auto-switch when scrolled into view
+  // IntersectionObserver: automatically start auto-switch whenever scrolled into view
   useEffect(() => {
+    if (isLoading || !len) return;
     const el = containerRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsInView(entry.isIntersecting);
       },
-      { threshold: 0.2 },
+      { threshold: 0.1 },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
-
-  const len = movies.length;
+  }, [isLoading, len]);
 
   const next = useCallback(() => {
     if (!len) return;
@@ -68,17 +68,17 @@ export default function ComingSoonSection() {
     setActiveIndex((prev) => (prev - 1 + len) % len);
   }, [len]);
 
-  // Autoplay every 3 seconds smoothly when in view (paused only when hovering active card/controls)
+  // Autoplay every 3 seconds smoothly forever when in view
   const nextRef = useRef(next);
   nextRef.current = next;
 
   useEffect(() => {
-    if (!len || !isInView || isHovered) return;
+    if (!len || !isInView) return;
     const timer = setInterval(() => {
       nextRef.current?.();
     }, 3000);
     return () => clearInterval(timer);
-  }, [len, isInView, isHovered]);
+  }, [len, isInView]);
 
   if (isLoading || !len) {
     return (
@@ -132,7 +132,6 @@ export default function ComingSoonSection() {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
             Upcoming Movies
           </h2>
-
         </div>
 
         {/* Counter Badge */}
@@ -198,8 +197,6 @@ export default function ComingSoonSection() {
                 <motion.div
                   key={movie.id}
                   onClick={() => setActiveIndex(idx)}
-                  onMouseEnter={() => isActive && setIsHovered(true)}
-                  onMouseLeave={() => isActive && setIsHovered(false)}
                   className={`absolute rounded-[28px] overflow-hidden cursor-pointer will-change-transform ${
                     isActive
                       ? "ring-2 ring-white/60 dark:ring-white/40 shadow-[0_8px_20px_-4px_rgba(0,0,0,0.14)]"
@@ -286,11 +283,7 @@ export default function ComingSoonSection() {
         </div>
 
         {/* Floating Vision Pill Controller (Bottom Center) */}
-        <div
-          className="relative z-30 mt-4 sm:mt-6 flex items-center justify-center"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
+        <div className="relative z-30 mt-4 sm:mt-6 flex items-center justify-center">
           <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-black/60 dark:bg-black/80 backdrop-blur-xl border border-white/20 shadow-sm text-white">
             {/* Prev Button */}
             <button

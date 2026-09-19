@@ -125,7 +125,7 @@ export default function MovieCardStack({
           tiltXDeg={8}
           autoAdvance={true}
           intervalMs={3000}
-          pauseOnHover
+          pauseOnHover={false}
           showDots={false}
           renderCard={(movie, { active }) => (
             <div className="relative h-full w-full bg-neutral-900 rounded-3xl overflow-hidden shadow-2xl">
