@@ -447,3 +447,97 @@ body {
 .animate-scroll-ltr:hover {
   animation-play-state: paused;
 }
+
+/* ==========================================================================
+   Snake Border Beam (Runs Around the Entire Card Border on Hover)
+   ========================================================================== */
+@keyframes snake-border-around {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.animate-snake-around {
+  animation: snake-border-around 3.5s linear infinite;
+  will-change: stroke-dashoffset;
+}
+
+/* ==========================================================================
+   Cinema Card Hanging Shirt Swing on Reaching Card (Auto Scroll Trigger)
+   ========================================================================== */
+@keyframes card-hang-swing {
+  0% {
+    transform: rotate(0deg);
+  }
+  16% {
+    transform: rotate(-3.5deg);
+  }
+  34% {
+    transform: rotate(2.8deg);
+  }
+  52% {
+    transform: rotate(-1.5deg);
+  }
+  70% {
+    transform: rotate(0.8deg);
+  }
+  86% {
+    transform: rotate(-0.3deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-card-auto-swing {
+  animation: card-hang-swing 1s cubic-bezier(0.4, 0, 0.2, 1) 1 forwards;
+  transform-origin: top center;
+  will-change: transform;
+}
+
+/* ==========================================================================
+   Timeline Spine & Node Subtle Animations (Matching Prototype)
+   ========================================================================== */
+@keyframes timeline-ripple {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  60% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.animate-timeline-ripple-1 {
+  animation: timeline-ripple 2.4s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.animate-timeline-ripple-2 {
+  animation: timeline-ripple 2.4s cubic-bezier(0.2, 0.8, 0.4, 1) infinite 1.2s;
+  will-change: transform, opacity;
+}
+
+@keyframes timeline-core-glow {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 3px #b90101;
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 6px #b90101;
+  }
+}
+
+.animate-timeline-core {
+  animation: timeline-core-glow 2s ease-in-out infinite;
+  will-change: transform, box-shadow;
+}
