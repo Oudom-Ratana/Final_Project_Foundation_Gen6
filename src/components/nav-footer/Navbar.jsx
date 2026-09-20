@@ -22,6 +22,7 @@ import { selectTheme, toggleTheme } from "../../redux/slices/uiSlice";
 import { selectFavouriteMovies } from "../../redux/slices/favouriteSlice";
 import { toast } from "react-toastify";
 import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
+import FilmZoneDarkLogo from "../../assets/logo/FilmZone_DarkModeLogo.png";
 
 export default function Navbar() {
   const dispatch = useDispatch();
@@ -164,7 +165,7 @@ export default function Navbar() {
           aria-label="FilmZone Home"
         >
           <img
-            src={filmZoneLogo}
+            src={theme === "dark" ? FilmZoneDarkLogo : filmZoneLogo}
             alt="FilmZone Logo"
             className="h-6 sm:h-7.5 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-sm"
           />
