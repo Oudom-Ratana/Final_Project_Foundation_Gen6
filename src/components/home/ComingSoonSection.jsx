@@ -1,12 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
   Calendar,
   Sparkles,
-  Ticket,
   Maximize2,
   Share2,
   Clock,
@@ -248,33 +246,24 @@ export default function ComingSoonSection() {
                     )}
                   </div>
 
-                  {/* Card Content Bar (Clean: Title, Release Date, & Preview Button) */}
+                  {/* Card Content Bar (Clean: Title & Release Date) */}
                   <div className="absolute bottom-0 inset-x-0 p-5 z-20 flex flex-col justify-end text-white">
                     <h3 className="text-lg sm:text-xl font-black tracking-tight line-clamp-1 drop-shadow-md">
                       {movie.title}
                     </h3>
 
-                    {isActive ? (
-                      <div className="mt-2.5 flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-[#FFD700] flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {formatReleaseDate(movie.release_date)}
-                        </span>
-
-                        <Link
-                          to={`/movies/${movie.id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#B90101] hover:bg-[#8F0101] text-white text-[11px] font-black uppercase tracking-wider shadow-xs hover:shadow-sm transition hover:scale-105 active:scale-95"
-                        >
-                          <Ticket className="w-3.5 h-3.5" />
-                          <span>Preview</span>
-                        </Link>
-                      </div>
-                    ) : (
-                      <p className="text-[11px] text-neutral-400 line-clamp-1 mt-0.5">
+                    <div className="mt-1 flex items-center">
+                      <span
+                        className={`text-[11px] flex items-center gap-1 ${
+                          isActive
+                            ? "font-bold text-[#FFD700]"
+                            : "text-neutral-400"
+                        }`}
+                      >
+                        <Calendar className="w-3.5 h-3.5" />
                         {formatReleaseDate(movie.release_date)}
-                      </p>
-                    )}
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
               );
