@@ -271,7 +271,7 @@ export default function StreamMovieDetailPage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#B90101] text-white flex items-center justify-center shadow-lg shadow-red-950/50 hover:brightness-110 active:scale-95 transition"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#B90101] text-white flex items-center justify-center hover:brightness-110 active:scale-95 transition cursor-pointer"
             aria-label="Go Back"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -282,7 +282,7 @@ export default function StreamMovieDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Left: Large Movie Poster Card */}
           <div className="md:col-span-5 lg:col-span-4 flex justify-center md:justify-start">
-            <div className="relative aspect-[2/3] w-full max-w-[340px] rounded-[25px] overflow-hidden shadow-2xl bg-neutral-900 border border-neutral-200/80 dark:border-white/15">
+            <div className="relative aspect-[2/3] w-full max-w-[340px] rounded-[25px] overflow-hidden bg-neutral-900 border border-neutral-200/80 dark:border-white/15">
               <img
                 src={posterUrl}
                 alt={title}
@@ -361,21 +361,35 @@ export default function StreamMovieDetailPage() {
 
             {/* Action Buttons: Watch Trailer & Full Movie */}
             <div className="flex flex-wrap items-center gap-4 pt-3">
-              {/* Watch Trailer Button (White Pill) */}
-              <button
-                type="button"
-                onClick={handleOpenTrailer}
-                className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border bg-[var(--primary-color-5)] border-[var(--border-light-mode)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] text-neutral-900 font-sans font-bold text-sm uppercase tracking-wider shadow-lg hover:brightness-105 hover:scale-105 active:scale-95 transition"
-              >
-                <Play className="w-4 h-4 fill-current text-[var(--primary-red)]" />
-                <span className="text-[var(--primary-red)]">Watch Trailer</span>
-              </button>
+              {/* Watch Trailer Button (White Pill if available, disabled notice if not) */}
+              {trailerKey ? (
+                <button
+                  type="button"
+                  onClick={handleOpenTrailer}
+                  className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border bg-[var(--primary-color-5)] border-[var(--border-light-mode)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] text-neutral-900 font-sans font-bold text-sm uppercase tracking-wider hover:brightness-105 hover:scale-105 active:scale-95 transition cursor-pointer"
+                >
+                  <Play className="w-4 h-4 fill-current text-[var(--primary-red)]" />
+                  <span className="text-[var(--primary-red)]">
+                    Watch Trailer
+                  </span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  title="Official trailer not available on TMDB for this title"
+                  className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-neutral-300/60 dark:border-white/10 bg-neutral-100/60 dark:bg-white/5 text-neutral-400 dark:text-neutral-500 font-sans font-bold text-sm uppercase tracking-wider cursor-not-allowed opacity-60"
+                >
+                  <Film className="w-4 h-4" />
+                  <span>Trailer Unavailable</span>
+                </button>
+              )}
 
               {/* Full Movie / Watch Series Button (Red Pill) */}
               <button
                 type="button"
                 onClick={() => handleOpenFullMovie(selectedEpisode)}
-                className="flex items-center gap-2.5 px-6 py-2.5 rounded-full text-white font-sans font-bold text-sm uppercase tracking-wider shadow-md shadow-red-950/50 hover:brightness-110 hover:scale-105 active:scale-95 transition"
+                className="flex items-center gap-2.5 px-6 py-2.5 rounded-full text-white font-sans font-bold text-sm uppercase tracking-wider hover:brightness-110 hover:scale-105 active:scale-95 transition cursor-pointer"
                 style={{ backgroundColor: "#B90101" }}
               >
                 <Play className="w-4 h-4 fill-white" />
@@ -395,7 +409,7 @@ export default function StreamMovieDetailPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 select-none">
+                <div className="flex items-center gap-2 overflow-x-auto py-1 px-1 pb-2 select-none">
                   {Array.from({ length: totalEpisodes }, (_, i) => i + 1).map(
                     (ep) => {
                       const isSelected = selectedEpisode === ep;
@@ -407,9 +421,9 @@ export default function StreamMovieDetailPage() {
                             setSelectedEpisode(ep);
                             handleOpenFullMovie(ep);
                           }}
-                          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 shrink-0 ${
+                          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                             isSelected
-                              ? "bg-[#B90101] text-white shadow-md shadow-red-950/60 scale-105"
+                              ? "bg-[#B90101] text-white"
                               : "bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-300 dark:border-white/10"
                           }`}
                         >
