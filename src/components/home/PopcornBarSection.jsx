@@ -81,7 +81,7 @@ export default function PopcornBarSection() {
               duration={650}
               distance="translate-y-8"
             >
-              <div className="group relative rounded-3xl bg-white dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 hover:border-[#B90101]/60 p-5 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between min-h-[360px] overflow-hidden">
+              <div className="group relative rounded-3xl bg-white  border border-neutral-200/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] hover:border-[#B90101]/60 p-5 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between min-h-[360px] overflow-hidden">
                 {/* Popcorn Graphic Background Glow */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500 pointer-events-none" />
 

@@ -36,7 +36,7 @@ export default function BookingStepper({ currentStep = 2 }) {
             className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 ${
               isStep1Done
                 ? "bg-[#B90101] text-white"
-                : "border border-neutral-300 dark:border-white/20 text-neutral-400"
+                : "border border-neutral-300 dark:border-(--border-dark-mode) text-neutral-400"
             }`}
           >
             <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3]" />
@@ -47,7 +47,7 @@ export default function BookingStepper({ currentStep = 2 }) {
         {/* Connecting line 1-2 */}
         <div
           className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
-            isStep2Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-white/20"
+            isStep2Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-[var(--primary-color-30)]"
           }`}
         />
 
@@ -63,7 +63,7 @@ export default function BookingStepper({ currentStep = 2 }) {
             className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 ${
               isStep2Done
                 ? "bg-[#B90101] text-white"
-                : "border border-neutral-300 dark:border-white/20 text-neutral-400"
+                : "border border-neutral-300 dark:border-(--border-dark-mode) text-neutral-400"
             }`}
           >
             <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3]" />
@@ -74,7 +74,7 @@ export default function BookingStepper({ currentStep = 2 }) {
         {/* Connecting line 2-3 */}
         <div
           className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
-            isStep3Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-white/20"
+            isStep3Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-[var(--primary-color-30)]"
           }`}
         />
 
@@ -90,7 +90,7 @@ export default function BookingStepper({ currentStep = 2 }) {
             className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 ${
               isStep3Done
                 ? "bg-[#B90101] text-white"
-                : "border border-neutral-300 dark:border-white/20 text-neutral-400"
+                : "border border-neutral-300 dark:border-(--border-dark-mode) text-neutral-400"
             }`}
           >
             <Check
@@ -103,7 +103,7 @@ export default function BookingStepper({ currentStep = 2 }) {
         {/* Connecting line 3-4 */}
         <div
           className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
-            isStep4Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-white/20"
+            isStep4Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-[var(--primary-color-30)]"
           }`}
         />
 
@@ -119,7 +119,7 @@ export default function BookingStepper({ currentStep = 2 }) {
             className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 ${
               isStep4Done
                 ? "bg-[#B90101] text-white"
-                : "border border-neutral-300 dark:border-white/20 text-neutral-400"
+                : "border border-neutral-300 dark:border-(--border-dark-mode) text-neutral-400"
             }`}
           >
             <Check

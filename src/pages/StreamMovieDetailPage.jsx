@@ -424,7 +424,7 @@ export default function StreamMovieDetailPage() {
                           className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                             isSelected
                               ? "bg-[#B90101] text-white"
-                              : "bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-300 dark:border-white/10"
+                              : "bg-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-300 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)]"
                           }`}
                         >
                           <Play

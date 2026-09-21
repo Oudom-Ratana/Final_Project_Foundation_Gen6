@@ -231,7 +231,7 @@ export default function BookingConfirmedPage() {
             </h2>
 
             {/* Ticket Card */}
-            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#161A20] shadow-xl overflow-hidden flex flex-col justify-between flex-1">
+            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white shadow-xl overflow-hidden flex flex-col justify-between flex-1">
               {/* Top Red Header */}
               <div className="bg-[#B90101] text-white py-3.5 text-center font-extrabold text-base sm:text-lg tracking-wider shrink-0">
                 Movie Ticket
@@ -249,7 +249,7 @@ export default function BookingConfirmedPage() {
                           : "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg"
                       }
                       alt={movie.title}
-                      className="w-18 h-24 rounded-2xl object-cover shadow-md shrink-0 border border-neutral-200 dark:border-white/10"
+                      className="w-18 h-24 rounded-2xl object-cover shadow-md shrink-0 border border-neutral-200 dark:border-(--border-dark-mode)"
                     />
                     <div className="min-w-0 space-y-1">
                       <h3 className="font-extrabold text-base text-neutral-900 dark:text-white leading-snug">
@@ -268,9 +268,9 @@ export default function BookingConfirmedPage() {
 
                   {/* Perforated Ticket Tear Line with Notches */}
                   <div className="relative flex items-center justify-center my-4">
-                    <div className="absolute -left-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:bg-[#0E1217] border-r border-neutral-200 dark:border-white/10" />
+                    <div className="absolute -left-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-r border-neutral-200 " />
                     <div className="w-full border-b-2 border-dashed border-neutral-300 dark:border-neutral-700" />
-                    <div className="absolute -right-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:bg-[#0E1217] border-l border-neutral-200 dark:border-white/10" />
+                    <div className="absolute -right-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-l border-neutral-200 " />
                   </div>
 
                   {/* 2-Column Metadata Grid */}
@@ -329,7 +329,7 @@ export default function BookingConfirmedPage() {
 
                   {/* Food & Drinks breakdown (if selected) */}
                   {concessions.length > 0 && (
-                    <div className="pt-3 border-t border-dashed border-neutral-200 dark:border-white/10 space-y-1.5 text-xs">
+                    <div className="pt-3 border-t border-dashed border-neutral-200 dark:border-(--border-dark-mode) space-y-1.5 text-xs">
                       <span className="font-bold text-[#B90101] uppercase tracking-wider text-[11px] block">
                         Food & Drinks
                       </span>
@@ -437,7 +437,7 @@ export default function BookingConfirmedPage() {
             </h2>
 
             {/* Ticket Card */}
-            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#161A20] shadow-xl overflow-hidden flex flex-col justify-between flex-1">
+            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white  shadow-xl overflow-hidden flex flex-col justify-between flex-1">
               {/* Top 3 Red Badges */}
               <div className="p-5 pb-3 shrink-0">
                 <div className="grid grid-cols-3 gap-2.5">
@@ -472,9 +472,9 @@ export default function BookingConfirmedPage() {
 
               {/* Perforated Ticket Tear Line with Notches */}
               <div className="relative flex items-center justify-center my-2 shrink-0">
-                <div className="absolute -left-3.5 w-6 h-6 rounded-full bg-[#F6F7F9] dark:bg-[#0E1217] border-r border-neutral-200 dark:border-white/10" />
+                <div className="absolute -left-3.5 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-r border-neutral-200 " />
                 <div className="w-full border-b-2 border-dashed border-neutral-300 dark:border-neutral-700" />
-                <div className="absolute -right-3.5 w-6 h-6 rounded-full bg-[#F6F7F9] dark:bg-[#0E1217] border-l border-neutral-200 dark:border-white/10" />
+                <div className="absolute -right-3.5 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-l border-neutral-200 " />
               </div>
 
               {/* Card Body: QR Code vertically centered */}

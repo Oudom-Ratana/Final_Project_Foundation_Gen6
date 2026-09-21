@@ -76,7 +76,7 @@ export default function QuickBookingBar() {
 
   return (
     <div className="relative z-30 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 sm:-mt-12">
-      <div className="bg-white/95 dark:bg-[#0D1117]/95 backdrop-blur-2xl rounded-3xl border border-neutral-200/80 dark:border-white/10 shadow-2xl shadow-black/20 p-4 sm:p-6 transition-all duration-300">
+      <div className="bg-white/95 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] backdrop-blur-2xl rounded-3xl border border-neutral-200/80 shadow-2xl shadow-black/20 p-4 sm:p-6 transition-all duration-300">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           {/* Header pill */}
           <div className="flex items-center gap-2.5 shrink-0 self-start lg:self-center pr-2">
@@ -99,7 +99,7 @@ export default function QuickBookingBar() {
             className="w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1"
           >
             {/* 1. Select Movie */}
-            <div className="relative flex items-center bg-neutral-100/80 dark:bg-white/5 rounded-2xl px-3.5 py-2.5 border border-neutral-200/70 dark:border-white/10 hover:border-[#B90101]/60 transition">
+            <div className="relative flex items-center bg-neutral-100/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] rounded-2xl px-3.5 py-2.5 border border-neutral-200/70 hover:border-[#B90101]/60 transition">
               <Film className="w-4 h-4 text-[#B90101] mr-2.5 shrink-0" />
               <div className="flex-1 min-w-0">
                 <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
@@ -126,7 +126,7 @@ export default function QuickBookingBar() {
             </div>
 
             {/* 2. Select Cinema Branch */}
-            <div className="relative flex items-center bg-neutral-100/80 dark:bg-white/5 rounded-2xl px-3.5 py-2.5 border border-neutral-200/70 dark:border-white/10 hover:border-[#B90101]/60 transition">
+            <div className="relative flex items-center bg-neutral-100/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] rounded-2xl px-3.5 py-2.5 border border-neutral-200/70  hover:border-[#B90101]/60 transition">
               <MapPin className="w-4 h-4 text-[#B90101] mr-2.5 shrink-0" />
               <div className="flex-1 min-w-0">
                 <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
@@ -151,7 +151,7 @@ export default function QuickBookingBar() {
             </div>
 
             {/* 3. Select Date */}
-            <div className="relative flex items-center bg-neutral-100/80 dark:bg-white/5 rounded-2xl px-3.5 py-2.5 border border-neutral-200/70 dark:border-white/10 hover:border-[#B90101]/60 transition">
+            <div className="relative flex items-center bg-neutral-100/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] rounded-2xl px-3.5 py-2.5 border border-neutral-200/70 hover:border-[#B90101]/60 transition">
               <Calendar className="w-4 h-4 text-[#B90101] mr-2.5 shrink-0" />
               <div className="flex-1 min-w-0">
                 <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
@@ -166,7 +166,7 @@ export default function QuickBookingBar() {
                     <option
                       key={opt.value}
                       value={opt.value}
-                      className="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+                      className="bg-white dark:bg-[var(--primary-color-30)] text-neutral-900 dark:text-white"
                     >
                       {opt.label}
                     </option>

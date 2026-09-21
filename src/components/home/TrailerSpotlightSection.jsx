@@ -91,7 +91,7 @@ export default function TrailerSpotlightSection() {
       <ScrollReveal duration={700} distance="translate-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Left / Main Player (8 columns on lg) */}
-          <div className="lg:col-span-8 flex flex-col rounded-3xl overflow-hidden bg-white dark:bg-[#12161C] border border-neutral-200/90 dark:border-white/10 shadow-xs dark:shadow-none transition-all duration-300">
+          <div className="lg:col-span-8 flex flex-col rounded-3xl overflow-hidden bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-200/90 shadow-xs dark:shadow-none transition-all duration-300">
             {/* 16:9 Video Frame */}
             <div className="relative aspect-video w-full bg-black">
               <iframe
@@ -113,7 +113,7 @@ export default function TrailerSpotlightSection() {
                     <span className="px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#B90101] text-white">
                       {selectedTrailer.release}
                     </span>
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-white/10">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase bg-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)]text-neutral-800 dark:text-neutral-200 border border-neutral-200 ">
                       {selectedTrailer.rating}
                     </span>
                     <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
@@ -143,7 +143,7 @@ export default function TrailerSpotlightSection() {
               </div>
 
               {/* Bottom Specs Bar */}
-              <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-white/10 flex items-center gap-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+              <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] flex items-center gap-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-[#B90101]" />
                   {selectedTrailer.duration}
@@ -161,9 +161,9 @@ export default function TrailerSpotlightSection() {
           </div>
 
           {/* Right / Playlist Sidebar (4 columns on lg) */}
-          <div className="lg:col-span-4 rounded-3xl p-5 sm:p-6 bg-white dark:bg-[#12161C] border border-neutral-200/90 dark:border-white/10 shadow-xs dark:shadow-none flex flex-col justify-between">
+          <div className="lg:col-span-4 rounded-3xl p-5 sm:p-6 bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-200/90 shadow-xs dark:shadow-none flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-neutral-100 dark:border-white/10">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-neutral-100 dark:border-(--border-dark-mode)">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-xl bg-[#B90101]/10 flex items-center justify-center">
                     <Sparkles className="w-4 h-4 text-[#B90101]" />
@@ -177,7 +177,7 @@ export default function TrailerSpotlightSection() {
                     </p>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-neutral-100 dark:bg-[var(--primary-color-30)] text-neutral-600 dark:text-neutral-300">
                   {TRAILERS.length} Clips
                 </span>
               </div>
@@ -274,7 +274,7 @@ export default function TrailerSpotlightSection() {
             </div>
 
             {/* Audio Tip footer */}
-            <div className="mt-5 pt-3 border-t border-neutral-100 dark:border-white/10 flex items-center gap-2 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+            <div className="mt-5 pt-3 border-t border-neutral-100 dark:bg-[var(--primary-color-30)] flex items-center gap-2 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
               <Volume2 className="w-3.5 h-3.5 text-[#B90101] shrink-0" />
               <span>Full audio surround supported</span>
             </div>

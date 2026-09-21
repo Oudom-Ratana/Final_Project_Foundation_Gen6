@@ -106,7 +106,7 @@ export default function GroupBookingLinkModal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/25 dark:bg-black/75 backdrop-blur-md animate-fadeIn select-none font-sans"
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/25 dark:bg-[var(--primary-color-30)] backdrop-blur-md animate-fadeIn select-none font-sans"
       onClick={onClose}
     >
       {/* Modal Card with exact Glassmorphism specification:

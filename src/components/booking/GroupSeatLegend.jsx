@@ -95,7 +95,7 @@ export default function GroupSeatLegend({ mySeats = [] }) {
           </div>
 
           {/* Thin subtle divider */}
-          <div className="border-t border-neutral-300/60 dark:border-white/15 my-2" />
+          <div className="border-t border-neutral-300/60 dark:border-(--border-dark-mode) my-2" />
 
           {/* Row 2: YOUR SEAT / FRIENDS SEAT */}
           <div className="flex items-center justify-around pt-1">

@@ -247,7 +247,7 @@ export default function BookingDetailsPage() {
                       className="flex flex-col justify-between space-y-3 p-2 rounded-2xl transition hover:scale-[1.01]"
                     >
                       {/* Image */}
-                      <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-neutral-800">
+                      <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-[var(--primary-color-30)]">
                         <img
                           src={item.image}
                           alt={item.name}
@@ -340,7 +340,7 @@ export default function BookingDetailsPage() {
               </div>
 
               {/* Dashed Divider */}
-              <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
+              <div className="border-b border-dashed border-neutral-300 dark:border-(--border-dark-mode)" />
 
               {/* Booking Details Grid */}
               <div className="space-y-3.5 text-xs sm:text-sm">
@@ -402,7 +402,7 @@ export default function BookingDetailsPage() {
               </div>
 
               {/* Dashed Divider */}
-              <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
+              <div className="border-b border-dashed border-neutral-300 dark:border-(--border-dark-mode)" />
 
               {/* Food & Drinks Line Items */}
               <div className="space-y-2">

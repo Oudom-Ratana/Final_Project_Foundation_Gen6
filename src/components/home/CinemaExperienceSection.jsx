@@ -108,7 +108,7 @@ function CinemaExperienceCard({ exp, idx, isLeft }) {
   return (
     <div
       ref={cardRef}
-      className={`group relative rounded-3xl p-6 sm:p-8 transition-all duration-300 ease-out border-2 border-slate-200/90 dark:border-white/15 bg-white dark:bg-[#141518]/95 backdrop-blur-md text-slate-900 dark:text-white shadow-[0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:-translate-y-1.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_12px_28px_rgba(0,0,0,0.4)] active:scale-[0.99] flex flex-col justify-between select-none cursor-pointer ${
+      className={`group relative rounded-3xl p-6 sm:p-8 transition-all duration-300 ease-out border-2 border-slate-200/90 bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] backdrop-blur-md text-slate-900 dark:text-white shadow-[0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:-translate-y-1.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_12px_28px_rgba(0,0,0,0.4)] active:scale-[0.99] flex flex-col justify-between select-none cursor-pointer ${
         isShaking ? "animate-card-auto-swing" : ""
       }`}
     >

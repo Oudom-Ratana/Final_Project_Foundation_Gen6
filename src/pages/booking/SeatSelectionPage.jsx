@@ -325,14 +325,14 @@ export default function SeatSelectionPage() {
         </div>
 
         {/* Booking Type Switcher Bar (Standard Booking vs Group Booking) */}
-        <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-neutral-100 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 shadow-xs">
+        <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-200/80  shadow-xs">
           <div className="flex items-center gap-2">
             <span className="text-xs sm:text-sm font-bold text-neutral-600 dark:text-neutral-400">
               Booking Type:
             </span>
           </div>
 
-          <div className="inline-flex p-1 rounded-full bg-neutral-200/80 dark:bg-neutral-900 border border-neutral-300 dark:border-white/10 text-xs font-bold">
+          <div className="inline-flex p-1 rounded-full bg-neutral-200/80 border border-neutral-300 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] text-xs font-bold">
             <button
               type="button"
               onClick={() => handleBookingTypeChange("standard")}

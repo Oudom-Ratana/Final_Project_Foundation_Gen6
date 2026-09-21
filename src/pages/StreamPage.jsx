@@ -351,7 +351,7 @@ export default function StreamPage() {
 
             {/* Sort Options Bar (Popular, Top Rated, Newest) */}
             {!queryParam && (
-              <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300/80 dark:border-white/10 text-[18px] font-bold shadow-xs">
+              <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80 text-[18px] font-bold shadow-xs">
                 {SORT_OPTIONS.map((opt) => {
                   const isSortActive = sortBy === opt.value;
                   const IconComp = opt.icon;
@@ -375,7 +375,7 @@ export default function StreamPage() {
             )}
 
             {/* Category Toggle Pills (TV Series vs Movies) */}
-            <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300/80 dark:border-white/10 text-[18px] font-bold shadow-xs">
+            <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80 text-[18px] font-bold shadow-xs">
               <button
                 type="button"
                 onClick={() => handleCategoryChange("tv")}
@@ -408,7 +408,7 @@ export default function StreamPage() {
         {/* 3. Horizontal Genre Filter Pills Bar */}
         {!queryParam && (
           <div className="overflow-x-auto pb-2 pt-1 select-none scrollbar-none">
-            <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300/80 dark:border-white/10 text-[18px] font-bold shadow-xs">
+            <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80  text-[18px] font-bold shadow-xs">
               {activeGenreList.map((g) => {
                 const isGenreActive = selectedGenre === g.id;
                 return (
@@ -484,7 +484,7 @@ export default function StreamPage() {
               type="button"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-neutral-300 dark:border-white/10 text-neutral-700 dark:text-neutral-300 hover:text-white hover:bg-[#B90101] disabled:opacity-30 disabled:pointer-events-none transition"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-neutral-300 dark:border-(--border-dark-mode) text-neutral-700 dark:text-neutral-300 hover:text-white hover:bg-[#B90101] disabled:opacity-30 disabled:pointer-events-none transition"
               aria-label="Previous Page"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -518,7 +518,7 @@ export default function StreamPage() {
               type="button"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-neutral-300 dark:border-white/10 text-neutral-700 dark:text-neutral-300 hover:text-white hover:bg-[#B90101] disabled:opacity-30 disabled:pointer-events-none transition"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-neutral-300 dark:border-(--border-dark-mode) text-neutral-700 dark:text-neutral-300 hover:text-white hover:bg-[#B90101] disabled:opacity-30 disabled:pointer-events-none transition"
               aria-label="Next Page"
             >
               <ChevronRight className="w-4 h-4" />
