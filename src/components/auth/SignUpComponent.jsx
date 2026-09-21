@@ -5,7 +5,11 @@ import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import heroImage from "../../assets/others/cinema.png";
 import { setCredentials } from "../../redux/slices/authSlice";
-import { registerUser } from "../../services/mockAuthService";
+import {
+  useRegisterMutation,
+  useLoginMutation,
+  useLazyGetCurrentUserQuery,
+} from "../../services/api/authApi";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase/config";
 import { registerSchema } from "../../schemas/authSchema";
@@ -19,6 +23,11 @@ const SignUpComponent = () => {
   const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const [registerMutation, { isLoading: isApiSubmitting }] =
+    useRegisterMutation();
+  const [loginMutation] = useLoginMutation();
+  const [getCurrentUser] = useLazyGetCurrentUserQuery();
+
   const {
     register,
     handleSubmit,
@@ -26,26 +35,86 @@ const SignUpComponent = () => {
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      fullName: "",
+      firstName: "",
+      lastName: "",
+      username: "",
       email: "",
+      phone: "",
       password: "",
     },
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     setErrorMsg("");
 
     try {
-      const result = registerUser({
-        fullName: data.fullName,
-        email: data.email,
+      // 1. Send registration payload to Teacher's Movie Booking API
+      await registerMutation({
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        username: data.username.trim(),
+        email: data.email.trim(),
+        phone: data.phone.trim(),
         password: data.password,
-      });
-      dispatch(setCredentials(result));
-      toast.success(`Account created! Welcome, ${result.user.name}!`);
-      navigate("/");
+      }).unwrap();
+
+      toast.success("Account created successfully! Logging you in...");
+
+      // 2. Automatically log the user in
+      try {
+        const loginRes = await loginMutation({
+          identifier: data.email.trim(),
+          password: data.password,
+        }).unwrap();
+
+        if (loginRes?.accessToken) {
+          if (loginRes.refreshToken) {
+            sessionStorage.setItem("refreshToken", loginRes.refreshToken);
+          }
+
+          let userProfile = {
+            email: data.email,
+            username: data.username,
+            name: `${data.firstName} ${data.lastName}`.trim(),
+          };
+
+          try {
+            const meRes = await getCurrentUser().unwrap();
+            if (meRes) {
+              userProfile = {
+                ...meRes,
+                name:
+                  `${meRes.firstName || ""} ${meRes.lastName || ""}`.trim() ||
+                  meRes.username ||
+                  data.username,
+              };
+            }
+          } catch (e) {
+            console.warn("Fetch me after register:", e);
+          }
+
+          dispatch(
+            setCredentials({
+              accessToken: loginRes.accessToken,
+              token: loginRes.accessToken,
+              refreshToken: loginRes.refreshToken,
+              user: userProfile,
+            }),
+          );
+          navigate("/");
+          return;
+        }
+      } catch (autoLoginErr) {
+        console.warn("Auto-login note:", autoLoginErr);
+      }
+
+      navigate("/login");
     } catch (err) {
-      const message = err.message || "Failed to create account.";
+      console.error("Registration error:", err);
+      const message =
+        err?.data?.message ||
+        err?.data?.error ||
+        "Failed to create account. Please check your details.";
       setErrorMsg(message);
       toast.error(message);
     }
@@ -176,31 +245,113 @@ const SignUpComponent = () => {
             noValidate
             className="space-y-3 sm:space-y-3.5"
           >
-            <div>
-              <label
-                htmlFor="fullName"
-                className="mb-1.5 block text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-200"
-              >
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="fullName"
-                placeholder="Rotana Oudom"
-                {...register("fullName")}
-                className={`w-full rounded-full border ${
-                  errors.fullName
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-(--border-light-mode) dark:border-(--border-dark-mode)"
-                } bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs`}
-              />
-              {errors.fullName && (
-                <p className="mt-1 text-xs text-red-500 font-medium pl-2">
-                  {errors.fullName.message}
-                </p>
-              )}
+            {/* First Name & Last Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label
+                  htmlFor="firstName"
+                  className="mb-1.5 block text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-200"
+                >
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  placeholder="e.g. Oudom"
+                  {...register("firstName")}
+                  className={`w-full rounded-full border ${
+                    errors.firstName
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-(--border-light-mode) dark:border-(--border-dark-mode)"
+                  } bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs`}
+                />
+                {errors.firstName && (
+                  <p className="mt-1 text-xs text-red-500 font-medium pl-2">
+                    {errors.firstName.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="lastName"
+                  className="mb-1.5 block text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-200"
+                >
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  placeholder="e.g. Ratana"
+                  {...register("lastName")}
+                  className={`w-full rounded-full border ${
+                    errors.lastName
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-(--border-light-mode) dark:border-(--border-dark-mode)"
+                  } bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs`}
+                />
+                {errors.lastName && (
+                  <p className="mt-1 text-xs text-red-500 font-medium pl-2">
+                    {errors.lastName.message}
+                  </p>
+                )}
+              </div>
             </div>
 
+            {/* Username & Phone */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label
+                  htmlFor="username"
+                  className="mb-1.5 block text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-200"
+                >
+                  Username
+                </label>
+                <input
+                  type="text"
+                  id="username"
+                  placeholder="e.g. oudom99"
+                  {...register("username")}
+                  className={`w-full rounded-full border ${
+                    errors.username
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-(--border-light-mode) dark:border-(--border-dark-mode)"
+                  } bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs`}
+                />
+                {errors.username && (
+                  <p className="mt-1 text-xs text-red-500 font-medium pl-2">
+                    {errors.username.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="mb-1.5 block text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-200"
+                >
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  placeholder="e.g. 012345678"
+                  {...register("phone")}
+                  className={`w-full rounded-full border ${
+                    errors.phone
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-(--border-light-mode) dark:border-(--border-dark-mode)"
+                  } bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs`}
+                />
+                {errors.phone && (
+                  <p className="mt-1 text-xs text-red-500 font-medium pl-2">
+                    {errors.phone.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Email Address */}
             <div>
               <label
                 htmlFor="email"
@@ -217,7 +368,7 @@ const SignUpComponent = () => {
                   errors.email
                     ? "border-red-500 focus:border-red-500"
                     : "border-(--border-light-mode) dark:border-(--border-dark-mode)"
-                } bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs`}
+                } bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs`}
               />
               {errors.email && (
                 <p className="mt-1 text-xs text-red-500 font-medium pl-2">
@@ -226,6 +377,7 @@ const SignUpComponent = () => {
               )}
             </div>
 
+            {/* Password */}
             <div>
               <label
                 htmlFor="password"
@@ -237,13 +389,13 @@ const SignUpComponent = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  placeholder="Create your password (min 6 characters)"
+                  placeholder="Min 8 chars, 1 uppercase, 1 number, 1 symbol"
                   {...register("password")}
                   className={`w-full rounded-full border ${
                     errors.password
                       ? "border-red-500 focus:border-red-500"
                       : "border-(--border-light-mode) dark:border-(--border-dark-mode)"
-                  } bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] px-4 py-2.5 sm:py-3 pr-11 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs`}
+                  } bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] px-4 py-2 sm:py-2.5 pr-11 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-primary-red focus:outline-none transition shadow-xs`}
                 />
                 <button
                   type="button"
@@ -254,19 +406,26 @@ const SignUpComponent = () => {
                   {showPassword ? <EyeIcon /> : <EyeOffIcon />}
                 </button>
               </div>
-              {errors.password && (
+              {errors.password ? (
                 <p className="mt-1 text-xs text-red-500 font-medium pl-2">
                   {errors.password.message}
+                </p>
+              ) : (
+                <p className="mt-1 text-[11px] text-neutral-400 pl-2">
+                  At least 8 chars, including uppercase, lowercase, digit, and
+                  special char (@$!%*?&).
                 </p>
               )}
             </div>
 
             <button
               type="submit"
-              disabled={isSubmitting || isSocialSubmitting}
-              className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-1 sm:mt-2 disabled:opacity-60"
+              disabled={isSubmitting || isApiSubmitting || isSocialSubmitting}
+              className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-2 disabled:opacity-60"
             >
-              {isSubmitting ? "Creating Account..." : "Create Account"}
+              {isSubmitting || isApiSubmitting
+                ? "Creating Account..."
+                : "Create Account"}
             </button>
           </form>
 
