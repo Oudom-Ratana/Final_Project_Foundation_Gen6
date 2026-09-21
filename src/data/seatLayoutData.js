@@ -23,17 +23,13 @@ export const STANDARD_COL_GROUPS = [
   [11, 12],
 ];
 
-// Row A Couple Seat Pairs matching Figma layout:
-// Pair 1: [1, 2] under cols 1, 2
-// Pair 2: [3, 4] under cols 3, 4
-// Pair 3: [5, 6] under cols 5, 6
-// Pair 4: [8, 9] under cols 8, 9
-// Pair 5: [11, 12] under cols 11, 12
+// Row A Couple Seat Pairs matching cinema layout:
+// 5 pairs: [1,2], [3,4], [6,7] (center), [9,10], [11,12] (A5 & A8 removed as spacing)
 export const COUPLE_PAIRS = [
   [1, 2],
   [3, 4],
-  [5, 6],
-  [8, 9],
+  [6, 7],
+  [9, 10],
   [11, 12],
 ];
 
@@ -132,13 +128,11 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "B10",
   "B11",
   "B12",
-  // Row A Couple pairs (A1-A2, A3-A4, A8-A9 reserved; A5-A6 & A11-A12 available)
+  // Row A Couple pairs (A1-A2, A3-A4 reserved; A6-A7, A9-A10, A11-A12 available)
   "A1",
   "A2",
   "A3",
   "A4",
-  "A8",
-  "A9",
 ]);
 
 /**

@@ -12,6 +12,7 @@ const CINEMA_API_BASE =
 const isCinemaApiEndpoint = (url) => {
   if (typeof url !== "string") return false;
   return (
+    url.startsWith("/movies") ||
     url.startsWith("/auth") ||
     url.startsWith("/users") ||
     url.startsWith("/showtimes") ||

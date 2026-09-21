@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronDown, Volume2, MessageCircleMore } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
@@ -9,12 +9,15 @@ import {
   DATES,
   BRANCH_SHOWTIMES,
 } from "../../data/cinemaShowtimeData";
+import {
+  useGetAllShowtimesQuery,
+  useGetAllHallsQuery,
+} from "../../services/api/cinemaApi";
 
 /**
  * ShowtimeSection
  * Displays Cinema Location selector, Date picker cards, and Branch Showtime listings.
- * Each branch shows all its halls grouped separately.
- * Uses glassmorphism styling (--primary-color-5 / --primary-color-30).
+ * Integrates live showtimes from Teacher's Cinema API with fallback to offline data.
  */
 export default function ShowtimeSection({
   movieId,
@@ -26,10 +29,102 @@ export default function ShowtimeSection({
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
+  // 1. Live Showtimes from Teacher's API
+  const { data: apiShowtimes = [], isLoading: isShowtimesLoading } =
+    useGetAllShowtimesQuery();
+  const { data: apiHalls = [] } = useGetAllHallsQuery();
+
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [selectedDate, setSelectedDate] = useState(DATES[1]); // Default to Aug 26
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
+
+  // Filter showtimes matching current movie (by movieUuid or title)
+  const matchedApiShowtimes = useMemo(() => {
+    if (!Array.isArray(apiShowtimes) || apiShowtimes.length === 0) return [];
+    return apiShowtimes.filter((st) => {
+      if (
+        st.movieUuid &&
+        movieId &&
+        (st.movieUuid === movieId || String(st.tmdbId) === String(movieId))
+      )
+        return true;
+      if (
+        st.movieTitle &&
+        movie?.title &&
+        st.movieTitle.toLowerCase() === movie.title.toLowerCase()
+      )
+        return true;
+      return false;
+    });
+  }, [apiShowtimes, movieId, movie]);
+
+  // Group matched API showtimes by hall
+  const liveHalls = useMemo(() => {
+    if (matchedApiShowtimes.length === 0) return null;
+    const map = {};
+    matchedApiShowtimes.forEach((st) => {
+      const hId = st.hallUuid || st.hallName || "Main Hall";
+      const hallMeta = apiHalls.find(
+        (h) => h.uuid === st.hallUuid || h.name === st.hallName,
+      );
+      const hallTypeStr = (
+        hallMeta?.hallType ||
+        st.hallType ||
+        ""
+      ).toUpperCase();
+      const hallNameStr = st.hallName || hallMeta?.name || "Hall 1";
+      const isGold =
+        hallTypeStr === "VIP" ||
+        hallNameStr.toLowerCase().includes("vip") ||
+        hallNameStr.toLowerCase().includes("gold");
+
+      let screenType = "2D";
+      if (isGold) {
+        screenType = "GOLD";
+      } else if (
+        hallNameStr.toLowerCase().includes("screen x") ||
+        hallNameStr.toLowerCase().includes("screenx")
+      ) {
+        screenType = "SCREEN X";
+      } else if (hallNameStr.toLowerCase().includes("3d")) {
+        screenType = "3D";
+      }
+
+      if (!map[hId]) {
+        map[hId] = {
+          id: hId,
+          screenType,
+          goldClass: isGold,
+          hallName: hallNameStr,
+          audio: "Dolby Atmos 7.1",
+          subtitle: "Khmer / English",
+          slots: [],
+        };
+      }
+      let timeStr = "02:00 PM";
+      if (st.startTime) {
+        try {
+          const d = new Date(st.startTime);
+          timeStr = d.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } catch (e) {
+          console.warn("Time parse error:", e);
+        }
+      } else if (st.showTime) {
+        timeStr = st.showTime;
+      }
+      map[hId].slots.push({
+        uuid: st.uuid,
+        time: timeStr,
+        price: st.basePrice || 5.0,
+        raw: st,
+      });
+    });
+    return Object.values(map);
+  }, [matchedApiShowtimes]);
 
   // Glassmorphism design tokens from index.css
   const glassCardStyle = {
@@ -52,7 +147,7 @@ export default function ShowtimeSection({
       ? BRANCH_SHOWTIMES
       : BRANCH_SHOWTIMES.filter((b) => b.location === selectedLocation);
 
-  const handleTimeClick = (branch, hall, time) => {
+  const handleTimeClick = (branch, hall, time, showtimeObj = null) => {
     const slotKey = `${hall.id}-${time}`;
     setSelectedTimeSlot(slotKey);
 
@@ -60,16 +155,26 @@ export default function ShowtimeSection({
       dispatch(setMovie(movie));
     }
 
-    // Navigate directly to seat selection — hall type decides the seat map
     const params = new URLSearchParams({
-      movie: movieId || "",
+      movie: movieId || showtimeObj?.movieUuid || "",
       mediaType: isTV ? "tv" : "movie",
       hall: hall.goldClass ? "gold" : "standard",
       screenType: hall.screenType || (hall.goldClass ? "GOLD" : "2D"),
       time,
-      branch: branch.branchName,
+      branch: branch?.branchName || "FilmZone Major Cinema",
       date: `${selectedDate.month} ${selectedDate.day} ${selectedDate.weekday}`,
     });
+
+    if (showtimeObj?.uuid) {
+      params.set("showtimeUuid", showtimeObj.uuid);
+    }
+    if (showtimeObj?.hallUuid || hall.id) {
+      params.set("hallUuid", showtimeObj?.hallUuid || hall.id);
+    }
+    if (showtimeObj?.basePrice || showtimeObj?.price) {
+      params.set("price", String(showtimeObj.basePrice || showtimeObj.price));
+    }
+
     navigate(`/booking/seats?${params.toString()}`);
   };
 
@@ -268,6 +373,95 @@ export default function ShowtimeSection({
 
       {/* 4. Cinema Branch Cards — Each shows grouped halls */}
       <div className="space-y-4 sm:space-y-5">
+        {/* Live Backend Showtimes from Teacher's Database */}
+        {liveHalls && liveHalls.length > 0 && (
+          <div
+            className="w-full rounded-2xl sm:rounded-3xl border border-[#B90101]/40 overflow-hidden shadow-md backdrop-blur-md"
+            style={glassCardStyle}
+          >
+            <div
+              className="flex items-center justify-between px-5 sm:px-6 py-4 border-b bg-[#B90101]/10"
+              style={borderDividerStyle}
+            >
+              <div className="flex items-center gap-3">
+                <h3 className="text-base sm:text-lg font-black text-neutral-900 dark:text-white">
+                  FilmZone Cinema (Live Schedule)
+                </h3>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-[#B90101] text-white">
+                  Teacher API Live
+                </span>
+              </div>
+            </div>
+
+            <div className="divide-y" style={borderDividerStyle}>
+              {liveHalls.map((hall) => {
+                const isGold = hall.goldClass;
+                return (
+                  <div
+                    key={hall.id}
+                    className="px-5 sm:px-6 py-4 sm:py-5 space-y-3"
+                  >
+                    {renderHallHeader(hall)}
+
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1">
+                      {hall.slots.map((slot) => {
+                        const slotKey = `${hall.id}-${slot.time}`;
+                        const isActive = selectedTimeSlot === slotKey;
+                        return (
+                          <button
+                            key={slot.uuid || slot.time}
+                            type="button"
+                            onClick={() =>
+                              handleTimeClick(
+                                { branchName: "FilmZone Cinema" },
+                                hall,
+                                slot.time,
+                                slot.raw,
+                              )
+                            }
+                            className="px-5 sm:px-6 py-2 rounded-full font-bold text-xs sm:text-sm tracking-wide transition-all active:scale-95 border cursor-pointer"
+                            style={
+                              isActive
+                                ? {
+                                    backgroundColor: isGold
+                                      ? "#FFB800"
+                                      : "#B90101",
+                                    borderColor: isGold ? "#FFB800" : "#B90101",
+                                    color: isGold ? "#1a1a1a" : "#ffffff",
+                                    transform: "scale(1.05)",
+                                  }
+                                : {
+                                    backgroundColor: isDark
+                                      ? "var(--primary-color-30)"
+                                      : "var(--primary-color-5)",
+                                    borderColor: isGold
+                                      ? "#FFB800"
+                                      : isDark
+                                        ? "var(--border-dark-mode)"
+                                        : "var(--border-light-mode)",
+                                    color: isGold
+                                      ? "#FFB800"
+                                      : isDark
+                                        ? "#ffffff"
+                                        : "#171717",
+                                  }
+                            }
+                          >
+                            <span>{slot.time}</span>
+                            <span className="ml-2 text-[10px] opacity-75">
+                              ${slot.price.toFixed(2)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {filteredBranches.map((branch) => (
           <div
             key={branch.id}

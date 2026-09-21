@@ -1,911 +1,894 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   Search,
-  Sparkles,
-  Key,
   Loader2,
   Plus,
-  Trash2,
   Calendar,
+  Layers,
+  Film,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  AlertCircle,
   Building2,
-  Copy,
+  Sparkles,
 } from "lucide-react";
-import {
-  searchLiveTmdb,
-  fetchLiveTmdbDetails,
-  getTmdbApiKey,
-  setTmdbApiKey,
-} from "../../services/tmdbService";
-import {
-  AVAILABLE_BRANCHES,
-  HALL_CONFIGS,
-  createDefaultBranchSchedules,
-  getBaseHallsTemplate,
-  getHallsForDate,
-} from "../../utils/hallConfigs";
-import { generateDateList } from "../../utils/dateHelpers";
-import { MOCK_MOVIES } from "../../utils/mockData";
 import { toast } from "react-toastify";
+import {
+  useLazySearchMoviesQuery,
+  useGetNowPlayingMoviesQuery,
+} from "../../services/api/movieApi";
+import {
+  useGetCinemaMoviesQuery,
+  useGetAllHallsQuery,
+  useCreateHallMutation,
+  useCreateSeatsBulkMutation,
+  useCreateShowtimeMutation,
+  useImportMovieFromTmdbMutation,
+} from "../../services/api/cinemaApi";
 
-export default function MovieModal({
-  isOpen,
-  onClose,
-  onSave,
-  editingMovie = null,
-}) {
-  const [title, setTitle] = useState("");
-  const [duration, setDuration] = useState("2h 25min");
-  const [genres, setGenres] = useState("Superhero, Adventure, Action");
-  const [status, setStatus] = useState("Live"); // 'Live' | 'Upcoming'
-  const [posterPath, setPosterPath] = useState(
-    "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
-  );
-  const [year, setYear] = useState("2026");
-  const [tmdbId, setTmdbId] = useState(null);
+// 4 Auto-Generated Cinema Hall Presets matching the 2 hall types (Standard: 94 seats, VIP: 36 seats)
+const AUTO_HALL_PRESETS = [
+  {
+    name: "Hall 1 - Screen X",
+    hallType: "STANDARD",
+    capacity: 94,
+    description:
+      "Standard cinema hall with 94 seats and Screen X panoramic multi-projection",
+  },
+  {
+    name: "Hall 2 - Screen 2D",
+    hallType: "STANDARD",
+    capacity: 94,
+    description: "Standard digital 2D screening hall with 94 comfortable seats",
+  },
+  {
+    name: "Hall 3 - Screen 3D",
+    hallType: "STANDARD",
+    capacity: 94,
+    description:
+      "Standard digital 3D screening hall with 94 seats and RealD 3D",
+  },
+  {
+    name: "VIP Hall",
+    hallType: "VIP",
+    capacity: 36,
+    description: "Luxury VIP hall with 36 premium leather recliner seats",
+  },
+];
 
-  // Dynamic Date Scheduling State
-  const [startDate, setStartDate] = useState("2026-08-25");
-  const [durationPreset, setDurationPreset] = useState("7");
-  const [endDate, setEndDate] = useState("2026-09-01");
+export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
+  // Tabs: 'import' | 'schedule' | 'halls'
+  const [activeTab, setActiveTab] = useState("import");
 
-  // Multi-Branch & Independent Day Schedules State
-  const [branches, setBranches] = useState(() =>
-    createDefaultBranchSchedules(),
-  );
-  const [selectedBranchIdx, setSelectedBranchIdx] = useState(0);
-  const [newTimeInput, setNewTimeInput] = useState({});
+  // Queries & Mutations from Teacher's API
+  const { data: cinemaMoviesData, refetch: refetchCinemaMovies } =
+    useGetCinemaMoviesQuery({ page: 0, size: 100 });
+  const { data: halls = [], refetch: refetchHalls } = useGetAllHallsQuery();
+  const [importMovieFromTmdb, { isLoading: isImporting }] =
+    useImportMovieFromTmdbMutation();
+  const [createShowtime, { isLoading: isCreatingShowtime }] =
+    useCreateShowtimeMutation();
+  const [createHall, { isLoading: isCreatingHall }] = useCreateHallMutation();
+  const [createSeatsBulk] = useCreateSeatsBulkMutation();
 
-  // Active Date currently being edited by Admin
-  const [activeDate, setActiveDate] = useState("2026-08-25");
+  // Fallback / Initial Now Playing movies when search query is empty
+  const { data: nowPlayingMovies = [] } = useGetNowPlayingMoviesQuery(1, {
+    skip: !isOpen,
+  });
 
-  // Generated date list from start date and duration
-  const generatedDates = useMemo(() => {
-    const days =
-      durationPreset === "custom"
-        ? Math.max(
-            1,
-            Math.ceil(
-              Math.abs(new Date(endDate) - new Date(startDate)) /
-                (1000 * 60 * 60 * 24),
-            ) + 1,
-          )
-        : parseInt(durationPreset, 10) || 7;
-    return generateDateList(
-      startDate,
-      days,
-      durationPreset === "custom" ? endDate : null,
-    );
-  }, [startDate, durationPreset, endDate]);
-
-  // Keep activeDate valid when dates change
-  useEffect(() => {
-    if (
-      generatedDates.length > 0 &&
-      !generatedDates.some((d) => d.full === activeDate)
-    ) {
-      setActiveDate(generatedDates[0].full);
-    }
-  }, [generatedDates, activeDate]);
-
-  // TMDB Live Cloud Search
+  // TMDB Live Real-Time Search
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [searching, setSearching] = useState(false);
-  const [showKeyConfig, setShowKeyConfig] = useState(false);
-  const [customKey, setCustomKey] = useState(() => getTmdbApiKey());
+  const [triggerSearch, { data: searchResults, isFetching: isSearching }] =
+    useLazySearchMoviesQuery();
 
+  // Schedule Showtime Form State
+  const [selectedMovieUuid, setSelectedMovieUuid] = useState("");
+  const [selectedHallUuid, setSelectedHallUuid] = useState("");
+  const [showDate, setShowDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
+  const [showTime, setShowTime] = useState("14:30:00");
+  const [basePrice, setBasePrice] = useState(4.5);
+
+  // New Hall Form State
+  const [hallName, setHallName] = useState("Hall 1 - Screen X");
+  const [hallType, setHallType] = useState("STANDARD");
+  const [hallCapacity, setHallCapacity] = useState(94);
+  const [hallDescription, setHallDescription] = useState(
+    "Standard cinema hall with 94 seats",
+  );
+
+  // Cinema DB movies list
+  const cinemaMovies = cinemaMoviesData?.content || [];
+
+  // 1. Real-Time Search as User Types (Debounced 300ms - No Enter Needed!)
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+    const timer = setTimeout(() => {
+      triggerSearch({ query: trimmed, page: 1 });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, triggerSearch]);
+
+  // When modal opens or editingMovie changes
   useEffect(() => {
     if (editingMovie) {
-      setTitle(editingMovie.title || "");
-      setDuration(editingMovie.duration || "2h 25min");
-      setGenres(editingMovie.genres || "Action");
-      setStatus(editingMovie.status || "Live");
-      setPosterPath(editingMovie.poster_path || editingMovie.poster || "");
-      setYear(editingMovie.year || "2026");
-      setTmdbId(editingMovie.tmdbId || editingMovie.id || null);
-
-      setStartDate(editingMovie.startDate || "2026-08-25");
-      setEndDate(editingMovie.endDate || "2026-09-01");
-      setDurationPreset(String(editingMovie.totalDays || "7"));
-
-      if (
-        editingMovie.branches &&
-        Array.isArray(editingMovie.branches) &&
-        editingMovie.branches.length > 0
-      ) {
-        setBranches(editingMovie.branches);
-      } else {
-        setBranches(createDefaultBranchSchedules());
-      }
+      setActiveTab("schedule");
+      setSelectedMovieUuid(editingMovie.uuid || editingMovie.id || "");
     } else {
-      setTitle("");
-      setDuration("2h 25min");
-      setGenres("Superhero, Adventure, Action");
-      setStatus("Live");
-      setPosterPath(
-        "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
-      );
-      setYear("2026");
-      setTmdbId(null);
-      setStartDate("2026-08-25");
-      setDurationPreset("7");
-      setEndDate("2026-09-01");
-      setSearchQuery("");
-      setSearchResults([]);
-      setBranches(createDefaultBranchSchedules());
-      setActiveDate("2026-08-25");
+      setActiveTab("import");
     }
   }, [editingMovie, isOpen]);
 
-  // Current Branch
-  const currentBranch = branches[selectedBranchIdx] || branches[0];
-
-  // Get active day's halls directly (MUST BE CALLED UNCONDITIONALLY BEFORE ANY RETURN)
-  const activeDayHalls = useMemo(() => {
-    return getHallsForDate(currentBranch, activeDate);
-  }, [currentBranch, activeDate]);
-
-  const handlePresetChange = (daysVal) => {
-    setDurationPreset(daysVal);
-    if (daysVal !== "custom") {
-      const days = parseInt(daysVal, 10);
-      const start = new Date(startDate);
-      if (!isNaN(start.getTime())) {
-        const end = new Date(start);
-        end.setDate(start.getDate() + days - 1);
-        const y = end.getFullYear();
-        const m = String(end.getMonth() + 1).padStart(2, "0");
-        const d = String(end.getDate()).padStart(2, "0");
-        setEndDate(`${y}-${m}-${d}`);
-      }
+  // Set default hall when halls load
+  useEffect(() => {
+    if (halls.length > 0 && !selectedHallUuid) {
+      setSelectedHallUuid(halls[0].uuid);
     }
-  };
+  }, [halls, selectedHallUuid]);
 
-  // TMDB Live Search
-  const handleTmdbSearch = async (query) => {
-    setSearchQuery(query);
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
+  // Set default movie for schedule tab if none selected
+  useEffect(() => {
+    if (cinemaMovies.length > 0 && !selectedMovieUuid) {
+      setSelectedMovieUuid(cinemaMovies[0].uuid);
     }
+  }, [cinemaMovies, selectedMovieUuid]);
 
-    setSearching(true);
-    try {
-      const liveRes = await searchLiveTmdb(query.trim());
-      if (liveRes.results && liveRes.results.length > 0) {
-        setSearchResults(liveRes.results.slice(0, 6));
-      } else {
-        const localMatches = MOCK_MOVIES.filter((m) =>
-          m.title.toLowerCase().includes(query.toLowerCase()),
-        );
-        setSearchResults(localMatches.slice(0, 6));
-      }
-    } catch {
-      const localMatches = MOCK_MOVIES.filter((m) =>
-        m.title.toLowerCase().includes(query.toLowerCase()),
-      );
-      setSearchResults(localMatches.slice(0, 6));
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  const handleSelectTmdbMovie = async (sm) => {
-    setTitle(sm.title);
-    setTmdbId(sm.tmdbId || sm.id);
-    if (sm.poster_path) setPosterPath(sm.poster_path);
-    if (sm.year) setYear(sm.year);
-
-    const details = await fetchLiveTmdbDetails(sm.tmdbId || sm.id);
-    if (details) {
-      if (details.duration) setDuration(details.duration);
-      if (details.genres) setGenres(details.genres);
-      if (details.year) setYear(details.year);
-    } else if (sm.genres) {
-      setGenres(
-        typeof sm.genres === "string" ? sm.genres : "Action, Adventure",
-      );
-    }
-
-    setSearchResults([]);
-    setSearchQuery("");
-  };
-
-  const handleSaveApiKey = (e) => {
-    e.preventDefault();
-    setTmdbApiKey(customKey);
-    setShowKeyConfig(false);
-    toast.success("TMDB API Key saved successfully!");
-  };
-
-  // Deep clone helper to ensure 100% reactive state updates
-  const getClonedBranchAndSchedule = () => {
-    const updatedBranches = JSON.parse(JSON.stringify(branches));
-    const branch = updatedBranches[selectedBranchIdx];
-    if (!branch.scheduleByDate) branch.scheduleByDate = {};
-    if (!branch.scheduleByDate[activeDate]) {
-      branch.scheduleByDate[activeDate] = JSON.parse(
-        JSON.stringify(getHallsForDate(branch, activeDate)),
-      );
-    }
-    return { updatedBranches, branch };
-  };
-
-  // Add Hall (Instant UI update)
-  const handleAddHallToActiveDate = (hallTypeKey) => {
-    const config = HALL_CONFIGS[hallTypeKey];
-    if (!config) return;
-
-    const { updatedBranches, branch } = getClonedBranchAndSchedule();
-    const dayHalls = branch.scheduleByDate[activeDate];
-
-    const newHall = {
-      id: `hall-${hallTypeKey}-${Date.now()}`,
-      name: branch.branchName,
-      hallName: config.name,
-      hallType: config.id,
-      price: config.pricing.vip || config.pricing.single,
-      badges: [config.badge, "KH", "EN"],
-      times: ["09:00 PM", "12:45 PM", "03:45 PM"],
-    };
-
-    dayHalls.push(newHall);
-    setBranches(updatedBranches);
-  };
-
-  // Delete Hall (Instant UI update)
-  const handleDeleteHallFromActiveDate = (hallIndex) => {
-    const { updatedBranches, branch } = getClonedBranchAndSchedule();
-    const dayHalls = branch.scheduleByDate[activeDate];
-
-    if (dayHalls.length <= 1) {
-      toast.warn("At least one hall is required for this day");
-      return;
-    }
-
-    dayHalls.splice(hallIndex, 1);
-    setBranches(updatedBranches);
-  };
-
-  // Add Time Slot (Instant UI update)
-  const handleAddTimeSlotToActiveDate = (hallIdx) => {
-    const timeVal = (newTimeInput[hallIdx] || "").trim();
-    if (!timeVal) return;
-
-    const { updatedBranches, branch } = getClonedBranchAndSchedule();
-    const dayHalls = branch.scheduleByDate[activeDate];
-    const hall = dayHalls[hallIdx];
-
-    if (hall.times.includes(timeVal)) {
-      toast.warn("Time slot already exists for this day");
-      return;
-    }
-
-    hall.times.push(timeVal);
-    setBranches(updatedBranches);
-    setNewTimeInput({ ...newTimeInput, [hallIdx]: "" });
-  };
-
-  // Delete Time Slot (Instant UI update)
-  const handleDeleteTimeSlotFromActiveDate = (hallIdx, timeIdx) => {
-    const { updatedBranches, branch } = getClonedBranchAndSchedule();
-    const dayHalls = branch.scheduleByDate[activeDate];
-    const hall = dayHalls[hallIdx];
-
-    if (hall.times.length <= 1) {
-      toast.warn("At least one showtime is required for this day");
-      return;
-    }
-
-    hall.times.splice(timeIdx, 1);
-    setBranches(updatedBranches);
-  };
-
-  // Copy schedule across all days
-  const handleCopyScheduleToAllDates = () => {
-    const { updatedBranches, branch } = getClonedBranchAndSchedule();
-    const currentHallsClone = JSON.parse(
-      JSON.stringify(branch.scheduleByDate[activeDate]),
-    );
-
-    generatedDates.forEach((d) => {
-      branch.scheduleByDate[d.full] = JSON.parse(
-        JSON.stringify(currentHallsClone),
-      );
-    });
-
-    branch.halls = JSON.parse(JSON.stringify(currentHallsClone));
-    setBranches(updatedBranches);
-    toast.success(`Copied schedule across all ${generatedDates.length} days!`);
-  };
-
-  // Add Branch
-  const handleAddBranch = (branchName) => {
-    if (branches.some((b) => b.branchName === branchName)) {
-      toast.warn("Branch already added");
-      return;
-    }
-    const templateHalls = getBaseHallsTemplate(branchName);
-    const newBranch = {
-      id: `branch-${Date.now()}`,
-      branchName,
-      halls: JSON.parse(JSON.stringify(templateHalls)),
-      scheduleByDate: {},
-    };
-    setBranches([...branches, newBranch]);
-    setSelectedBranchIdx(branches.length);
-  };
-
-  // Delete Branch (Instant update)
-  const handleDeleteBranch = (index) => {
-    if (branches.length <= 1) {
-      toast.warn("At least one branch must remain");
-      return;
-    }
-    const updated = branches.filter((_, idx) => idx !== index);
-    setBranches(updated);
-    setSelectedBranchIdx(0);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title.trim()) {
-      toast.error("Please enter movie title");
-      return;
-    }
-
-    const calculatedDays =
-      durationPreset === "custom"
-        ? Math.max(
-            1,
-            Math.ceil(
-              Math.abs(new Date(endDate) - new Date(startDate)) /
-                (1000 * 60 * 60 * 24),
-            ) + 1,
-          )
-        : parseInt(durationPreset, 10) || 7;
-
-    const payload = {
-      id: editingMovie ? editingMovie.id : Date.now(),
-      tmdbId: tmdbId || Date.now(),
-      title: title.trim(),
-      year: year || "2026",
-      duration: duration || "2h 25min",
-      hall: currentBranch?.branchName || "FilmZone SenSok",
-      genres: genres || "Action",
-      status: status || "Live",
-      poster_path:
-        posterPath ||
-        "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
-      startDate,
-      endDate,
-      totalDays: calculatedDays,
-      date: `${startDate} to ${endDate} (${calculatedDays} Days)`,
-      branches,
-    };
-
-    onSave(payload);
-    onClose();
-  };
-
-  // EARLY RETURN PLACED RIGHT BEFORE RENDER (PREVENTING ANY HOOK RULES VIOLATION)
   if (!isOpen) return null;
 
+  // Immediate search submit handler
+  const handleSearchSubmit = (e) => {
+    e?.preventDefault();
+    if (!searchQuery.trim()) return;
+    triggerSearch({ query: searchQuery.trim(), page: 1 });
+  };
+
+  // Handle Importing Movie from TMDB to Teacher DB
+  const handleImport = async (movie) => {
+    try {
+      await importMovieFromTmdb(movie.id).unwrap();
+      toast.success(`"${movie.title}" imported to Cinema Database!`);
+      refetchCinemaMovies();
+      setSelectedMovieUuid(movie.id);
+      setActiveTab("schedule");
+    } catch (err) {
+      const errorMsg =
+        err?.data?.message ||
+        err?.data?.error ||
+        "Failed to import movie. Please check if already imported.";
+      toast.error(errorMsg);
+    }
+  };
+
+  // Handle Creating Showtime
+  const handleScheduleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedMovieUuid) {
+      toast.error("Please select a movie.");
+      return;
+    }
+    if (!selectedHallUuid) {
+      toast.error(
+        "Please select a cinema hall. Create one first if none exist.",
+      );
+      return;
+    }
+
+    // Format showTime to HH:mm:ss if user entered HH:mm
+    let formattedTime = showTime;
+    if (formattedTime.length === 5) {
+      formattedTime = `${formattedTime}:00`;
+    }
+
+    const payload = {
+      movieUuid: selectedMovieUuid,
+      hallUuid: selectedHallUuid,
+      showDate,
+      showTime: formattedTime,
+      basePrice: parseFloat(basePrice) || 4.5,
+    };
+
+    try {
+      await createShowtime(payload).unwrap();
+      toast.success("Showtime scheduled successfully in Teacher Database!");
+      onClose();
+    } catch (err) {
+      const msg =
+        err?.data?.message ||
+        err?.data?.error ||
+        "Failed to schedule showtime. Please check inputs.";
+      toast.error(msg);
+    }
+  };
+
+  // Helper to bulk generate seats for a single hall
+  const generateSeatsForHall = async (hallUuid, capacity, type = hallType) => {
+    const isVip = type === "VIP" || capacity <= 36;
+    if (isVip) {
+      // VIP Hall: 6 Rows (F down to A) with 6 seats each = 36 Seats
+      const rowLabels = ["F", "E", "D", "C", "B", "A"];
+      const rowsPayload = rowLabels.map((label) => ({
+        rowLabel: label,
+        numberOfSeats: 6,
+        seatType: "VIP",
+      }));
+      await createSeatsBulk({
+        hallUuid,
+        rows: rowsPayload,
+      }).unwrap();
+    } else {
+      // Standard Hall: 7 Upper Rows (H down to B) with 12 seats (84 seats) + Row A with 10 seats = 94 Seats
+      const rowLabels = ["H", "G", "F", "E", "D", "C", "B", "A"];
+      const rowsPayload = rowLabels.map((label) => ({
+        rowLabel: label,
+        numberOfSeats: label === "A" ? 10 : 12,
+        seatType: "STANDARD",
+      }));
+      await createSeatsBulk({
+        hallUuid,
+        rows: rowsPayload,
+      }).unwrap();
+    }
+  };
+
+  // Handle Single Hall Creation & Seat Bulk Generation
+  const handleCreateHall = async (e) => {
+    e?.preventDefault();
+    if (!hallName.trim()) {
+      toast.error("Please enter a hall name.");
+      return;
+    }
+
+    try {
+      const capacityNum =
+        parseInt(hallCapacity, 10) || (hallType === "VIP" ? 36 : 96);
+      const newHall = await createHall({
+        name: hallName.trim(),
+        description: hallDescription.trim(),
+        capacity: capacityNum,
+        hallType,
+      }).unwrap();
+
+      toast.success(`Hall "${newHall.name}" created!`);
+
+      try {
+        await generateSeatsForHall(newHall.uuid, capacityNum, hallType);
+        toast.success(`Generated ${capacityNum} seats for ${newHall.name}!`);
+      } catch (seatErr) {
+        console.warn("Seat generation info:", seatErr);
+      }
+
+      refetchHalls();
+      setSelectedHallUuid(newHall.uuid);
+      setActiveTab("schedule");
+    } catch (err) {
+      const msg =
+        err?.data?.message || err?.data?.error || "Failed to create hall.";
+      toast.error(msg);
+    }
+  };
+
+  // Determine movies to display in Tab 1
+  const moviesToDisplay = searchQuery.trim()
+    ? searchResults?.results || []
+    : (Array.isArray(nowPlayingMovies) ? nowPlayingMovies : []).slice(0, 10);
+
+  const selectedMovieObj = cinemaMovies.find(
+    (m) =>
+      m.uuid === selectedMovieUuid ||
+      String(m.tmdbId) === String(selectedMovieUuid),
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs font-sans animate-fade-in">
-      <div className="relative w-full max-w-3xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-neutral-200 space-y-5 max-h-[92vh] overflow-y-auto">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Header */}
-        <div className="flex items-center justify-between pr-8">
-          <div>
-            <h3 className="text-2xl font-black text-neutral-900">
-              {editingMovie
-                ? "Edit Movie & Schedules"
-                : "Add Movie & Schedules"}
-            </h3>
-            <p className="text-xs text-neutral-500 mt-0.5">
-              Instant Delete & Add for Independent Day-by-Day Schedules
-            </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-neutral-200 overflow-hidden my-8">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-200 bg-neutral-50/70">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-[#b90101] text-white shadow-xs">
+              <Film className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-neutral-900 tracking-tight">
+                Cinema Operations & Scheduler
+              </h2>
+              <p className="text-xs font-semibold text-neutral-500">
+                Connected live to Teacher Database & TMDB
+              </p>
+            </div>
           </div>
-
           <button
             type="button"
-            onClick={() => setShowKeyConfig(!showKeyConfig)}
-            className="p-2 rounded-xl text-neutral-500 hover:text-[#b90101] hover:bg-neutral-100 transition"
-            title="Configure TMDB API Key"
+            onClick={onClose}
+            className="p-2 rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200 transition cursor-pointer"
           >
-            <Key className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Optional TMDB Key Input Box */}
-        {showKeyConfig && (
-          <form
-            onSubmit={handleSaveApiKey}
-            className="p-3 bg-red-50/50 border border-red-200 rounded-2xl space-y-2"
+        {/* Tab Navigation */}
+        <div className="flex items-center gap-2 px-6 pt-4 border-b border-neutral-100 bg-white">
+          <button
+            type="button"
+            onClick={() => setActiveTab("import")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider rounded-t-xl transition-colors border-b-2 cursor-pointer ${
+              activeTab === "import"
+                ? "border-[#b90101] text-[#b90101] bg-red-50/50"
+                : "border-transparent text-neutral-500 hover:text-neutral-800"
+            }`}
           >
-            <div className="flex items-center justify-between text-xs font-bold text-neutral-800">
-              <span>Enter TMDB API Key / Access Token:</span>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={customKey}
-                onChange={(e) => setCustomKey(e.target.value)}
-                placeholder="Paste API Key..."
-                className="flex-1 px-3 py-1.5 bg-white border border-neutral-300 rounded-xl text-xs"
-              />
-              <button
-                type="submit"
-                className="px-3 py-1.5 bg-[#b90101] text-white text-xs font-bold rounded-xl"
-              >
-                Save
-              </button>
-            </div>
-          </form>
-        )}
+            <Search className="w-4 h-4" />
+            <span>1. Real-Time Search & Import</span>
+          </button>
 
-        {/* Live TMDB Cloud Search Box */}
-        {!editingMovie && (
-          <div className="space-y-2 p-4 bg-neutral-50 rounded-2xl border border-neutral-200/80">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#b90101]" />
-                <span>Search TMDB Cloud (Live Auto-Fill):</span>
-              </label>
-            </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("schedule")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider rounded-t-xl transition-colors border-b-2 cursor-pointer ${
+              activeTab === "schedule"
+                ? "border-[#b90101] text-[#b90101] bg-red-50/50"
+                : "border-transparent text-neutral-500 hover:text-neutral-800"
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>2. Schedule Showtime</span>
+          </button>
 
-            <div className="relative">
-              {searching ? (
-                <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#b90101] animate-spin" />
-              ) : (
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              )}
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => handleTmdbSearch(e.target.value)}
-                placeholder="Type movie name (e.g. Spider-Man, Deadpool, Gladiator II)..."
-                className="w-full pl-10 pr-4 py-2 bg-white border border-neutral-300 rounded-xl text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-[#b90101]"
-              />
-            </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("halls")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider rounded-t-xl transition-colors border-b-2 cursor-pointer ${
+              activeTab === "halls"
+                ? "border-[#b90101] text-[#b90101] bg-red-50/50"
+                : "border-transparent text-neutral-500 hover:text-neutral-800"
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            <span>3. Cinema Halls ({halls.length})</span>
+          </button>
+        </div>
 
-            {/* Live Search Results Dropdown */}
-            {searchResults.length > 0 && (
-              <div className="mt-2 divide-y divide-neutral-100 bg-white rounded-xl border border-neutral-200 shadow-xl overflow-hidden max-h-52 overflow-y-auto">
-                {searchResults.map((sm) => (
-                  <div
-                    key={sm.id}
-                    onClick={() => handleSelectTmdbMovie(sm)}
-                    className="p-2.5 flex items-center gap-3 hover:bg-red-50/50 cursor-pointer transition"
-                  >
-                    <img
-                      src={sm.poster_path}
-                      alt={sm.title}
-                      className="w-8 h-11 object-cover rounded-md shadow-xs shrink-0"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-neutral-900 truncate">
-                        {sm.title}
-                      </p>
-                      <p className="text-[11px] text-neutral-400">
-                        {sm.year || sm.release_date?.slice(0, 4)} &bull; Rating:
-                        ⭐ {sm.vote_average || "8.0"}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Section 1: Basic Info */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#b90101] border-b border-neutral-200 pb-1">
-              1. Movie Details
-            </h4>
-
-            <div>
-              <label className="block text-xs font-bold text-neutral-700 mb-1">
-                Movie Title
-              </label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Spider-Man: Brand New Day"
-                className="w-full px-4 py-2 bg-neutral-50 border border-neutral-300 rounded-xl text-sm font-semibold text-neutral-900 focus:outline-none focus:border-[#b90101]"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Release Year
-                </label>
-                <input
-                  type="text"
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  placeholder="2026"
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-semibold text-neutral-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Duration
-                </label>
-                <input
-                  type="text"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="2h 25min"
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-semibold text-neutral-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Catalog Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-bold text-neutral-900"
-                >
-                  <option value="Live">Live (Now Showing)</option>
-                  <option value="Upcoming">Upcoming (Coming Soon)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Genres
-                </label>
-                <input
-                  type="text"
-                  value={genres}
-                  onChange={(e) => setGenres(e.target.value)}
-                  placeholder="Superhero, Adventure, Action"
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-semibold text-neutral-900"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Poster Image URL
-                </label>
-                <input
-                  type="text"
-                  value={posterPath}
-                  onChange={(e) => setPosterPath(e.target.value)}
-                  placeholder="https://image.tmdb.org/t/p/w500/..."
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl text-xs text-neutral-700"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Date Scheduling */}
-          <div className="space-y-3 bg-red-50/40 p-4 rounded-2xl border border-red-200/60">
-            <h4 className="text-xs font-black uppercase tracking-wider text-[#b90101] flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
-              <span>2. Showing Date Range</span>
-            </h4>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => {
-                    setStartDate(e.target.value);
-                    handlePresetChange(durationPreset);
-                  }}
-                  className="w-full px-3 py-2 bg-white border border-neutral-300 rounded-xl text-xs font-bold text-neutral-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Duration Preset
-                </label>
-                <select
-                  value={durationPreset}
-                  onChange={(e) => handlePresetChange(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-neutral-300 rounded-xl text-xs font-bold text-neutral-900"
-                >
-                  <option value="3">3 Days</option>
-                  <option value="5">5 Days</option>
-                  <option value="7">7 Days (1 Week)</option>
-                  <option value="8">8 Days</option>
-                  <option value="14">14 Days (2 Weeks)</option>
-                  <option value="30">30 Days (1 Month)</option>
-                  <option value="custom">Custom End Date</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  disabled={durationPreset !== "custom"}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-neutral-300 rounded-xl text-xs font-bold text-neutral-900 disabled:opacity-60"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 3: Branches & Instant Day-by-Day Scheduler */}
-          <div className="space-y-4 pt-2">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-200 pb-1">
-              <h4 className="text-xs font-black uppercase tracking-wider text-[#b90101] flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5" />
-                <span>3. Branches & Independent Day Scheduler</span>
-              </h4>
-
-              {/* Copy to All Days Button */}
-              <button
-                type="button"
-                onClick={handleCopyScheduleToAllDates}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-neutral-700 hover:text-[#b90101] bg-white border border-neutral-300 px-2.5 py-1 rounded-lg shadow-2xs"
-                title="Replicate this day's setup across all dates"
-              >
-                <Copy className="w-3 h-3" />
-                <span>Copy this day&apos;s schedule to ALL days</span>
-              </button>
-            </div>
-
-            {/* Branch Selector Tabs */}
-            <div className="flex flex-wrap items-center gap-2">
-              {branches.map((b, idx) => (
-                <div
-                  key={b.id || idx}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer border ${
-                    selectedBranchIdx === idx
-                      ? "bg-[#b90101] text-white border-[#b90101] shadow-xs"
-                      : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border-neutral-200"
-                  }`}
-                  onClick={() => setSelectedBranchIdx(idx)}
-                >
-                  <span>{b.branchName}</span>
-                  {branches.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteBranch(idx);
-                      }}
-                      className="p-0.5 hover:text-white text-white/70"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
+        {/* Modal Body */}
+        <div className="p-6 max-h-[72vh] overflow-y-auto">
+          {/* TAB 1: REAL-TIME SEARCH & IMPORT FROM TMDB */}
+          {activeTab === "import" && (
+            <div className="space-y-6">
+              {/* Real-time Search Input (No Enter Needed!) */}
+              <form onSubmit={handleSearchSubmit} className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Type movie name to search live (e.g. Spider, Avatar, Dune)..."
+                    className="w-full pl-10 pr-10 py-3 rounded-2xl bg-neutral-50 border border-neutral-300 focus:outline-none focus:border-[#b90101] focus:ring-2 focus:ring-red-100 text-sm font-semibold text-neutral-800 transition"
+                    autoFocus
+                  />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#b90101] animate-spin" />
                   )}
                 </div>
-              ))}
-
-              <div className="relative inline-block">
-                <select
-                  value=""
-                  onChange={(e) => {
-                    if (e.target.value) handleAddBranch(e.target.value);
-                  }}
-                  className="px-3 py-1.5 bg-white border border-dashed border-neutral-400 hover:border-[#b90101] rounded-full text-xs font-bold text-neutral-600 cursor-pointer"
+                <button
+                  type="submit"
+                  disabled={isSearching}
+                  className="px-6 py-3 rounded-2xl bg-[#b90101] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider shadow-xs transition flex items-center gap-2 shrink-0 cursor-pointer disabled:opacity-60"
                 >
-                  <option value="">+ Add Cinema Branch</option>
-                  {AVAILABLE_BRANCHES.filter(
-                    (ab) => !branches.some((b) => b.branchName === ab),
-                  ).map((ab) => (
-                    <option key={ab} value={ab}>
-                      {ab}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+                  {isSearching ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
+                  <span>Search</span>
+                </button>
+              </form>
 
-            {/* Date Picker Bar to choose which day to configure */}
-            <div className="p-3 bg-neutral-100/70 rounded-2xl border border-neutral-200/80 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#b90101]" />
-                  <span>Configuring Specific Schedule for Day:</span>
-                </span>
-                <span className="text-[11px] font-semibold text-neutral-500">
-                  (Changes made below ONLY affect this selected day)
-                </span>
-              </div>
-
-              {/* Date Pills Slider in Modal */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                {generatedDates.map((gd) => {
-                  const isActive = activeDate === gd.full;
-                  return (
-                    <button
-                      key={gd.full}
-                      type="button"
-                      onClick={() => setActiveDate(gd.full)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition border ${
-                        isActive
-                          ? "bg-[#b90101] text-white border-[#b90101] shadow-xs"
-                          : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-50"
-                      }`}
-                    >
-                      <span>
-                        {gd.month} {gd.day}
-                      </span>
-                      <span className="text-[10px] opacity-80 ml-1">
-                        ({gd.weekday})
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Current Day's Isolated Halls & Showtimes */}
-            {currentBranch && (
-              <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200 space-y-4">
+              {/* Search Results / Now Playing */}
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-neutral-800">
-                    Halls Active on{" "}
-                    <strong className="text-[#b90101]">{activeDate}</strong> (
-                    {activeDayHalls.length} halls):
-                  </span>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
+                    {searchQuery.trim() && (
+                      <>
+                        <Search className="w-3.5 h-3.5 text-[#b90101]" />
+                        <span>
+                          Live Search Results for "{searchQuery}" (
+                          {moviesToDisplay.length})
+                        </span>
+                      </>
+                    )}
+                  </h3>
+                  {isSearching && (
+                    <span className="text-[11px] font-bold text-[#b90101] flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Searching live...
+                    </span>
+                  )}
+                </div>
 
+                {isSearching && moviesToDisplay.length === 0 && (
+                  <div className="py-12 flex flex-col items-center justify-center text-neutral-400 gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#b90101]" />
+                    <span className="text-sm font-semibold">
+                      Searching TMDB live as you type...
+                    </span>
+                  </div>
+                )}
+
+                {!isSearching &&
+                  searchQuery.trim() &&
+                  moviesToDisplay.length === 0 && (
+                    <div className="py-12 text-center text-neutral-400 font-semibold text-sm">
+                      No movies found for "{searchQuery}". Try typing another
+                      keyword.
+                    </div>
+                  )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {moviesToDisplay.map((movie) => {
+                    const isAlreadyImported = cinemaMovies.some(
+                      (m) =>
+                        String(m.tmdbId) === String(movie.id) ||
+                        m.title?.toLowerCase() === movie.title?.toLowerCase(),
+                    );
+                    const poster = movie.poster_path
+                      ? `https://image.tmdb.org/t/p/w300${movie.poster_path}`
+                      : "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg";
+
+                    return (
+                      <div
+                        key={movie.id}
+                        className="flex gap-3 p-3 rounded-2xl border border-neutral-200 hover:border-neutral-300 bg-white shadow-2xs hover:shadow-xs transition"
+                      >
+                        <img
+                          src={poster}
+                          alt={movie.title}
+                          className="w-16 h-24 object-cover rounded-xl shrink-0 border border-neutral-100"
+                          loading="lazy"
+                        />
+                        <div className="flex flex-col justify-between flex-1 min-w-0">
+                          <div>
+                            <h4 className="text-sm font-extrabold text-neutral-900 truncate">
+                              {movie.title}
+                            </h4>
+                            <p className="text-xs font-semibold text-neutral-400 mt-0.5">
+                              {movie.release_date?.slice(0, 4) || "N/A"} &bull;
+                              Rating: {movie.vote_average?.toFixed(1) || "N/A"}
+                            </p>
+                            <p className="text-xs text-neutral-600 line-clamp-2 mt-1">
+                              {movie.overview || "No overview available."}
+                            </p>
+                          </div>
+
+                          <div className="pt-2">
+                            {isAlreadyImported ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedMovieUuid(movie.id);
+                                  setActiveTab("schedule");
+                                }}
+                                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-bold hover:bg-emerald-100 transition cursor-pointer"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>In Database &bull; Schedule</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleImport(movie)}
+                                disabled={isImporting}
+                                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-[#b90101] hover:brightness-110 text-white text-xs font-bold shadow-2xs transition active:scale-95 cursor-pointer disabled:opacity-60"
+                              >
+                                {isImporting ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Plus className="w-3.5 h-3.5" />
+                                )}
+                                <span>Import to Database</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: SCHEDULE SHOWTIME (POST /showtimes) */}
+          {activeTab === "schedule" && (
+            <form onSubmit={handleScheduleSubmit} className="space-y-6">
+              {/* Selected Movie Preview Banner */}
+              {selectedMovieObj && (
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-200">
+                  <img
+                    src={
+                      selectedMovieObj.posterUrl ||
+                      "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
+                    }
+                    alt={selectedMovieObj.title}
+                    className="w-12 h-18 object-cover rounded-xl shrink-0 border border-neutral-200"
+                  />
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                      Target Movie
+                    </span>
+                    <h3 className="text-base font-extrabold text-neutral-900 mt-1">
+                      {selectedMovieObj.title}
+                    </h3>
+                    <p className="text-xs text-neutral-500 font-semibold">
+                      Runtime: {selectedMovieObj.runtimeMinutes || 120} min
+                      &bull; Release:{" "}
+                      {selectedMovieObj.releaseDate || "Now Showing"}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Form Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* 1. Select Movie */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
+                    <Film className="w-3.5 h-3.5 text-[#b90101]" />
+                    <span>Select Cinema Movie (Live DB)</span>
+                  </label>
                   <select
-                    value=""
-                    onChange={(e) => {
-                      if (e.target.value)
-                        handleAddHallToActiveDate(e.target.value);
-                    }}
-                    className="px-3 py-1.5 bg-white border border-neutral-300 hover:border-[#b90101] rounded-lg text-xs font-bold text-neutral-800 shadow-2xs cursor-pointer transition"
+                    value={selectedMovieUuid}
+                    onChange={(e) => setSelectedMovieUuid(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-300 focus:outline-none focus:border-[#b90101] text-sm font-semibold text-neutral-800 transition cursor-pointer"
+                    required
                   >
-                    <option value="">+ Add Hall to this day</option>
-                    <optgroup label="🏛️ Standard Hall (Regular & Couple)">
-                      <option value="standard_2d">
-                        Standard Hall — 2D Screen ($5.00)
+                    {cinemaMovies.map((m) => (
+                      <option key={m.uuid} value={m.uuid}>
+                        {m.title} ({m.releaseDate?.slice(0, 4) || "Live"})
                       </option>
-                      <option value="standard_3d">
-                        Standard Hall — 3D RealD Laser ($6.50)
-                      </option>
-                      <option value="standard_screenx">
-                        Standard Hall — ScreenX 270° ($8.00)
-                      </option>
-                    </optgroup>
-                    <optgroup label="👑 VIP Lounge Hall (Motorized Recliners)">
-                      <option value="vip_2d">
-                        VIP Lounge Hall — 2D Recliner ($11.00)
-                      </option>
-                      <option value="vip_3d">
-                        VIP Lounge Hall — 3D RealD VIP ($13.00)
-                      </option>
-                      <option value="vip_screenx">
-                        VIP Lounge Hall — ScreenX VIP ($15.00)
-                      </option>
-                    </optgroup>
+                    ))}
                   </select>
                 </div>
 
-                <div className="space-y-3">
-                  {activeDayHalls.map((hall, hIdx) => (
-                    <div
-                      key={hall.id || hIdx}
-                      className="bg-white rounded-xl p-3 border border-neutral-200 shadow-xs space-y-2.5"
+                {/* 2. Select Cinema Hall */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-[#b90101]" />
+                      <span>Select Cinema Hall</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("halls")}
+                      className="text-[11px] font-bold text-[#b90101] hover:underline cursor-pointer"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-neutral-900">
-                            {hall.hallName}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-700 text-[10px] font-bold">
-                            Base: ${hall.price?.toFixed(2)}
-                          </span>
-                        </div>
+                      + Manage Halls
+                    </button>
+                  </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteHallFromActiveDate(hIdx)}
-                          className="p-1 text-neutral-400 hover:text-[#b90101]"
-                          title="Remove this hall instantly"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      {/* Time Slots for THIS day only */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        {hall.times.map((t, tIdx) => (
-                          <span
-                            key={tIdx}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-[#b90101] border border-red-200 text-xs font-black"
-                          >
-                            <span>{t}</span>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleDeleteTimeSlotFromActiveDate(hIdx, tIdx)
-                              }
-                              className="text-red-400 hover:text-red-700"
-                              title="Delete this time slot instantly"
-                            >
-                              &times;
-                            </button>
-                          </span>
-                        ))}
-
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="text"
-                            placeholder="e.g. 11:30 PM"
-                            value={newTimeInput[hIdx] || ""}
-                            onChange={(e) =>
-                              setNewTimeInput({
-                                ...newTimeInput,
-                                [hIdx]: e.target.value,
-                              })
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                handleAddTimeSlotToActiveDate(hIdx);
-                              }
-                            }}
-                            className="w-24 px-2 py-1 bg-neutral-50 border border-neutral-300 rounded-lg text-xs"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleAddTimeSlotToActiveDate(hIdx)}
-                            className="p-1 rounded-lg bg-neutral-900 text-white hover:bg-[#b90101]"
-                            title="Add time slot instantly"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
+                  {halls.length === 0 ? (
+                    <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                        No halls in database yet.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("halls")}
+                        className="px-3 py-1.5 rounded-xl bg-[#b90101] hover:brightness-110 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                      >
+                        + Create Hall
+                      </button>
                     </div>
-                  ))}
+                  ) : (
+                    <select
+                      value={selectedHallUuid}
+                      onChange={(e) => setSelectedHallUuid(e.target.value)}
+                      className="w-full px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-300 focus:outline-none focus:border-[#b90101] text-sm font-semibold text-neutral-800 transition cursor-pointer"
+                      required
+                    >
+                      {halls.map((h) => (
+                        <option key={h.uuid} value={h.uuid}>
+                          {h.name} &bull; {h.hallType} ({h.capacity || 50}{" "}
+                          Seats)
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {/* 3. Screening Date */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#b90101]" />
+                    <span>Screening Date (showDate)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={showDate}
+                    onChange={(e) => setShowDate(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-300 focus:outline-none focus:border-[#b90101] text-sm font-semibold text-neutral-800 transition"
+                    required
+                  />
+                </div>
+
+                {/* 4. Screening Time */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-[#b90101]" />
+                    <span>Screening Time (showTime)</span>
+                  </label>
+                  <input
+                    type="time"
+                    step="1"
+                    value={showTime}
+                    onChange={(e) => setShowTime(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-300 focus:outline-none focus:border-[#b90101] text-sm font-semibold text-neutral-800 transition"
+                    required
+                  />
+                </div>
+
+                {/* 5. Base Ticket Price */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-[#b90101]" />
+                    <span>Base Ticket Price (USD)</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-neutral-400">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0.01"
+                      value={basePrice}
+                      onChange={(e) => setBasePrice(e.target.value)}
+                      className="w-full pl-8 pr-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-300 focus:outline-none focus:border-[#b90101] text-sm font-semibold text-neutral-800 transition"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-xs hover:bg-neutral-100"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#b90101] hover:brightness-110 text-white font-extrabold text-xs shadow-md transition active:scale-95"
-            >
-              {editingMovie ? "Save Changes & Sync" : "Add Movie & Sync"}
-            </button>
-          </div>
-        </form>
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-3 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingShowtime || halls.length === 0}
+                  className="px-8 py-3 rounded-full bg-[#b90101] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer disabled:opacity-60 flex items-center gap-2"
+                >
+                  {isCreatingShowtime ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4" />
+                  )}
+                  <span>Create Showtime (POST /showtimes)</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* TAB 3: MANAGE & CREATE CINEMA HALLS */}
+          {activeTab === "halls" && (
+            <div className="space-y-8">
+              {/* Form to Register Hall */}
+              <form
+                onSubmit={handleCreateHall}
+                className="p-5 rounded-3xl bg-neutral-50 border border-neutral-200 space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-extrabold text-neutral-900 flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-[#b90101]" />
+                    <span>Register New Cinema Hall</span>
+                  </h3>
+                </div>
+
+                {/* 4 Auto-Presets Dropdown Selector */}
+                <div className="p-3.5 rounded-2xl bg-white border border-red-200 shadow-2xs">
+                  <select
+                    onChange={(e) => {
+                      const selected = AUTO_HALL_PRESETS.find(
+                        (p) => p.name === e.target.value,
+                      );
+                      if (selected) {
+                        setHallName(selected.name);
+                        setHallType(selected.hallType);
+                        setHallCapacity(selected.capacity);
+                        setHallDescription(selected.description);
+                        toast.info(
+                          `Auto-filled details for "${selected.name}"!`,
+                        );
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl bg-red-50/50 border border-red-300 text-xs font-extrabold text-neutral-800 focus:outline-none focus:border-[#b90101] cursor-pointer"
+                  >
+                    <option value="">
+                      -- Select 1 of 4 Auto Presets to Fill Form --
+                    </option>
+                    {AUTO_HALL_PRESETS.map((preset) => (
+                      <option key={preset.name} value={preset.name}>
+                        {preset.name} (
+                        {preset.hallType === "VIP"
+                          ? "VIP hall"
+                          : "Standard hall"}{" "}
+                        &bull; {preset.capacity} Seats)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-black uppercase tracking-wider text-neutral-600">
+                      Hall Name
+                    </label>
+                    <input
+                      type="text"
+                      list="hall-name-presets"
+                      value={hallName}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setHallName(val);
+                        if (val.toLowerCase().includes("vip")) {
+                          setHallType("VIP");
+                          setHallCapacity(36);
+                        } else if (
+                          val.includes("Hall 1") ||
+                          val.includes("Hall 2") ||
+                          val.includes("Hall 3")
+                        ) {
+                          setHallType("STANDARD");
+                          setHallCapacity(96);
+                        }
+                      }}
+                      placeholder="e.g. Hall 1 - Screen X"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-semibold focus:outline-none focus:border-[#b90101]"
+                      required
+                    />
+                    <datalist id="hall-name-presets">
+                      <option value="Hall 1 - Screen X" />
+                      <option value="Hall 2 - Screen 2D" />
+                      <option value="Hall 3 - Screen 3D" />
+                      <option value="VIP Hall" />
+                    </datalist>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-black uppercase tracking-wider text-neutral-600">
+                      Hall Type
+                    </label>
+                    <select
+                      value={hallType}
+                      onChange={(e) => {
+                        const newType = e.target.value;
+                        setHallType(newType);
+                        if (newType === "VIP") {
+                          setHallCapacity(36);
+                          if (!hallName || hallName.startsWith("Hall")) {
+                            setHallName("VIP Hall");
+                          }
+                        } else {
+                          setHallCapacity(94);
+                          if (!hallName || hallName === "VIP Hall") {
+                            setHallName("Hall 1 - Screen X");
+                          }
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-semibold focus:outline-none focus:border-[#b90101] cursor-pointer"
+                    >
+                      <option value="STANDARD">Standard hall</option>
+                      <option value="VIP">VIP hall</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-black uppercase tracking-wider text-neutral-600">
+                      Seat Capacity
+                    </label>
+                    <select
+                      value={hallCapacity}
+                      onChange={(e) => {
+                        const cap = parseInt(e.target.value, 10);
+                        setHallCapacity(cap);
+                        if (cap === 36) {
+                          setHallType("VIP");
+                          if (!hallName || hallName.startsWith("Hall")) {
+                            setHallName("VIP Hall");
+                          }
+                        } else {
+                          setHallType("STANDARD");
+                          if (!hallName || hallName === "VIP Hall") {
+                            setHallName("Hall 1 - Screen X");
+                          }
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-semibold focus:outline-none focus:border-[#b90101] cursor-pointer"
+                    >
+                      <option value={94}>94 Seats (Standard hall)</option>
+                      <option value={36}>36 Seats (VIP hall)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isCreatingHall}
+                    className="px-6 py-2.5 rounded-full bg-[#b90101] hover:brightness-110 text-white font-extrabold text-xs uppercase tracking-wider shadow-xs transition active:scale-95 cursor-pointer disabled:opacity-60 flex items-center gap-2"
+                  >
+                    {isCreatingHall ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Plus className="w-3.5 h-3.5" />
+                    )}
+                    <span>Create Hall & Seats</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Existing Halls Table */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500">
+                  Existing Cinema Halls in Database ({halls.length})
+                </h4>
+
+                {halls.length === 0 ? (
+                  <div className="py-8 text-center text-neutral-400 font-semibold text-sm">
+                    No halls registered yet. Use the auto-presets above to add
+                    halls!
+                  </div>
+                ) : (
+                  <div className="divide-y divide-neutral-100 border border-neutral-200 rounded-2xl overflow-hidden bg-white">
+                    {halls.map((h) => (
+                      <div
+                        key={h.uuid}
+                        className="flex items-center justify-between p-4 hover:bg-neutral-50/80 transition"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 rounded-xl bg-neutral-100 text-neutral-700">
+                            <Layers className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h5 className="text-sm font-extrabold text-neutral-900">
+                              {h.name}
+                            </h5>
+                            <p className="text-xs text-neutral-500 font-semibold">
+                              Type: {h.hallType} &bull; Capacity:{" "}
+                              {h.capacity || 50} seats
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${
+                              h.status === "ACTIVE"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-neutral-100 text-neutral-600"
+                            }`}
+                          >
+                            {h.status || "ACTIVE"}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

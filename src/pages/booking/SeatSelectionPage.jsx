@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { Clock, ArrowLeft, User, Users } from "lucide-react";
 import {
   toggleSeat,
@@ -44,11 +45,17 @@ export default function SeatSelectionPage() {
   const branch = searchParams.get("branch") || "FilmZone SenSok";
   const date = searchParams.get("date") || "Aug 26 Tue";
 
-  // Hall Mode: 'gold' vs 'standard'
-  const hallParam = searchParams.get("hall") || "standard";
-  const hallType = hallParam.toLowerCase().includes("gold")
-    ? "gold"
-    : "standard";
+  // Hall Mode: 'gold' (VIP hall) vs 'standard' (Standard hall)
+  const hallParam =
+    searchParams.get("hall") ||
+    searchParams.get("hallType") ||
+    searchParams.get("screenType") ||
+    "standard";
+  const hallType =
+    hallParam.toLowerCase().includes("gold") ||
+    hallParam.toLowerCase().includes("vip")
+      ? "gold"
+      : "standard";
 
   // Booking Mode: 'standard' vs 'group'
   const bookingType =
