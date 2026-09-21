@@ -2,15 +2,17 @@ import { baseApi } from "./baseApi";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    // 1. Login (/api/v1/auth/login)
     login: builder.mutation({
       query: (credentials) => ({
         url: "/auth/login",
         method: "POST",
         body: credentials,
       }),
-      invalidatesTags: ["Auth"],
+      invalidatesTags: ["Auth", "User"],
     }),
 
+    // 2. Register (/api/v1/auth/register)
     register: builder.mutation({
       query: (userData) => ({
         url: "/auth/register",
@@ -19,13 +21,38 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    getProfile: builder.query({
-      query: () => "/auth/profile",
-      providesTags: ["Auth"],
+    // 3. Current User Profile (/api/v1/users/me)
+    getCurrentUser: builder.query({
+      query: () => "/users/me",
+      providesTags: ["Auth", "User"],
+    }),
+
+    // 4. Refresh Token (/api/v1/auth/refresh)
+    refreshToken: builder.mutation({
+      query: (body) => ({
+        url: "/auth/refresh",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    // 5. Logout (/api/v1/auth/logout)
+    logoutApi: builder.mutation({
+      query: () => ({
+        url: "/auth/logout",
+        method: "POST",
+      }),
+      invalidatesTags: ["Auth", "User"],
     }),
   }),
   overrideExisting: false,
 });
 
-export const { useLoginMutation, useRegisterMutation, useGetProfileQuery } =
-  authApi;
+export const {
+  useLoginMutation,
+  useRegisterMutation,
+  useGetCurrentUserQuery,
+  useLazyGetCurrentUserQuery,
+  useRefreshTokenMutation,
+  useLogoutApiMutation,
+} = authApi;
