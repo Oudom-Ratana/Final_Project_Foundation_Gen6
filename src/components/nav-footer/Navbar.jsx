@@ -18,10 +18,12 @@ import {
   selectIsAuthenticated,
   logout,
 } from "../../redux/slices/authSlice";
+import { useLogoutApiMutation } from "../../services/api/authApi";
 import { selectTheme, toggleTheme } from "../../redux/slices/uiSlice";
 import { selectFavouriteMovies } from "../../redux/slices/favouriteSlice";
 import { toast } from "react-toastify";
 import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
+import FilmZoneDarkLogo from "../../assets/logo/FilmZone_DarkModeLogo.png";
 
 export default function Navbar() {
   const dispatch = useDispatch();
@@ -37,6 +39,30 @@ export default function Navbar() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef(null);
   const mobileProfileDropdownRef = useRef(null);
+
+  const [logoutApi] = useLogoutApiMutation();
+
+  const handleLogout = async () => {
+    const refreshToken = (
+      sessionStorage.getItem("refreshToken") ||
+      localStorage.getItem("cinema_refresh_token") ||
+      user?.refreshToken ||
+      ""
+    ).trim();
+
+    if (refreshToken) {
+      try {
+        await logoutApi({ refreshToken }).unwrap();
+      } catch (err) {
+        console.warn("Server logout response:", err);
+      }
+    }
+
+    dispatch(logout());
+    setIsProfileDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+    toast.info("Logged out successfully");
+  };
 
   // Circular Theme Toggle via View Transitions API
   const handleThemeToggle = (e) => {
@@ -164,7 +190,7 @@ export default function Navbar() {
           aria-label="FilmZone Home"
         >
           <img
-            src={filmZoneLogo}
+            src={theme === "dark" ? FilmZoneDarkLogo : filmZoneLogo}
             alt="FilmZone Logo"
             className="h-6 sm:h-7.5 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-sm"
           />
@@ -302,11 +328,7 @@ export default function Navbar() {
                   {/* 4. Logout Option */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsProfileDropdownOpen(false);
-                      dispatch(logout());
-                      toast.info("Logged out successfully");
-                    }}
+                    onClick={handleLogout}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[#B90101] hover:bg-red-500/10 transition cursor-pointer text-left"
                   >
                     <LogOut className="w-4 h-4" />
@@ -447,11 +469,7 @@ export default function Navbar() {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    dispatch(logout());
-                    setIsMobileMenuOpen(false);
-                    toast.info("Logged out successfully");
-                  }}
+                  onClick={handleLogout}
                   className="p-2 rounded-xl bg-black/20 hover:bg-black/30 transition text-white cursor-pointer ml-2"
                   title="Logout"
                 >

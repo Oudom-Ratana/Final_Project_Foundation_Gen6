@@ -5,6 +5,7 @@ import { selectTheme } from "../../redux/slices/uiSlice";
 import istadLightLogo from "../../assets/logo/ISTAD_Light.png";
 import istadDarkLogo from "../../assets/logo/istad-Dark.png";
 import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
+import FilmZoneDarkLogo from "../../assets/logo/FilmZone_DarkModeLogo.png"
 import { bg } from "zod/v4/locales";
 
 // --- Static content -------------------------------------------------
@@ -113,7 +114,7 @@ export default function Footer() {
               aria-label="FilmZone home"
             >
               <img
-                src={filmZoneLogo}
+                src={theme === "dark" ? FilmZoneDarkLogo : filmZoneLogo}
                 alt="FilmZone Logo"
                 className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 hover:scale-105"
               />

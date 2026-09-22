@@ -43,10 +43,14 @@ const tmdbBaseQuery = fetchBaseQuery({
 const cinemaBaseQuery = fetchBaseQuery({
   baseUrl: CINEMA_API_BASE,
   prepareHeaders: (header, { getState }) => {
-    const accessToken =
-      getState()?.auth?.accessToken || getState()?.auth?.token;
-    if (accessToken) {
-      header.set("Authorization", `Bearer ${accessToken}`);
+    const rawToken = getState()?.auth?.accessToken || getState()?.auth?.token;
+    const token = typeof rawToken === "string" ? rawToken.trim() : "";
+
+    if (token && token !== "Bearer" && token.length > 5) {
+      header.set(
+        "Authorization",
+        token.startsWith("Bearer ") ? token : `Bearer ${token}`,
+      );
     }
     header.set("accept", "application/json");
     return header;

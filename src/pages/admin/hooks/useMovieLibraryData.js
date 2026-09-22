@@ -411,6 +411,9 @@ export function useMovieLibraryData() {
     };
   }, [
     activePanelId,
+    cinemaBackendData,
+    isBackendLoading,
+    isBackendFetching,
     managedMovies,
     activeCatalogFilter,
     searchQuery,

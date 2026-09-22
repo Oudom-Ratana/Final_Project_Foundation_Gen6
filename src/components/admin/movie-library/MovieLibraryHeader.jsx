@@ -1,27 +1,32 @@
-import { Plus } from "lucide-react";
+import { Plus, Star } from "lucide-react";
 
-export default function MovieLibraryHeader({ onAddCustom }) {
+export default function MovieLibraryHeader({ onAddCustom, onAddMovie }) {
+  const handleAdd = onAddCustom || onAddMovie;
+
   return (
-    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+    <header className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 px-6 py-6 md:px-8">
       <div>
-        <div className="relative inline-block pb-2">
-          <h1 className="text-3xl sm:text-4xl font-black text-[#b90101] tracking-tight">
-            Movie Library & TMDB Hub
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            Movie Library
           </h1>
-          <div className="absolute bottom-0 left-0 w-36 h-1 bg-[#b90101] rounded-full" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1 text-sm font-semibold text-amber-700">
+            <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+            TMDB Synced
+          </span>
         </div>
       </div>
 
-      {/* Action Controls */}
-      <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex items-center gap-3">
         <button
-          onClick={onAddCustom}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#b90101] hover:brightness-110 text-white font-extrabold text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer"
+          type="button"
+          onClick={handleAdd}
+          className="inline-flex items-center gap-2 rounded-full bg-[#b90101] px-6 py-2.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-sm transition hover:brightness-110 active:scale-95 cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
-          <span>+ Import & Schedule Movie</span>
+          <Plus className="h-4 w-4" />
+          <span>+ Add Movie & Schedule</span>
         </button>
       </div>
-    </div>
+    </header>
   );
 }

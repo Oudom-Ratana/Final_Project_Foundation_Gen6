@@ -20,6 +20,7 @@ import {
   updateUser,
   logout,
 } from "../redux/slices/authSlice";
+import { useLogoutApiMutation } from "../services/api/authApi";
 import { selectFavouriteMovies } from "../redux/slices/favouriteSlice";
 import { selectAllTickets } from "../redux/slices/ticketSlice";
 import {
@@ -30,6 +31,7 @@ import {
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [logoutApi] = useLogoutApiMutation();
 
   const user = useSelector(selectCurrentUser);
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -122,7 +124,22 @@ export default function ProfilePage() {
     toast.success("Profile updated successfully!");
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const refreshToken = (
+      sessionStorage.getItem("refreshToken") ||
+      localStorage.getItem("cinema_refresh_token") ||
+      user?.refreshToken ||
+      ""
+    ).trim();
+
+    if (refreshToken) {
+      try {
+        await logoutApi({ refreshToken }).unwrap();
+      } catch (err) {
+        console.warn("Server logout response:", err);
+      }
+    }
+
     dispatch(logout());
     toast.info("Logged out successfully");
     navigate("/");

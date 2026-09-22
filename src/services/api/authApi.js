@@ -38,10 +38,22 @@ export const authApi = baseApi.injectEndpoints({
 
     // 5. Logout (/api/v1/auth/logout)
     logoutApi: builder.mutation({
-      query: () => ({
-        url: "/auth/logout",
-        method: "POST",
-      }),
+      query: (body = {}) => {
+        const refreshToken = (
+          typeof body === "string"
+            ? body
+            : body?.refreshToken ||
+              sessionStorage.getItem("refreshToken") ||
+              localStorage.getItem("cinema_refresh_token") ||
+              ""
+        ).trim();
+
+        return {
+          url: "/auth/logout",
+          method: "POST",
+          body: { refreshToken },
+        };
+      },
       invalidatesTags: ["Auth", "User"],
     }),
   }),
