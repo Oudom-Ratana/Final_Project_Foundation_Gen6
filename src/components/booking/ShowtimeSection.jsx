@@ -4,15 +4,48 @@ import { useNavigate } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { setMovie } from "../../redux/slices/bookingSlice";
-import {
-  LOCATIONS,
-  DATES,
-  BRANCH_SHOWTIMES,
-} from "../../data/cinemaShowtimeData";
+import { LOCATIONS, BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 import {
   useGetAllShowtimesQuery,
   useGetAllHallsQuery,
 } from "../../services/api/cinemaApi";
+
+// Generate today + next 6 days dynamically so date cards are always current
+function generateDates(count = 7) {
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const result = [];
+  const now = new Date();
+  for (let i = 0; i < count; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    result.push({
+      id: `${yyyy}-${mm}-${dd}`, // e.g. "2026-09-22" — used to match startTime
+      month: months[d.getMonth()],
+      day: String(d.getDate()),
+      weekday: days[d.getDay()],
+    });
+  }
+  return result;
+}
+
+const DYNAMIC_DATES = generateDates(7);
 
 /**
  * ShowtimeSection
@@ -29,13 +62,13 @@ export default function ShowtimeSection({
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
-  // 1. Live Showtimes from Teacher's API
+  // 1. Live Showtimes + Halls from Teacher's API
   const { data: apiShowtimes = [], isLoading: isShowtimesLoading } =
     useGetAllShowtimesQuery();
   const { data: apiHalls = [] } = useGetAllHallsQuery();
 
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
-  const [selectedDate, setSelectedDate] = useState(DATES[1]); // Default to Aug 26
+  const [selectedDate, setSelectedDate] = useState(DYNAMIC_DATES[0]); // Default to today
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
 
@@ -43,21 +76,24 @@ export default function ShowtimeSection({
   const matchedApiShowtimes = useMemo(() => {
     if (!Array.isArray(apiShowtimes) || apiShowtimes.length === 0) return [];
     return apiShowtimes.filter((st) => {
-      if (
-        st.movieUuid &&
-        movieId &&
-        (st.movieUuid === movieId || String(st.tmdbId) === String(movieId))
-      )
-        return true;
-      if (
-        st.movieTitle &&
-        movie?.title &&
-        st.movieTitle.toLowerCase() === movie.title.toLowerCase()
-      )
-        return true;
-      return false;
+      // 1. Match by movie UUID or title
+      const movieMatch =
+        (st.movieUuid && movieId && st.movieUuid === movieId) ||
+        (st.movieTitle &&
+          movie?.title &&
+          st.movieTitle.toLowerCase() === movie.title.toLowerCase());
+
+      if (!movieMatch) return false;
+
+      // 2. Match by selected date — compare YYYY-MM-DD prefix of startTime
+      if (st.startTime && selectedDate?.id) {
+        const showtimeDate = st.startTime.slice(0, 10); // "2026-09-23"
+        return showtimeDate === selectedDate.id;
+      }
+
+      return true; // no startTime → include it anyway
     });
-  }, [apiShowtimes, movieId, movie]);
+  }, [apiShowtimes, movieId, movie, selectedDate]);
 
   // Group matched API showtimes by hall
   const liveHalls = useMemo(() => {
@@ -162,7 +198,7 @@ export default function ShowtimeSection({
       screenType: hall.screenType || (hall.goldClass ? "GOLD" : "2D"),
       time,
       branch: branch?.branchName || "FilmZone Major Cinema",
-      date: `${selectedDate.month} ${selectedDate.day} ${selectedDate.weekday}`,
+      date: selectedDate.id, // e.g. "2026-09-23"
     });
 
     if (showtimeObj?.uuid) {
@@ -321,22 +357,28 @@ export default function ShowtimeSection({
         )}
       </div>
 
-      {/* 3. Horizontal Date Selector Cards */}
-      <div className="flex items-center justify-center gap-3 sm:gap-4 overflow-x-auto py-2">
-        {DATES.slice(0, 3).map((d) => {
+      {/* 3. Horizontal Date Selector Cards — today + next 6 days */}
+      <div className="flex items-center justify-start gap-3 sm:gap-4 overflow-x-auto py-2 scrollbar-hide pb-3">
+        {DYNAMIC_DATES.map((d, idx) => {
           const isSelected = selectedDate.id === d.id;
+          const isToday = idx === 0;
           return (
             <button
               key={d.id}
               type="button"
               onClick={() => setSelectedDate(d)}
-              className={`relative min-w-[100px] sm:min-w-[110px] h-[75px] rounded-2xl border p-2.5 flex flex-col justify-between transition-all duration-200 backdrop-blur-md ${
+              className={`relative shrink-0 min-w-[100px] sm:min-w-[110px] h-[80px] rounded-2xl border p-2.5 flex flex-col justify-between transition-all duration-200 backdrop-blur-md ${
                 isSelected
                   ? "border-[#B90101] bg-[#B90101]/15 shadow-md scale-105"
                   : "shadow-xs hover:scale-[1.02]"
               }`}
               style={!isSelected ? glassCardStyle : undefined}
             >
+              {isToday && (
+                <span className="absolute top-1 right-2 text-[9px] font-extrabold uppercase tracking-widest text-[#B90101]">
+                  Today
+                </span>
+              )}
               <div className="flex items-start justify-between w-full">
                 <span
                   className={`text-xs font-bold ${
