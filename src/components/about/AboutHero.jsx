@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { ArrowRight, Sparkles, Play, Film, Ticket, Star, Video } from 'lucide-react';
+import { ArrowRight, Play } from 'lucide-react';
 import cinemaImage from '../../assets/others/imageAboutUs.png';
 
 export default function AboutHero() {
@@ -17,17 +17,16 @@ export default function AboutHero() {
         setDisplayedText(fullText.slice(0, index));
         index++;
       } else {
-        setIsTypingComplete(true); // Hide cursor when finished
+        setIsTypingComplete(true);
         clearInterval(typingInterval);
       }
-    }, 150); // Speed per letter
+    }, 150);
 
     return () => clearInterval(typingInterval);
   }, []);
 
-  // Split displayed text to apply styling specifically to "FilmZone"
-  const welcomePart = displayedText.slice(0, 11); // "Welcome to "
-  const filmZonePart = displayedText.slice(11);   // "FilmZone"
+  const welcomePart = displayedText.slice(0, 11);
+  const filmZonePart = displayedText.slice(11);
 
   return (
     <section className="relative w-full py-12 lg:py-20 overflow-hidden font-sans">
@@ -44,7 +43,6 @@ export default function AboutHero() {
             
             {/* Tag Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary-red)]/10 border border-[var(--primary-red)]/20 text-[var(--primary-red)] font-semibold text-xs uppercase tracking-wider shadow-sm">
-              <Sparkles className="w-4 h-4 animate-spin" />
               <span>Redefining The Theatrical Journey</span>
             </div>
 
@@ -56,7 +54,6 @@ export default function AboutHero() {
                   {filmZonePart}
                 </span>
               )}
-              {/* Typing Cursor (Disappears when complete) */}
               {!isTypingComplete && (
                 <span className="inline-block ml-1 w-[3px] h-[0.8em] bg-[var(--primary-red)] animate-pulse align-middle" />
               )}
@@ -82,7 +79,6 @@ export default function AboutHero() {
                 <ArrowRight className="w-5 h-5" />
               </Link>
 
-
               <a
                 href="#team-section"
                 className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl bg-white dark:bg-white/10 text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/20 font-semibold text-sm transition-all border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] shadow-sm dark:shadow-none"
@@ -94,97 +90,135 @@ export default function AboutHero() {
 
           </div>
 
-          {/* Right Column: Motion Hero Graphic */}
-          <div className="lg:col-span-5 relative flex items-center justify-center py-10 min-h-[500px]">
+          {/* Right Column: Alive 3D Cinema Stage */}
+          <div className="lg:col-span-5 relative flex items-center justify-center py-6 min-h-[520px]">
             
-            {/* Outer Orbit Ring 1 (Clockwise Rotation) */}
-            <div className="absolute w-[440px] h-[440px] rounded-full border border-[var(--primary-red)]/20 dark:border-[var(--primary-red)]/30 animate-orbit-cw pointer-events-none flex items-center justify-center">
+            {/* 1. Volumetric Spotlight Godray Behind the Stage */}
+            <div className="absolute w-[360px] h-[360px] rounded-full bg-[radial-gradient(circle,_var(--primary-red)_0%,_transparent_70%)] opacity-35 blur-3xl pointer-events-none animate-spotlight-pulse" />
+            <div className="absolute top-1/4 right-8 w-48 h-48 rounded-full bg-[radial-gradient(circle,_#f59e0b_0%,_transparent_70%)] opacity-25 blur-2xl pointer-events-none animate-float-slow" />
+
+            {/* 2. Interactive Stage Container with Smooth 3D Levitation */}
+            <div className="relative w-full max-w-[500px] flex items-center justify-center animate-stage-float">
               
-              {/* Floating Orbit Icons */}
-              <div className="absolute -top-5 p-3 rounded-2xl bg-white dark:bg-neutral-900 text-[var(--primary-red)] border border-neutral-200 dark:border-[var(--primary-red)]/40 shadow-lg backdrop-blur-md animate-counter-rotate">
-                <Ticket className="w-5 h-5" />
-              </div>
+              {/* Photorealistic 3D Render Image */}
+              <img
+                src={cinemaImage}
+                alt="3D Cinema Experience"
+                className="w-full h-auto max-h-[480px] object-contain drop-shadow-[0_25px_40px_rgba(0,0,0,0.6)] dark:drop-shadow-[0_30px_50px_rgba(220,38,38,0.35)] relative z-10"
+              />
 
-              <div className="absolute -bottom-5 p-3 rounded-2xl bg-white dark:bg-neutral-900 text-amber-500 border border-neutral-200 dark:border-amber-400/40 shadow-lg backdrop-blur-md animate-counter-rotate">
-                <Star className="w-5 h-5 fill-current" />
-              </div>
+              {/* 3. Real 3D Glasses Glowing Anamorphic Lens Flare */}
+              <div className="absolute bottom-[24%] left-[43%] -translate-x-1/2 w-14 h-7 rounded-full bg-cyan-400/50 blur-md pointer-events-none z-20 animate-lens-cyan" />
+              <div className="absolute bottom-[24%] left-[55%] -translate-x-1/2 w-14 h-7 rounded-full bg-red-500/55 blur-md pointer-events-none z-20 animate-lens-red" />
 
-              <div className="absolute -right-5 p-3 rounded-2xl bg-white dark:bg-neutral-900 text-neutral-800 dark:text-white border border-neutral-200 dark:border-white/30 shadow-lg backdrop-blur-md animate-counter-rotate">
-                <Video className="w-5 h-5" />
-              </div>
+              {/* 4. Alive Realistic Floating Popcorn Kernels */}
+              {/* Popping Kernel 1 */}
+              <div className="absolute top-[34%] left-[45%] w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-amber-400 to-amber-100 shadow-[0_0_10px_rgba(251,191,36,0.6)] z-20 animate-popcorn-pop-1 pointer-events-none" />
+              {/* Popping Kernel 2 */}
+              <div className="absolute top-[32%] left-[53%] w-4 h-4 rounded-full bg-gradient-to-tr from-amber-300 via-amber-100 to-white shadow-[0_0_12px_rgba(251,191,36,0.7)] z-20 animate-popcorn-pop-2 pointer-events-none" />
+              {/* Popping Kernel 3 */}
+              <div className="absolute top-[40%] left-[39%] w-3 h-3 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-100 shadow-[0_0_8px_rgba(251,191,36,0.5)] z-20 animate-popcorn-pop-3 pointer-events-none" />
 
-              <div className="absolute -left-5 p-3 rounded-2xl bg-white dark:bg-neutral-900 text-[var(--primary-red)] border border-neutral-200 dark:border-[var(--primary-red)]/40 shadow-lg backdrop-blur-md animate-counter-rotate">
-                <Film className="w-5 h-5" />
-              </div>
+              {/* 5. Golden Cinema Sparkles / Projector Dust Moters */}
+              <div className="absolute top-[20%] left-[30%] w-1.5 h-1.5 rounded-full bg-amber-300/80 blur-[0.5px] animate-dust-1 pointer-events-none" />
+              <div className="absolute top-[25%] right-[22%] w-2 h-2 rounded-full bg-amber-200/90 blur-[0.5px] animate-dust-2 pointer-events-none" />
+              <div className="absolute bottom-[35%] right-[15%] w-1.5 h-1.5 rounded-full bg-red-400/80 blur-[0.5px] animate-dust-1 pointer-events-none" />
+
             </div>
 
-            {/* Inner Orbit Ring 2 (Counter-Clockwise Rotation) */}
-            <div className="absolute w-[360px] h-[360px] rounded-full border-2 border-dashed border-[var(--primary-red)]/15 dark:border-[var(--primary-red)]/20 animate-orbit-ccw pointer-events-none" />
-
-            {/* Subtle Ambient Soft Lights */}
-            <div className="absolute w-28 h-28 rounded-full bg-[var(--primary-red)]/10 dark:bg-[var(--primary-red)]/40 blur-2xl top-10 right-10 animate-float-slow pointer-events-none" />
-            <div className="absolute w-24 h-24 rounded-full bg-amber-500/10 dark:bg-amber-500/30 blur-2xl bottom-10 left-10 animate-float-reverse pointer-events-none" />
-
-            {/* Center Cinema Graphic */}
-            <div className="relative z-10 w-full flex flex-col items-center justify-center group">
-              <div className="relative w-full flex items-center justify-center animate-hero-bounce">
-                <img
-                  src={cinemaImage}
-                  alt="3D Cinema Graphic"
-                  className="w-full h-auto max-h-[480px] object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_25px_45px_rgba(220,38,38,0.35)] transition-all duration-700 ease-out group-hover:scale-105"
-                />
-              </div>
-            </div>
           </div>
 
         </div>
       </div>
 
-
-      {/* Keyframe Animations */}
+      {/* Cinematic Organic Animations */}
       <style>{`
-        @keyframes orbitCW {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+        /* Smooth Natural Stage Breathing & Float */
+        @keyframes stageFloat {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-15px) rotate(-0.5deg);
+          }
         }
-        @keyframes orbitCCW {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(-360deg); }
-        }
-        @keyframes counterRotate {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(-360deg); }
-        }
-        @keyframes heroBounce {
-          0%, 100% { transform: translateY(0px) scale(1); }
-          50% { transform: translateY(-18px) scale(1.02); }
-        }
-        @keyframes floatSlow {
-          0%, 100% { transform: translate(0px, 0px); }
-          50% { transform: translate(15px, -15px); }
-        }
-        @keyframes floatReverse {
-          0%, 100% { transform: translate(0px, 0px); }
-          50% { transform: translate(-15px, 15px); }
+        .animate-stage-float {
+          animation: stageFloat 5s ease-in-out infinite;
         }
 
-        .animate-orbit-cw {
-          animation: orbitCW 20s linear infinite;
+        /* Ambient Spotlight Breathing */
+        @keyframes spotlightPulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.55; transform: scale(1.1); }
         }
-        .animate-orbit-ccw {
-          animation: orbitCCW 15s linear infinite;
+        .animate-spotlight-pulse {
+          animation: spotlightPulse 4s ease-in-out infinite;
         }
-        .animate-counter-rotate {
-          animation: counterRotate 20s linear infinite;
+
+        /* 3D Glasses Cyan Lens Glow */
+        @keyframes lensCyan {
+          0%, 100% { opacity: 0.45; transform: translate(-50%, 0) scale(1); }
+          50% { opacity: 0.85; transform: translate(-50%, -2px) scale(1.15); }
         }
-        .animate-hero-bounce {
-          animation: heroBounce 4.5s ease-in-out infinite;
+        .animate-lens-cyan {
+          animation: lensCyan 3s ease-in-out infinite;
         }
-        .animate-float-slow {
-          animation: floatSlow 6s ease-in-out infinite;
+
+        /* 3D Glasses Red Lens Glow */
+        @keyframes lensRed {
+          0%, 100% { opacity: 0.5; transform: translate(-50%, 0) scale(1); }
+          50% { opacity: 0.9; transform: translate(-50%, -2px) scale(1.15); }
         }
-        .animate-float-reverse {
-          animation: floatReverse 7s ease-in-out infinite;
+        .animate-lens-red {
+          animation: lensRed 3s ease-in-out infinite 0.4s;
+        }
+
+        /* Real Popcorn Popping Motion */
+        @keyframes popcornPop1 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+          30% { opacity: 1; }
+          50% { transform: translate(-14px, -24px) rotate(-45deg); opacity: 0.9; }
+          80% { opacity: 0; }
+        }
+        .animate-popcorn-pop-1 {
+          animation: popcornPop1 3.4s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+        }
+
+        @keyframes popcornPop2 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+          25% { opacity: 1; }
+          50% { transform: translate(18px, -32px) rotate(60deg); opacity: 0.95; }
+          80% { opacity: 0; }
+        }
+        .animate-popcorn-pop-2 {
+          animation: popcornPop2 4s cubic-bezier(0.25, 1, 0.5, 1) infinite 1s;
+        }
+
+        @keyframes popcornPop3 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+          35% { opacity: 1; }
+          50% { transform: translate(-8px, -18px) rotate(-20deg); opacity: 0.85; }
+          75% { opacity: 0; }
+        }
+        .animate-popcorn-pop-3 {
+          animation: popcornPop3 3s cubic-bezier(0.25, 1, 0.5, 1) infinite 1.8s;
+        }
+
+        /* Projector Dust Moters */
+        @keyframes dustMote1 {
+          0%, 100% { transform: translate(0, 0); opacity: 0.2; }
+          50% { transform: translate(12px, -18px); opacity: 0.8; }
+        }
+        .animate-dust-1 {
+          animation: dustMote1 6s ease-in-out infinite;
+        }
+
+        @keyframes dustMote2 {
+          0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+          50% { transform: translate(-15px, -15px); opacity: 0.9; }
+        }
+        .animate-dust-2 {
+          animation: dustMote2 5s ease-in-out infinite 1s;
         }
       `}</style>
     </section>
