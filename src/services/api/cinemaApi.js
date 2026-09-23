@@ -246,13 +246,22 @@ export const cinemaApi = baseApi.injectEndpoints({
     // 6. PAYMENTS & BAKONG KHQR (payment-controller)
     // ==========================================
 
-    // Create payment order for a booking (paymentMethod: "KHQR")
+    // Create payment order for a booking (path param bookingUuid)
     createPayment: builder.mutation({
-      query: ({ bookingUuid, paymentMethod = "KHQR" }) => ({
-        url: `/bookings/${bookingUuid}/payments`,
-        method: "POST",
-        body: { paymentMethod },
-      }),
+      query: (arg) => {
+        const bookingUuid = typeof arg === "string" ? arg : arg?.bookingUuid;
+        if (
+          !bookingUuid ||
+          bookingUuid === "undefined" ||
+          bookingUuid === "null"
+        ) {
+          throw new Error("Invalid bookingUuid provided to createPayment");
+        }
+        return {
+          url: `/bookings/${bookingUuid}/payments`,
+          method: "POST",
+        };
+      },
       invalidatesTags: ["Payment", "Booking"],
     }),
 
@@ -264,9 +273,15 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Get Bakong KHQR QR Code payload / image for payment
+    // Get Bakong KHQR QR Code PNG image for payment (returns browser blob URL)
     getPaymentQr: builder.query({
-      query: (paymentUuid) => `/payments/${paymentUuid}/qr`,
+      query: (paymentUuid) => ({
+        url: `/payments/${paymentUuid}/qr`,
+        responseHandler: async (response) => {
+          const blob = await response.blob();
+          return URL.createObjectURL(blob);
+        },
+      }),
       providesTags: (result, error, paymentUuid) => [
         { type: "Payment", id: paymentUuid },
       ],
@@ -321,9 +336,15 @@ export const cinemaApi = baseApi.injectEndpoints({
       providesTags: ["Ticket"],
     }),
 
-    // Get booking scannable QR code
+    // Get booking scannable QR code (authenticated PNG blob)
     getBookingQrCode: builder.query({
-      query: (bookingUuid) => `/tickets/bookings/${bookingUuid}/qr`,
+      query: (bookingUuid) => ({
+        url: `/tickets/bookings/${bookingUuid}/qr`,
+        responseHandler: async (response) => {
+          const blob = await response.blob();
+          return URL.createObjectURL(blob);
+        },
+      }),
       providesTags: (result, error, bookingUuid) => [
         { type: "Ticket", id: bookingUuid },
       ],

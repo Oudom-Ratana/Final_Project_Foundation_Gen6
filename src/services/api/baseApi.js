@@ -39,11 +39,15 @@ const tmdbBaseQuery = fetchBaseQuery({
   },
 });
 
-// Teacher's Base Query: prepareHeaders reading accessToken from Redux State
+// Teacher's Base Query: prepareHeaders reading accessToken from Redux State or Storage
 const cinemaBaseQuery = fetchBaseQuery({
   baseUrl: CINEMA_API_BASE,
   prepareHeaders: (header, { getState }) => {
-    const rawToken = getState()?.auth?.accessToken || getState()?.auth?.token;
+    const rawToken =
+      getState()?.auth?.accessToken ||
+      getState()?.auth?.token ||
+      sessionStorage.getItem("accessToken") ||
+      localStorage.getItem("accessToken");
     const token = typeof rawToken === "string" ? rawToken.trim() : "";
 
     if (token && token !== "Bearer" && token.length > 5) {
@@ -52,7 +56,6 @@ const cinemaBaseQuery = fetchBaseQuery({
         token.startsWith("Bearer ") ? token : `Bearer ${token}`,
       );
     }
-    header.set("accept", "application/json");
     return header;
   },
 });

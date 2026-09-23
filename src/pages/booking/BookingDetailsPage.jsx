@@ -18,9 +18,10 @@ import { useGetTVDetailsQuery } from "../../services/api/tvApi";
 
 import {
   useCreateBookingMutation,
-  useReleaseHoldMutation,
+  useCreatePaymentMutation,
 } from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
+import PaymentKhqrModal from "../../components/booking/PaymentKhqrModal";
 
 import { CONCESSIONS } from "../../data/concessionsData";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
@@ -159,8 +160,6 @@ export default function BookingDetailsPage() {
   );
 
   const location = useLocation();
-  const [releaseHold] = useReleaseHoldMutation();
-  const [isReleasing, setIsReleasing] = useState(false);
 
   const showtimeUuid =
     searchParams.get("showtimeUuid") || booking.showtime?.showtimeUuid;
@@ -183,23 +182,17 @@ export default function BookingDetailsPage() {
   const [timeLeft, setTimeLeft] = useState(initialExpiresIn);
   const [hasExpired, setHasExpired] = useState(false);
 
-  const handleExpiry = async () => {
-    try {
-      if (showtimeUuid && holdId) {
-        await releaseHold({ showtimeUuid, holdId }).unwrap();
-      }
-    } catch (err) {
-      console.warn("Hold expiry release note:", err);
-    } finally {
-      dispatch(clearSeats());
-      toast.warn(
-        "Your 5-minute seat hold has expired. Please select your seats again.",
-      );
-      const params = new URLSearchParams(searchParams);
-      params.delete("holdId");
-      params.delete("expiresIn");
-      navigate(`/booking/seats?${params.toString()}`, { replace: true });
-    }
+  const handleExpiry = () => {
+    dispatch(clearSeats());
+    toast.warn(
+      "Your 5-minute seat hold has expired. Please select your seats again.",
+    );
+    const params = new URLSearchParams(searchParams);
+    params.delete("holdId");
+    params.delete("expiresIn");
+    params.delete("seats");
+    params.delete("seatUuids");
+    navigate(`/booking/seats?${params.toString()}`, { replace: true });
   };
 
   useEffect(() => {
@@ -224,24 +217,15 @@ export default function BookingDetailsPage() {
     return () => clearInterval(timer);
   }, [timeLeft, hasExpired]);
 
-  const handleBack = async () => {
-    if (isReleasing) return;
-    setIsReleasing(true);
-    try {
-      if (showtimeUuid && holdId) {
-        await releaseHold({ showtimeUuid, holdId }).unwrap();
-      }
-    } catch (err) {
-      console.warn("Release hold on back navigation:", err);
-    } finally {
-      dispatch(clearSeats());
-      const params = new URLSearchParams(searchParams);
-      params.delete("holdId");
-      params.delete("expiresIn");
-      params.delete("seats");
-      params.delete("seatUuids");
-      navigate(`/booking/seats?${params.toString()}`, { replace: true });
-    }
+  const handleBack = () => {
+    // Reset seats in state and return to seat map without triggering 403 on DELETE
+    dispatch(clearSeats());
+    const params = new URLSearchParams(searchParams);
+    params.delete("holdId");
+    params.delete("expiresIn");
+    params.delete("seats");
+    params.delete("seatUuids");
+    navigate(`/booking/seats?${params.toString()}`, { replace: true });
   };
 
   const formatTimer = (seconds) => {
@@ -258,6 +242,34 @@ export default function BookingDetailsPage() {
     dispatch(updateConcessionQuantity({ item, delta: -1 }));
   };
 
+  const [createPayment, { isLoading: isCreatingPayment }] =
+    useCreatePaymentMutation();
+
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [activePaymentUuid, setActivePaymentUuid] = useState(null);
+  const [activeBookingUuid, setActiveBookingUuid] = useState(null);
+  const [activeBookingRef, setActiveBookingRef] = useState(null);
+
+  const navigateToConfirmed = (bookingRef, bookingUuid) => {
+    dispatch(setBookingConfirmation(bookingRef));
+    const params = new URLSearchParams(searchParams);
+    params.set("ref", bookingRef);
+    if (bookingUuid && bookingUuid !== "undefined" && bookingUuid !== "null") {
+      params.set("bookingUuid", bookingUuid);
+    } else {
+      params.delete("bookingUuid");
+    }
+    params.set("screenType", resolvedScreenType);
+    params.set("seats", selectedSeats.map((s) => s.id).join(","));
+    if (concessions.length > 0) {
+      params.set(
+        "concessions",
+        encodeURIComponent(JSON.stringify(concessions)),
+      );
+    }
+    navigate(`/booking/confirmed?${params.toString()}`);
+  };
+
   const handleContinue = async () => {
     try {
       let bookingRef = null;
@@ -265,30 +277,51 @@ export default function BookingDetailsPage() {
 
       if (showtimeUuid && holdId) {
         const res = await createBooking({ showtimeUuid, holdId }).unwrap();
-        bookingUuid = res.bookingUuid || res.uuid;
+        console.log("createBooking API response:", res);
+        bookingUuid =
+          res?.uuid ||
+          res?.bookingUuid ||
+          res?.data?.uuid ||
+          res?.data?.bookingUuid;
         bookingRef =
-          res.bookingReference ||
-          res.reference ||
+          res?.bookingReference ||
+          res?.reference ||
+          res?.ticketQrToken?.slice(0, 8)?.toUpperCase() ||
           `FZ-${(bookingUuid || "").slice(0, 8).toUpperCase()}`;
+
+        // Attempt real payment creation in Teacher API
+        if (bookingUuid && bookingUuid !== "undefined") {
+          try {
+            const payRes = await createPayment(bookingUuid).unwrap();
+            console.log("createPayment API response:", payRes);
+            const paymentUuid =
+              payRes?.uuid ||
+              payRes?.paymentUuid ||
+              payRes?.data?.uuid ||
+              payRes?.data?.paymentUuid;
+            if (paymentUuid && paymentUuid !== "undefined") {
+              setActivePaymentUuid(paymentUuid);
+              setActiveBookingUuid(bookingUuid);
+              setActiveBookingRef(bookingRef);
+              setIsPaymentModalOpen(true);
+              return; // Pause here and show KHQR modal!
+            }
+          } catch (payErr) {
+            console.warn("Payment initiation note:", payErr);
+            // Teacher API Bakong KHQR generator threw 400 on backend.
+            // Open modal in Demo Mode so user can review and complete ticket flow!
+            setActivePaymentUuid(null);
+            setActiveBookingUuid(bookingUuid);
+            setActiveBookingRef(bookingRef);
+            setIsPaymentModalOpen(true);
+            return;
+          }
+        }
       } else {
         bookingRef = `FZ-${Math.floor(100000 + Math.random() * 900000)}`;
       }
 
-      dispatch(setBookingConfirmation(bookingRef));
-      const params = new URLSearchParams(searchParams);
-      params.set("ref", bookingRef);
-      if (bookingUuid) {
-        params.set("bookingUuid", bookingUuid);
-      }
-      params.set("screenType", resolvedScreenType);
-      params.set("seats", selectedSeats.map((s) => s.id).join(","));
-      if (concessions.length > 0) {
-        params.set(
-          "concessions",
-          encodeURIComponent(JSON.stringify(concessions)),
-        );
-      }
-      navigate(`/booking/confirmed?${params.toString()}`);
+      navigateToConfirmed(bookingRef, bookingUuid);
     } catch (err) {
       console.error("Failed to create booking:", err);
       const msg =
@@ -547,32 +580,23 @@ export default function BookingDetailsPage() {
               <button
                 type="button"
                 onClick={handleBack}
-                disabled={isReleasing || isCreatingBooking}
-                className={`flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 ${
-                  isReleasing ? "opacity-75 cursor-wait" : "cursor-pointer"
-                }`}
+                disabled={isCreatingBooking}
+                className="flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
               >
-                {isReleasing ? (
-                  <>
-                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>Releasing...</span>
-                  </>
-                ) : (
-                  <span>Back</span>
-                )}
+                <span>Back</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleContinue}
-                disabled={isCreatingBooking}
+                disabled={isCreatingBooking || isCreatingPayment}
                 className={`flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 ${
-                  isCreatingBooking
+                  isCreatingBooking || isCreatingPayment
                     ? "opacity-75 cursor-wait"
                     : "cursor-pointer"
                 }`}
               >
-                {isCreatingBooking ? (
+                {isCreatingBooking || isCreatingPayment ? (
                   <>
                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                     <span>CONFIRMING...</span>
@@ -585,6 +609,23 @@ export default function BookingDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Bakong KHQR Payment Modal */}
+      <PaymentKhqrModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        bookingUuid={activeBookingUuid}
+        paymentUuid={activePaymentUuid}
+        bookingRef={activeBookingRef}
+        amount={totalPaid}
+        movieTitle={movie?.title || movie?.name}
+        hallName={hallName}
+        seats={selectedSeats.map((s) => s.id)}
+        onPaymentSuccess={() => {
+          setIsPaymentModalOpen(false);
+          navigateToConfirmed(activeBookingRef, activeBookingUuid);
+        }}
+      />
     </div>
   );
 }

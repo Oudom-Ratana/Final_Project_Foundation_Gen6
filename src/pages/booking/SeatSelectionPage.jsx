@@ -216,7 +216,7 @@ export default function SeatSelectionPage() {
 
     try {
       let holdId = null;
-      let expiresInSeconds = 600;
+      let expiresInSeconds = 300;
 
       if (showtimeUuid && seatUuids.length > 0) {
         const holdRes = await holdSeats({
@@ -225,7 +225,7 @@ export default function SeatSelectionPage() {
         }).unwrap();
 
         holdId = holdRes.holdId;
-        expiresInSeconds = holdRes.expiresInSeconds || 600;
+        expiresInSeconds = holdRes.expiresInSeconds || 300;
       }
 
       if (movie) {
