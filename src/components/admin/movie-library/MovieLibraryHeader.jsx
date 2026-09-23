@@ -62,7 +62,10 @@
 
 import { MoreVertical, Plus, Star } from "lucide-react";
 
-export default function MovieLibraryHeader({ onAddMovie }) {
+export default function MovieLibraryHeader({ 
+  onAddMovie
+
+}) {
   return (
     <header className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 px-6 py-6 md:px-8 ">
       <div>
@@ -75,10 +78,6 @@ export default function MovieLibraryHeader({ onAddMovie }) {
             TMDB Synced
           </span>
         </div>
-        {/* <p className="mt-1 text-slate-500">
-          Manage your cinema showtimes, currently showing movies, and upcoming
-          releases.
-        </p> */}
       </div>
 
       <div className="flex items-center gap-3">
@@ -101,4 +100,3 @@ export default function MovieLibraryHeader({ onAddMovie }) {
     </header>
   );
 }
-
