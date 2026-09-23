@@ -72,6 +72,37 @@ export const cinemaApi = baseApi.injectEndpoints({
       providesTags: (result, error, uuid) => [{ type: "Showtime", id: uuid }],
     }),
 
+    // Customer: Get real-time seat availability for a specific showtime
+    getShowtimeSeats: builder.query({
+      query: (showtimeUuid) => `/showtimes/${showtimeUuid}/seats`,
+      providesTags: (result, error, showtimeUuid) => [
+        { type: "Seat", id: showtimeUuid },
+      ],
+    }),
+
+    // Customer: Hold selected seats for checkout countdown
+    holdSeats: builder.mutation({
+      query: ({ showtimeUuid, seatUuids }) => ({
+        url: `/showtimes/${showtimeUuid}/holds`,
+        method: "POST",
+        body: { seatUuids },
+      }),
+      invalidatesTags: (result, error, { showtimeUuid }) => [
+        { type: "Seat", id: showtimeUuid },
+      ],
+    }),
+
+    // Customer: Release seat hold if cancelled or timed out
+    releaseHold: builder.mutation({
+      query: ({ showtimeUuid, holdId }) => ({
+        url: `/showtimes/${showtimeUuid}/holds/${holdId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { showtimeUuid }) => [
+        { type: "Seat", id: showtimeUuid },
+      ],
+    }),
+
     // Admin: Create a new showtime
     createShowtime: builder.mutation({
       query: (showtimeData) => ({
@@ -80,6 +111,26 @@ export const cinemaApi = baseApi.injectEndpoints({
         body: showtimeData,
       }),
       invalidatesTags: ["Showtime"],
+    }),
+
+    // ==========================================
+    // 2.5 BOOKINGS (CUSTOMER & TICKETING)
+    // ==========================================
+
+    // Customer: Create official booking from hold
+    createBooking: builder.mutation({
+      query: ({ showtimeUuid, holdId }) => ({
+        url: "/bookings",
+        method: "POST",
+        body: { showtimeUuid, holdId },
+      }),
+      invalidatesTags: ["Booking", "Seat"],
+    }),
+
+    // Customer: Get booking by UUID
+    getBookingByUuid: builder.query({
+      query: (uuid) => `/bookings/${uuid}`,
+      providesTags: (result, error, uuid) => [{ type: "Booking", id: uuid }],
     }),
 
     // ==========================================
@@ -134,14 +185,24 @@ export const {
   useUpdateMovieStatusMutation,
   useDeleteMovieMutation,
 
-  // Showtime hooks
+  // Showtime & Seat hooks
   useGetAllShowtimesQuery,
   useLazyGetAllShowtimesQuery,
   useGetShowtimeByUuidQuery,
   useLazyGetShowtimeByUuidQuery,
   useCreateShowtimeMutation,
+  useGetShowtimeSeatsQuery,
+  useLazyGetShowtimeSeatsQuery,
+  useHoldSeatsMutation,
+  useReleaseHoldMutation,
+
+  // Booking hooks
+  useCreateBookingMutation,
+  useGetBookingByUuidQuery,
+  useLazyGetBookingByUuidQuery,
 
   // Hall hooks
+
   useGetAllHallsQuery,
   useGetHallByUuidQuery,
   useCreateHallMutation,

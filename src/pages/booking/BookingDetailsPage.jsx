@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { Clock, Plus, Minus, ArrowLeft } from "lucide-react";
 import {
   selectSelectedSeats,
@@ -12,7 +13,9 @@ import {
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
 import { useGetTVDetailsQuery } from "../../services/api/tvApi";
+import { useCreateBookingMutation } from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
+
 import { CONCESSIONS } from "../../data/concessionsData";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 
@@ -149,11 +152,18 @@ export default function BookingDetailsPage() {
     0,
   );
 
+  const showtimeUuid = searchParams.get("showtimeUuid");
+  const holdId = searchParams.get("holdId");
+  const initialExpiresIn = parseInt(searchParams.get("expiresIn"), 10) || 600;
+
+  const [createBooking, { isLoading: isCreatingBooking }] =
+    useCreateBookingMutation();
+
   // Combined Total
   const totalPaid = ticketsTotal + concessionsTotal;
 
-  // 3-Minute Live Countdown Timer
-  const [timeLeft, setTimeLeft] = useState(180);
+  // Live Countdown Timer (synced with server expiresIn)
+  const [timeLeft, setTimeLeft] = useState(initialExpiresIn);
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
@@ -175,20 +185,45 @@ export default function BookingDetailsPage() {
     dispatch(updateConcessionQuantity({ item, delta: -1 }));
   };
 
-  const handleContinue = () => {
-    const bookingRef = `FZ-${Math.floor(100000 + Math.random() * 900000)}`;
-    dispatch(setBookingConfirmation(bookingRef));
-    const params = new URLSearchParams(searchParams);
-    params.set("ref", bookingRef);
-    params.set("screenType", resolvedScreenType);
-    params.set("seats", selectedSeats.map((s) => s.id).join(","));
-    if (concessions.length > 0) {
-      params.set(
-        "concessions",
-        encodeURIComponent(JSON.stringify(concessions)),
-      );
+  const handleContinue = async () => {
+    try {
+      let bookingRef = null;
+      let bookingUuid = null;
+
+      if (showtimeUuid && holdId) {
+        const res = await createBooking({ showtimeUuid, holdId }).unwrap();
+        bookingUuid = res.bookingUuid || res.uuid;
+        bookingRef =
+          res.bookingReference ||
+          res.reference ||
+          `FZ-${(bookingUuid || "").slice(0, 8).toUpperCase()}`;
+      } else {
+        bookingRef = `FZ-${Math.floor(100000 + Math.random() * 900000)}`;
+      }
+
+      dispatch(setBookingConfirmation(bookingRef));
+      const params = new URLSearchParams(searchParams);
+      params.set("ref", bookingRef);
+      if (bookingUuid) {
+        params.set("bookingUuid", bookingUuid);
+      }
+      params.set("screenType", resolvedScreenType);
+      params.set("seats", selectedSeats.map((s) => s.id).join(","));
+      if (concessions.length > 0) {
+        params.set(
+          "concessions",
+          encodeURIComponent(JSON.stringify(concessions)),
+        );
+      }
+      navigate(`/booking/confirmed?${params.toString()}`);
+    } catch (err) {
+      console.error("Failed to create booking:", err);
+      const msg =
+        err?.data?.message ||
+        err?.data?.error ||
+        "Failed to confirm booking. Your seat hold may have expired.";
+      toast.error(msg);
     }
-    navigate(`/booking/confirmed?${params.toString()}`);
   };
 
   return (
@@ -459,9 +494,21 @@ export default function BookingDetailsPage() {
               <button
                 type="button"
                 onClick={handleContinue}
-                className="flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20"
+                disabled={isCreatingBooking}
+                className={`flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 ${
+                  isCreatingBooking
+                    ? "opacity-75 cursor-wait"
+                    : "cursor-pointer"
+                }`}
               >
-                Continue
+                {isCreatingBooking ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>CONFIRMING...</span>
+                  </>
+                ) : (
+                  <span>Continue</span>
+                )}
               </button>
             </div>
           </div>

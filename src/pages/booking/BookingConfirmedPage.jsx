@@ -22,6 +22,7 @@ export default function BookingConfirmedPage() {
   const time = searchParams.get("time") || "6:30 PM";
   const branch = searchParams.get("branch") || "FilmZone SenSok";
   const date = searchParams.get("date") || "26 Aug 2026";
+  const bookingUuid = searchParams.get("bookingUuid");
   const bookingRef =
     searchParams.get("ref") ||
     `125273HJ${Math.floor(1000 + Math.random() * 9000)}`;
@@ -484,8 +485,24 @@ export default function BookingConfirmedPage() {
                 </span>
 
                 {/* Giant Centered Scannable QR Code */}
-                <div className="p-4 bg-white rounded-3xl shadow-sm border border-neutral-200/80 text-neutral-900 flex items-center justify-center">
-                  <QrCode className="w-48 h-48 sm:w-52 sm:h-52" />
+                <div className="p-4 bg-white rounded-3xl shadow-sm border border-neutral-200/80 text-neutral-900 flex items-center justify-center min-h-[210px] min-w-[210px]">
+                  {bookingUuid ? (
+                    <img
+                      src={`https://cinema-booking-api.eunglyzhia.com/api/v1/tickets/bookings/${bookingUuid}/qr`}
+                      alt={`Ticket QR for ${bookingRef}`}
+                      className="w-48 h-48 sm:w-52 sm:h-52 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        const fallback = e.currentTarget.nextElementSibling;
+                        if (fallback) fallback.classList.remove("hidden");
+                      }}
+                    />
+                  ) : null}
+                  <QrCode
+                    className={`w-48 h-48 sm:w-52 sm:h-52 ${
+                      bookingUuid ? "hidden" : ""
+                    }`}
+                  />
                 </div>
               </div>
 

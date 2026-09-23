@@ -7,6 +7,7 @@ export default function BookingCheckoutBar({
   totalPrice = 0,
   isGroupDiscount = false,
   isGroupMode = false,
+  isLoading = false,
   onProceed,
 }) {
   const theme = useSelector(selectTheme);
@@ -58,10 +59,22 @@ export default function BookingCheckoutBar({
       <button
         type="button"
         onClick={onProceed}
-        className="px-5 sm:px-7 py-2.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all shadow-md active:scale-95 flex items-center gap-1.5 shrink-0 border border-white/20 cursor-pointer"
+        disabled={isLoading}
+        className={`px-5 sm:px-7 py-2.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all shadow-md active:scale-95 flex items-center gap-1.5 shrink-0 border border-white/20 ${
+          isLoading ? "opacity-75 cursor-wait" : "cursor-pointer"
+        }`}
       >
-        <span>BOOKING DETAILS</span>
-        <ChevronRight className="w-4 h-4 stroke-[3]" />
+        {isLoading ? (
+          <>
+            <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            <span>HOLDING SEATS...</span>
+          </>
+        ) : (
+          <>
+            <span>BOOKING DETAILS</span>
+            <ChevronRight className="w-4 h-4 stroke-[3]" />
+          </>
+        )}
       </button>
     </div>
   );

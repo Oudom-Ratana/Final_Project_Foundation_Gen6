@@ -14,6 +14,11 @@ import {
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
 import { useGetTVDetailsQuery } from "../../services/api/tvApi";
+import {
+  useGetShowtimeSeatsQuery,
+  useHoldSeatsMutation,
+} from "../../services/api/cinemaApi";
+import { selectIsAuthenticated } from "../../redux/slices/authSlice";
 
 // Modular Subcomponents & Data
 import BookingStepper from "../../components/booking/BookingStepper";
@@ -21,17 +26,10 @@ import ScreenCurve from "../../components/booking/ScreenCurve";
 import SeatLegend from "../../components/booking/SeatLegend";
 import SeatPricingCards from "../../components/booking/SeatPricingCards";
 import BookingCheckoutBar from "../../components/booking/BookingCheckoutBar";
-import GoldClassSeatMap from "../../components/booking/GoldClassSeatMap";
-import StandardHallSeatMap from "../../components/booking/StandardHallSeatMap";
+import DynamicSeatMap from "../../components/booking/DynamicSeatMap";
 import GroupBookingLinkModal from "../../components/booking/GroupBookingLinkModal";
 import GroupSeatLegend from "../../components/booking/GroupSeatLegend";
-import {
-  GOLD_PRICE,
-  STANDARD_SINGLE_PRICE,
-  STANDARD_COUPLE_PRICE,
-  getReservedSeatsForShowtime,
-  getCouplePair,
-} from "../../data/seatLayoutData";
+import { GOLD_PRICE, STANDARD_SINGLE_PRICE } from "../../data/seatLayoutData";
 
 export default function SeatSelectionPage() {
   const [searchParams] = useSearchParams();
@@ -110,33 +108,31 @@ export default function SeatSelectionPage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const showtimeUuid = searchParams.get("showtimeUuid");
+  const rawPrice = searchParams.get("price");
+  const ticketPrice = rawPrice
+    ? parseFloat(rawPrice)
+    : hallType === "gold"
+      ? GOLD_PRICE
+      : STANDARD_SINGLE_PRICE;
+
+  const [holdSeats, { isLoading: isHolding }] = useHoldSeatsMutation();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  // Real-time seat availability from Teacher API
+  const {
+    data: apiSeats = [],
+    isLoading: isSeatsLoading,
+    isError: isSeatsError,
+    refetch: refetchSeats,
+  } = useGetShowtimeSeatsQuery(showtimeUuid, { skip: !showtimeUuid });
+
   // Clear selected seats whenever showtime or hall changes
   useEffect(() => {
     dispatch(clearSeats());
-    // In group booking mode, preselect C3 for the user so they see their seat with avatar immediately
-    if (bookingType === "group") {
-      dispatch(
-        toggleSeat({
-          id: "C3",
-          row: "C",
-          number: 3,
-          type: "single",
-          price: STANDARD_SINGLE_PRICE,
-        }),
-      );
-    }
-  }, [movieId, time, date, hallType, bookingType, dispatch]);
-
-  // Dynamic showtime-specific reserved seats
-  const reservedSeatsSet = useMemo(() => {
-    return getReservedSeatsForShowtime(hallType, movieId, date, time);
-  }, [hallType, movieId, date, time]);
-
-  const isSeatSelected = (seatId) => selectedSeats.some((s) => s.id === seatId);
-  const isSeatReserved = (seatId) => reservedSeatsSet.has(seatId);
+  }, [movieId, time, date, hallType, bookingType, showtimeUuid, dispatch]);
 
   // Group seat avatars: shows live presence members on the map
-  // Friends took F6 & B8; You took your selected seats (default C3)
   const groupSeatAvatars = useMemo(() => {
     if (bookingType !== "group") return {};
 
@@ -186,70 +182,27 @@ export default function SeatSelectionPage() {
     navigate(`/booking/seats?${params.toString()}`, { replace: true });
   };
 
-  // Interactive Click Handler
-  const handleSeatClick = (row, colNumber, isCouple = false) => {
-    const seatId = `${row}${colNumber}`;
+  // Interactive Click Handler for Dynamic Seat Map
+  const handleSeatClick = (seatsToToggle, isCouple, willSelect) => {
+    seatsToToggle.forEach((seat) => {
+      const seatId = seat.seatLabel;
 
-    // Friends' seats in group mode cannot be selected/deselected by you
-    if (bookingType === "group" && (seatId === "F6" || seatId === "B8")) {
-      return;
-    }
-
-    if (isCouple) {
-      const pair = getCouplePair(colNumber);
-      if (!pair) return;
-      const [col1, col2] = pair;
-      const seatId1 = `${row}${col1}`;
-      const seatId2 = `${row}${col2}`;
-
-      // If either seat in the pair is reserved, cannot select
-      if (isSeatReserved(seatId1) || isSeatReserved(seatId2)) return;
-
-      const is1Selected = isSeatSelected(seatId1);
-      const is2Selected = isSeatSelected(seatId2);
-      const bothSelected = is1Selected && is2Selected;
-
-      const seat1Obj = {
-        id: seatId1,
-        row,
-        number: col1,
-        type: "couple",
-        price: STANDARD_COUPLE_PRICE / 2,
-      };
-      const seat2Obj = {
-        id: seatId2,
-        row,
-        number: col2,
-        type: "couple",
-        price: STANDARD_COUPLE_PRICE / 2,
-      };
-
-      if (bothSelected) {
-        // Deselect both
-        dispatch(toggleSeat(seat1Obj));
-        dispatch(toggleSeat(seat2Obj));
-      } else {
-        // Select both seats together
-        if (!is1Selected) dispatch(toggleSeat(seat1Obj));
-        if (!is2Selected) dispatch(toggleSeat(seat2Obj));
+      // Friends' seats in group mode cannot be selected/deselected by you
+      if (bookingType === "group" && (seatId === "F6" || seatId === "B8")) {
+        return;
       }
-      return;
-    }
 
-    // Normal single seat toggle
-    if (isSeatReserved(seatId)) return;
-
-    const seatPrice = hallType === "gold" ? GOLD_PRICE : STANDARD_SINGLE_PRICE;
-
-    dispatch(
-      toggleSeat({
-        id: seatId,
-        row,
-        number: colNumber,
-        type: hallType === "gold" ? "gold" : "single",
-        price: seatPrice,
-      }),
-    );
+      dispatch(
+        toggleSeat({
+          id: seatId,
+          seatUuid: seat.seatUuid,
+          row: seat.rowLabel,
+          number: seat.seatNumber,
+          type: isCouple ? "couple" : hallType === "gold" ? "gold" : "single",
+          price: ticketPrice,
+        }),
+      );
+    });
   };
 
   // Each user chooses their own seat and pays for their own seat!
@@ -259,34 +212,104 @@ export default function SeatSelectionPage() {
   }, [selectedSeats]);
   const totalPrice = isGroupDiscount ? rawTotalPrice * 0.9 : rawTotalPrice;
 
-  // Proceed to Booking Details (only user's own seats are checked out and paid for)
-  const handleProceed = () => {
-    if (selectedSeats.length === 0) return;
-    if (movie) {
-      dispatch(setMovie(movie));
+  // Proceed to Booking Details (hold seats with Teacher API)
+  const handleProceed = async () => {
+    if (selectedSeats.length === 0) {
+      toast.warn("Please select at least one seat.");
+      return;
     }
-    dispatch(
-      setShowtime({
-        time,
-        branch,
-        date,
-        screenType,
-        hall:
-          hallType === "gold"
-            ? "Hall 4 - Gold Class VIP"
-            : `Hall 3 - ${screenType}`,
-        hallType,
-        bookingType,
-      }),
-    );
-    const params = new URLSearchParams(searchParams);
-    params.set("type", bookingType);
-    params.set("hall", hallType);
-    params.set("screenType", screenType);
-    params.set("mediaType", isTV ? "tv" : "movie");
-    params.set("seats", selectedSeats.map((s) => s.id).join(","));
-    navigate(`/booking/details?${params.toString()}`);
+
+    if (!isAuthenticated) {
+      toast.info("Please log in to hold your seats and continue booking.");
+      navigate("/login", {
+        state: { from: `/booking/seats?${searchParams.toString()}` },
+      });
+      return;
+    }
+
+    const seatUuids = selectedSeats.map((s) => s.seatUuid).filter(Boolean);
+
+    try {
+      let holdId = null;
+      let expiresInSeconds = 600;
+
+      if (showtimeUuid && seatUuids.length > 0) {
+        const holdRes = await holdSeats({
+          showtimeUuid,
+          seatUuids,
+        }).unwrap();
+
+        holdId = holdRes.holdId;
+        expiresInSeconds = holdRes.expiresInSeconds || 600;
+      }
+
+      if (movie) {
+        dispatch(setMovie(movie));
+      }
+      dispatch(
+        setShowtime({
+          time,
+          branch,
+          date,
+          screenType,
+          hall:
+            hallType === "gold"
+              ? "Hall 4 - Gold Class VIP"
+              : `Hall 3 - ${screenType}`,
+          hallType,
+          bookingType,
+          showtimeUuid,
+          holdId,
+        }),
+      );
+
+      const params = new URLSearchParams(searchParams);
+      params.set("type", bookingType);
+      params.set("hall", hallType);
+      params.set("screenType", screenType);
+      params.set("mediaType", isTV ? "tv" : "movie");
+      params.set("seats", selectedSeats.map((s) => s.id).join(","));
+      params.set("seatUuids", seatUuids.join(","));
+      params.set("price", String(ticketPrice));
+      if (holdId) {
+        params.set("holdId", holdId);
+        params.set("expiresIn", String(expiresInSeconds));
+      }
+
+      navigate(`/booking/details?${params.toString()}`);
+    } catch (err) {
+      console.error("Seat hold error:", err);
+      const msg =
+        err?.data?.message ||
+        err?.data?.error ||
+        "Failed to hold seats. Some seats may already have been taken by another customer.";
+      toast.error(msg);
+    }
   };
+
+  if (!showtimeUuid) {
+    return (
+      <div className="relative min-h-[60vh] flex flex-col items-center justify-center text-center p-6 space-y-4 font-sans select-none">
+        <div className="w-16 h-16 rounded-full bg-[#B90101]/10 flex items-center justify-center text-[#B90101] mb-2 border border-[#B90101]/20">
+          <Clock className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white">
+          No Showtime Selected
+        </h2>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md">
+          Please select a valid showtime from the movie details page before
+          choosing your seats.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mt-4 px-6 py-2.5 rounded-full bg-[#B90101] text-white font-bold text-sm hover:brightness-110 active:scale-95 transition cursor-pointer"
+        >
+          Go Back to Movie
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen w-full pb-28 font-sans select-none overflow-x-hidden">
@@ -372,7 +395,7 @@ export default function SeatSelectionPage() {
 
         {/* 4. Main Seating Pod */}
         <div
-          className="w-full rounded-2xl sm:rounded-3xl border p-6 sm:p-10 shadow-sm overflow-x-auto backdrop-blur-md"
+          className="w-full rounded-2xl sm:rounded-3xl border p-6 sm:p-10 shadow-sm overflow-x-auto backdrop-blur-md min-h-[350px] flex items-center justify-center"
           style={{
             backgroundColor: isDark
               ? "var(--primary-color-30)"
@@ -382,25 +405,39 @@ export default function SeatSelectionPage() {
               : "var(--border-light-mode)",
           }}
         >
-          {hallType === "gold" ? (
-            <GoldClassSeatMap
-              isSeatReserved={isSeatReserved}
-              isSeatSelected={isSeatSelected}
-              onSeatClick={handleSeatClick}
-              groupSeatAvatars={groupSeatAvatars}
-            />
+          {isSeatsLoading ? (
+            <div className="py-16 flex flex-col items-center justify-center space-y-3">
+              <div className="w-8 h-8 rounded-full border-2 border-[#B90101] border-t-transparent animate-spin" />
+              <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+                Loading live seat availability...
+              </p>
+            </div>
+          ) : isSeatsError ? (
+            <div className="py-16 text-center space-y-3">
+              <p className="text-sm font-bold text-red-500">
+                Failed to load seats for this showtime.
+              </p>
+              <button
+                type="button"
+                onClick={() => refetchSeats()}
+                className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#B90101] text-white hover:brightness-110 cursor-pointer"
+              >
+                Retry
+              </button>
+            </div>
           ) : (
-            <StandardHallSeatMap
-              isSeatReserved={isSeatReserved}
-              isSeatSelected={isSeatSelected}
+            <DynamicSeatMap
+              seats={apiSeats}
+              selectedSeats={selectedSeats}
               onSeatClick={handleSeatClick}
               groupSeatAvatars={groupSeatAvatars}
+              hallType={hallType}
             />
           )}
         </div>
 
         {/* 5. Pricing Cards (Always shown in both Standard and Group Booking modes) */}
-        <SeatPricingCards hallType={hallType} />
+        <SeatPricingCards hallType={hallType} price={ticketPrice} />
 
         {/* 6. Legend: Standard or Group Legend with Live Presence */}
         {bookingType === "group" ? (
@@ -415,6 +452,7 @@ export default function SeatSelectionPage() {
           totalPrice={totalPrice}
           isGroupDiscount={isGroupDiscount}
           isGroupMode={bookingType === "group"}
+          isLoading={isHolding}
           onProceed={handleProceed}
         />
 

@@ -7,9 +7,22 @@ import {
   STANDARD_COUPLE_PRICE,
 } from "../../data/seatLayoutData";
 
-export default function SeatPricingCards({ hallType = "standard" }) {
+export default function SeatPricingCards({
+  hallType = "standard",
+  price = null,
+}) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
+
+  const singlePrice =
+    price != null
+      ? parseFloat(price)
+      : hallType === "gold"
+        ? GOLD_PRICE
+        : STANDARD_SINGLE_PRICE;
+
+  const couplePrice =
+    price != null ? parseFloat(price) * 2 : STANDARD_COUPLE_PRICE;
 
   const glassCardStyle = {
     backgroundColor: isDark
@@ -33,7 +46,7 @@ export default function SeatPricingCards({ hallType = "standard" }) {
               Gold Class
             </h4>
             <p className="font-black text-lg sm:text-xl text-neutral-900 dark:text-white">
-              ${GOLD_PRICE.toFixed(2)}
+              ${singlePrice.toFixed(2)}
             </p>
           </div>
         </div>
@@ -54,7 +67,7 @@ export default function SeatPricingCards({ hallType = "standard" }) {
             Single Seat
           </h4>
           <p className="font-black text-lg sm:text-xl text-neutral-900 dark:text-white">
-            ${STANDARD_SINGLE_PRICE.toFixed(2)}
+            ${singlePrice.toFixed(2)}
           </p>
         </div>
       </div>
@@ -73,7 +86,7 @@ export default function SeatPricingCards({ hallType = "standard" }) {
             Couple Seat
           </h4>
           <p className="font-black text-lg sm:text-xl text-neutral-900 dark:text-white">
-            ${STANDARD_COUPLE_PRICE.toFixed(2)}
+            ${couplePrice.toFixed(2)}
           </p>
         </div>
       </div>
