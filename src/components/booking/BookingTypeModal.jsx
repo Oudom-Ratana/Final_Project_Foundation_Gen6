@@ -58,7 +58,7 @@ export default function BookingTypeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn select-none font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-(--primary-color-30) backdrop-blur-sm animate-fadeIn select-none font-sans">
       {/* Modal Card */}
       <div
         className="relative w-full max-w-md rounded-3xl border border-[var(--border-light-mode)] bg-white dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-6 sm:p-8 shadow-2xl transition-all scale-100"

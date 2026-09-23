@@ -41,7 +41,7 @@ export default function FavouriteMovieCard({
   };
 
   return (
-    <div className="flex w-full gap-5 border border-[var(--border-light-mode)] rounded-2xl bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-5">
+    <div className="flex w-full gap-5 border border-[var(--border-light-mode)] rounded-2xl bg-white dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-5">
       <Link
         to={streamUrl}
         className="h-56 w-40 shrink-0 overflow-hidden rounded-xl block cursor-pointer"

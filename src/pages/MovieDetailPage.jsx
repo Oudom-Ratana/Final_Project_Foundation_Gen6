@@ -384,7 +384,7 @@ export default function MovieDetailPage() {
               key={`${indexPrefix}-${actor.id}`}
               className="min-w-[110px] max-w-[110px] sm:min-w-[130px] sm:max-w-[130px] flex flex-col items-center text-center space-y-2 group shrink-0"
             >
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-neutral-800 border-2 border-neutral-300 dark:border-white/15 shadow-md group-hover:border-[#B90101] group-hover:scale-105 transition-all duration-300">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-neutral-800 border-2 border-neutral-300 dark:border-(--border-dark-mode) shadow-md group-hover:border-[#B90101] group-hover:scale-105 transition-all duration-300">
                 {actor.profilePath ? (
                   <img
                     src={actor.profilePath}

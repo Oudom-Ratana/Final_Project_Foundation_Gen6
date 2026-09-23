@@ -73,7 +73,7 @@ function FooterHeading({ isDark, children }) {
       >
         {children}
       </h4>
-      <span className="mt-1.5 block h-[3px] w-7 rounded-full bg-[#B90101]" />
+      <span className="mt-1.5 block h-[3px] w-7 rounded-full bg-[#B90101] mx-auto lg:mx-0" />
     </div>
   );
 }
@@ -104,10 +104,10 @@ export default function Footer() {
           : { backgroundColor: "#FFFFFF" }
       }
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-8 gap-y-10">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-8 gap-y-12 lg:gap-y-10">
           {/* 1. Brand & Info */}
-          <div className="sm:col-span-2 lg:col-span-1 space-y-4">
+          <div className="flex flex-col items-center text-center space-y-4 lg:block lg:text-left lg:col-span-1">
             <Link
               to="/"
               className="inline-flex items-center select-none"
@@ -158,7 +158,10 @@ export default function Footer() {
           </div>
 
           {/* 2. Quick Link */}
-          <nav aria-label="Quick links">
+          <nav
+            aria-label="Quick links"
+            className="flex flex-col items-center text-center lg:block lg:text-left"
+          >
             <FooterHeading isDark={isDark}>Quick Link</FooterHeading>
             <ul className="space-y-2.5">
               {QUICK_LINKS.map((link) => (
@@ -172,7 +175,10 @@ export default function Footer() {
           </nav>
 
           {/* 3. More */}
-          <nav aria-label="More links">
+          <nav
+            aria-label="More links"
+            className="flex flex-col items-center text-center lg:block lg:text-left"
+          >
             <FooterHeading isDark={isDark}>More</FooterHeading>
             <ul className="space-y-2.5">
               {MORE_LINKS.map((link) => (
@@ -186,7 +192,10 @@ export default function Footer() {
           </nav>
 
           {/* 4. Legal & App */}
-          <nav aria-label="Legal links">
+          <nav
+            aria-label="Legal links"
+            className="flex flex-col items-center text-center lg:block lg:text-left"
+          >
             <FooterHeading isDark={isDark}>Legal & App</FooterHeading>
             <ul className="space-y-2.5">
               {LEGAL_LINKS.map((link) => (
@@ -200,7 +209,7 @@ export default function Footer() {
           </nav>
 
           {/* 5. Get in Touch */}
-          <div>
+          <div className="flex flex-col items-center text-center lg:block lg:text-left">
             <FooterHeading isDark={isDark}>Get in Touch</FooterHeading>
             <ul
               className={`space-y-2.5 text-[15px] font-medium ${isDark ? "text-neutral-400" : "text-[#777777]"}`}

@@ -7,6 +7,7 @@ import {
   removeFromFavourite,
   setFavouriteMovies,
 } from "../redux/slices/favouriteSlice";
+import { selectIsAuthenticated } from "../redux/slices/authSlice";
 import {
   useGetFavoriteMoviesQuery,
   useGetFavoriteTVShowsQuery,
@@ -14,15 +15,19 @@ import {
 
 export default function FavouritePage() {
   const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const movies = useSelector((state) => state.favourite.movies) || [];
 
   const { data: tmdbMovies, isLoading: isMoviesLoading } =
-    useGetFavoriteMoviesQuery();
-  const { data: tmdbTV, isLoading: isTVLoading } = useGetFavoriteTVShowsQuery();
+    useGetFavoriteMoviesQuery(undefined, { skip: !isAuthenticated });
+  const { data: tmdbTV, isLoading: isTVLoading } = useGetFavoriteTVShowsQuery(
+    undefined,
+    { skip: !isAuthenticated },
+  );
 
-  // Sync TMDB Cloud Favorites into Redux state
+  // Sync TMDB Cloud Favorites into Redux state (only when logged in)
   useEffect(() => {
-    if (tmdbMovies && tmdbTV) {
+    if (isAuthenticated && tmdbMovies && tmdbTV) {
       const mergedTmdb = [
         ...tmdbMovies.map((m) => ({
           id: m.id,
@@ -52,7 +57,33 @@ export default function FavouritePage() {
 
       dispatch(setFavouriteMovies(mergedTmdb));
     }
-  }, [tmdbMovies, tmdbTV, dispatch]);
+  }, [isAuthenticated, tmdbMovies, tmdbTV, dispatch]);
+
+  // Favourites belong to a logged-in account — users must be logged in to
+  // view them
+  if (!isAuthenticated) {
+    return (
+      <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
+        <div className="w-16 h-16 rounded-full bg-[#B90101]/10 flex items-center justify-center">
+          <Heart className="w-8 h-8 text-[#B90101]" />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white">
+          Login Required
+        </h2>
+        <p className="text-neutral-500 dark:text-neutral-400 max-w-md">
+          You must have an account and be logged in before you can view your
+          favourite movies &amp; shows.
+        </p>
+        <Link
+          to="/login"
+          className="mt-2 inline-flex items-center gap-2 px-6 py-2 rounded-full text-white font-bold text-[14px] shadow-lg hover:brightness-110 active:scale-95 transition"
+          style={{ backgroundColor: "#B90101" }}
+        >
+          <span>Login to View Favourites</span>
+        </Link>
+      </div>
+    );
+  }
 
   const isInitialLoading =
     (isMoviesLoading || isTVLoading) && movies.length === 0;

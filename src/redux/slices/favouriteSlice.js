@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { logout } from "./authSlice";
 
 // Load favourites persisted in localStorage (if any)
 const loadInitialMovies = () => {
@@ -56,6 +57,15 @@ export const favouriteSlice = createSlice({
       state.movies = action.payload || [];
       localStorage.setItem("favouriteMovies", JSON.stringify(state.movies));
     },
+  },
+  extraReducers: (builder) => {
+    // Favourites belong to a logged-in account. When the user logs out,
+    // clear them from memory AND localStorage so they are no longer
+    // visible (or leaked) after logout.
+    builder.addCase(logout, (state) => {
+      state.movies = [];
+      localStorage.removeItem("favouriteMovies");
+    });
   },
 });
 

@@ -55,7 +55,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 dark:bg-black/75 backdrop-blur-md animate-fadeIn select-none overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 dark:bg-(--primary-color-30) backdrop-blur-md animate-fadeIn select-none overflow-y-auto"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -68,7 +68,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
         style={{
           backgroundColor: isDark
             ? "var(--primary-color-30)"
-            : "rgba(255, 255, 255, 0.8)",
+            : "white",
           borderColor: isDark
             ? "var(--border-dark-mode)"
             : "var(--border-light-mode)",
@@ -146,7 +146,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
                     style={{
                       backgroundColor: isDark
                         ? "var(--primary-color-30)"
-                        : "rgba(255, 255, 255, 0.8)",
+                        : "white",
                     }}
                   />
                   <div className="w-full border-b border-dashed border-neutral-300 dark:border-neutral-700" />
@@ -155,7 +155,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
                     style={{
                       backgroundColor: isDark
                         ? "var(--primary-color-30)"
-                        : "rgba(255, 255, 255, 0.8)",
+                        : "white",
                     }}
                   />
                 </div>
@@ -219,7 +219,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
                 {/* Food & Drinks Breakdown (if present) */}
                 {hasConcessions && (
-                  <div className="pt-1.5 mt-1.5 border-t border-dashed border-neutral-200 dark:border-white/10 space-y-0.5 text-[10px]">
+                  <div className="pt-1.5 mt-1.5 border-t border-dashed border-neutral-200 dark:border-(--border-dark-mode) space-y-0.5 text-[10px]">
                     <span className="font-bold text-[#B90101] uppercase tracking-wider text-[9px] block">
                       Food & Drinks
                     </span>
