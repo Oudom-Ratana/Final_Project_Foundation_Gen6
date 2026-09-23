@@ -248,22 +248,12 @@ export const cinemaApi = baseApi.injectEndpoints({
 
     // Create payment order for a booking (path param bookingUuid)
     createPayment: builder.mutation({
-      query: (arg) => {
-        const bookingUuid = typeof arg === "string" ? arg : arg?.bookingUuid;
-        if (
-          !bookingUuid ||
-          bookingUuid === "undefined" ||
-          bookingUuid === "null"
-        ) {
-          throw new Error("Invalid bookingUuid provided to createPayment");
-        }
-        return {
-          url: `/bookings/${bookingUuid}/payments`,
-          method: "POST",
-        };
-      },
-      invalidatesTags: ["Payment", "Booking"],
-    }),
+  query: (bookingUuid) => ({
+    url: `/bookings/${bookingUuid}/payments`,
+    method: "POST",
+  }),
+  invalidatesTags: ["Payment", "Booking"],
+}),
 
     // Get payment details by payment UUID
     getPaymentByUuid: builder.query({

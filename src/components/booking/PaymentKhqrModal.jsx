@@ -39,8 +39,8 @@ export default function PaymentKhqrModal({
     skip: !paymentUuid || !isOpen,
   });
 
-  const [verifyPayment, { isLoading: isVerifying }] =
-    useVerifyPaymentMutation();
+  // const [verifyPayment, { isLoading: isVerifying }] =
+  //   useVerifyPaymentMutation();
   const [markSuccess, { isLoading: isSimulating }] =
     useMarkPaymentSuccessMutation();
 
@@ -186,7 +186,7 @@ export default function PaymentKhqrModal({
           {/* Action Buttons */}
           <div className="space-y-2 pt-2">
             {/* 1. Real Bakong Verify Button */}
-            <button
+            {/* <button
               type="button"
               onClick={handleVerify}
               disabled={isVerifying || isPaid}
@@ -205,7 +205,7 @@ export default function PaymentKhqrModal({
                   <span>I Have Paid (Verify)</span>
                 </>
               )}
-            </button>
+            </button> */}
 
             {/* 2. Simulation Shortcut Button for Demo & Testing */}
             <button
