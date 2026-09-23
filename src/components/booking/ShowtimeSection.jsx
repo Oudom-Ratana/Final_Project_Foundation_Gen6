@@ -1,17 +1,17 @@
 import { useState, useMemo } from "react";
-import { ChevronDown, Volume2, MessageCircleMore } from "lucide-react";
+import { Volume2, MessageCircleMore, CalendarX } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { setMovie } from "../../redux/slices/bookingSlice";
-import { LOCATIONS, BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 import {
   useGetAllShowtimesQuery,
   useGetAllHallsQuery,
+  useGetCinemaMoviesQuery,
 } from "../../services/api/cinemaApi";
 
-// Generate today + next 6 days dynamically so date cards are always current
-function generateDates(count = 7) {
+// Generate today + next 2 days (3 days total) dynamically
+function generateDates(count = 3) {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = [
     "Jan",
@@ -36,7 +36,7 @@ function generateDates(count = 7) {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     result.push({
-      id: `${yyyy}-${mm}-${dd}`, // e.g. "2026-09-22" — used to match startTime
+      id: `${yyyy}-${mm}-${dd}`, // e.g. "2026-09-23" — used to match showDate
       month: months[d.getMonth()],
       day: String(d.getDate()),
       weekday: days[d.getDay()],
@@ -45,12 +45,11 @@ function generateDates(count = 7) {
   return result;
 }
 
-const DYNAMIC_DATES = generateDates(7);
+const DYNAMIC_DATES = generateDates(3);
 
 /**
  * ShowtimeSection
- * Displays Cinema Location selector, Date picker cards, and Branch Showtime listings.
- * Integrates live showtimes from Teacher's Cinema API with fallback to offline data.
+ * Displays 3-day Date picker cards (centered) and Live Showtimes strictly from Teacher's API.
  */
 export default function ShowtimeSection({
   movieId,
@@ -62,43 +61,76 @@ export default function ShowtimeSection({
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
-  // 1. Live Showtimes + Halls from Teacher's API
+  // 1. Live Showtimes, Halls, and Cinema Movies from Teacher's API
   const { data: apiShowtimes = [], isLoading: isShowtimesLoading } =
     useGetAllShowtimesQuery();
   const { data: apiHalls = [] } = useGetAllHallsQuery();
+  const { data: cinemaMoviesData } = useGetCinemaMoviesQuery({
+    page: 0,
+    size: 100,
+  });
 
-  const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [selectedDate, setSelectedDate] = useState(DYNAMIC_DATES[0]); // Default to today
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
-  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
 
-  // Filter showtimes matching current movie (by movieUuid or title)
+  // Match current movie in cinema backend catalog (if opened via TMDB ID or title)
+  const cinemaMovie = useMemo(() => {
+    const list = cinemaMoviesData?.content || [];
+    return list.find(
+      (m) =>
+        m.uuid === movieId ||
+        String(m.id) === String(movieId) ||
+        String(m.tmdbId) === String(movieId) ||
+        (m.title &&
+          movie?.title &&
+          m.title.toLowerCase() === movie.title.toLowerCase()) ||
+        (m.title &&
+          movie?.name &&
+          m.title.toLowerCase() === movie.name.toLowerCase()),
+    );
+  }, [cinemaMoviesData, movieId, movie]);
+
+  // Filter showtimes matching current movie & selected date
   const matchedApiShowtimes = useMemo(() => {
     if (!Array.isArray(apiShowtimes) || apiShowtimes.length === 0) return [];
+
     return apiShowtimes.filter((st) => {
-      // 1. Match by movie UUID or title
+      // 1. Match by movie UUID, cinemaMovie UUID, or title
+      const targetTitle = (movie?.title || movie?.name || "")
+        .toLowerCase()
+        .trim();
+      const stTitle = (st.movieTitle || "").toLowerCase().trim();
+
       const movieMatch =
-        (st.movieUuid && movieId && st.movieUuid === movieId) ||
-        (st.movieTitle &&
-          movie?.title &&
-          st.movieTitle.toLowerCase() === movie.title.toLowerCase());
+        (st.movieUuid &&
+          movieId &&
+          (st.movieUuid === movieId ||
+            String(st.movieUuid) === String(movieId))) ||
+        (cinemaMovie && st.movieUuid === cinemaMovie.uuid) ||
+        (targetTitle &&
+          stTitle &&
+          (stTitle === targetTitle ||
+            stTitle.includes(targetTitle) ||
+            targetTitle.includes(stTitle)));
 
       if (!movieMatch) return false;
 
-      // 2. Match by selected date — compare YYYY-MM-DD prefix of startTime
-      if (st.startTime && selectedDate?.id) {
-        const showtimeDate = st.startTime.slice(0, 10); // "2026-09-23"
-        return showtimeDate === selectedDate.id;
+      // 2. Match by selected date — compare YYYY-MM-DD prefix of startTime or showDate
+      const stDate =
+        st.showDate || (st.startTime ? st.startTime.slice(0, 10) : "");
+      if (stDate && selectedDate?.id) {
+        return stDate === selectedDate.id;
       }
 
-      return true; // no startTime → include it anyway
+      return !stDate; // fallback if no date attached
     });
-  }, [apiShowtimes, movieId, movie, selectedDate]);
+  }, [apiShowtimes, movieId, movie, cinemaMovie, selectedDate]);
 
   // Group matched API showtimes by hall
   const liveHalls = useMemo(() => {
-    if (matchedApiShowtimes.length === 0) return null;
+    if (matchedApiShowtimes.length === 0) return [];
     const map = {};
+
     matchedApiShowtimes.forEach((st) => {
       const hId = st.hallUuid || st.hallName || "Main Hall";
       const hallMeta = apiHalls.find(
@@ -138,20 +170,44 @@ export default function ShowtimeSection({
           slots: [],
         };
       }
+
+      // Format time to 12-hour AM/PM
       let timeStr = "02:00 PM";
-      if (st.startTime) {
-        try {
-          const d = new Date(st.startTime);
-          timeStr = d.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        } catch (e) {
-          console.warn("Time parse error:", e);
+      if (st.showTime) {
+        const parts = st.showTime.split(":");
+        if (parts.length >= 2) {
+          let h = parseInt(parts[0], 10);
+          const m = parts[1];
+          const ampm = h >= 12 ? "PM" : "AM";
+          h = h % 12 || 12;
+          timeStr = `${String(h).padStart(2, "0")}:${m} ${ampm}`;
+        } else {
+          timeStr = st.showTime;
         }
-      } else if (st.showTime) {
-        timeStr = st.showTime;
+      } else if (st.startTime) {
+        const timePart = st.startTime.includes("T")
+          ? st.startTime.split("T")[1].slice(0, 5)
+          : "";
+        if (timePart) {
+          const parts = timePart.split(":");
+          let h = parseInt(parts[0], 10);
+          const m = parts[1];
+          const ampm = h >= 12 ? "PM" : "AM";
+          h = h % 12 || 12;
+          timeStr = `${String(h).padStart(2, "0")}:${m} ${ampm}`;
+        } else {
+          try {
+            const d = new Date(st.startTime);
+            timeStr = d.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          } catch (e) {
+            console.warn("Time parse error:", e);
+          }
+        }
       }
+
       map[hId].slots.push({
         uuid: st.uuid,
         time: timeStr,
@@ -159,8 +215,19 @@ export default function ShowtimeSection({
         raw: st,
       });
     });
-    return Object.values(map);
-  }, [matchedApiShowtimes]);
+
+    // Sort time slots chronologically within each hall
+    const hallsArray = Object.values(map);
+    hallsArray.forEach((hall) => {
+      hall.slots.sort((a, b) => {
+        const timeA = a.raw?.startTime || a.raw?.showTime || a.time;
+        const timeB = b.raw?.startTime || b.raw?.showTime || b.time;
+        return timeA.localeCompare(timeB);
+      });
+    });
+
+    return hallsArray;
+  }, [matchedApiShowtimes, apiHalls]);
 
   // Glassmorphism design tokens from index.css
   const glassCardStyle = {
@@ -178,13 +245,8 @@ export default function ShowtimeSection({
       : "var(--border-light-mode)",
   };
 
-  const filteredBranches =
-    selectedLocation === "All Locations"
-      ? BRANCH_SHOWTIMES
-      : BRANCH_SHOWTIMES.filter((b) => b.location === selectedLocation);
-
-  const handleTimeClick = (branch, hall, time, showtimeObj = null) => {
-    const slotKey = `${hall.id}-${time}`;
+  const handleTimeClick = (hall, slot) => {
+    const slotKey = `${hall.id}-${slot.time}`;
     setSelectedTimeSlot(slotKey);
 
     if (movie) {
@@ -192,23 +254,23 @@ export default function ShowtimeSection({
     }
 
     const params = new URLSearchParams({
-      movie: movieId || showtimeObj?.movieUuid || "",
+      movie: movieId || slot.raw?.movieUuid || "",
       mediaType: isTV ? "tv" : "movie",
       hall: hall.goldClass ? "gold" : "standard",
       screenType: hall.screenType || (hall.goldClass ? "GOLD" : "2D"),
-      time,
-      branch: branch?.branchName || "FilmZone Major Cinema",
+      time: slot.time,
+      branch: "FilmZone Cinema",
       date: selectedDate.id, // e.g. "2026-09-23"
     });
 
-    if (showtimeObj?.uuid) {
-      params.set("showtimeUuid", showtimeObj.uuid);
+    if (slot.uuid) {
+      params.set("showtimeUuid", slot.uuid);
     }
-    if (showtimeObj?.hallUuid || hall.id) {
-      params.set("hallUuid", showtimeObj?.hallUuid || hall.id);
+    if (hall.id) {
+      params.set("hallUuid", hall.id);
     }
-    if (showtimeObj?.basePrice || showtimeObj?.price) {
-      params.set("price", String(showtimeObj.basePrice || showtimeObj.price));
+    if (slot.price) {
+      params.set("price", String(slot.price));
     }
 
     navigate(`/booking/seats?${params.toString()}`);
@@ -250,7 +312,7 @@ export default function ShowtimeSection({
       );
     }
 
-    // Regular / ScreenX hall
+    // Regular / ScreenX / 3D hall
     const screenLabel =
       hall.screenType === "SCREEN X"
         ? { prefix: "SCREEN", accent: "X", size: "text-3xl sm:text-4xl" }
@@ -314,71 +376,22 @@ export default function ShowtimeSection({
         </h2>
       </div>
 
-      {/* 2. All Locations Dropdown Pill */}
-      <div className="relative w-full">
-        <button
-          type="button"
-          onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-          className="w-full py-3.5 px-6 rounded-full border flex items-center justify-between font-bold text-base text-neutral-800 dark:text-neutral-100 transition shadow-xs backdrop-blur-md"
-          style={glassCardStyle}
-        >
-          <span className="mx-auto pl-6 font-bold">{selectedLocation}</span>
-          <ChevronDown
-            className={`w-5 h-5 text-neutral-400 transition-transform duration-200 ${
-              isLocationDropdownOpen ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-
-        {/* Dropdown Menu */}
-        {isLocationDropdownOpen && (
-          <div
-            className="absolute top-full left-0 right-0 mt-2 z-30 rounded-2xl border p-2 shadow-2xl space-y-1 backdrop-blur-md"
-            style={glassCardStyle}
-          >
-            {LOCATIONS.map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                onClick={() => {
-                  setSelectedLocation(loc);
-                  setIsLocationDropdownOpen(false);
-                }}
-                className={`w-full text-center py-2.5 px-4 rounded-xl text-sm font-bold transition ${
-                  selectedLocation === loc
-                    ? "bg-[#B90101] text-white"
-                    : "text-neutral-700 dark:text-neutral-300 hover:bg-white/10"
-                }`}
-              >
-                {loc}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 3. Horizontal Date Selector Cards — today + next 6 days */}
-      <div className="flex items-center justify-start gap-3 sm:gap-4 overflow-x-auto py-2 scrollbar-hide pb-3">
-        {DYNAMIC_DATES.map((d, idx) => {
+      {/* 2. Horizontal Date Selector Cards — strictly 3 days from today, centered */}
+      <div className="flex items-center justify-center gap-3 sm:gap-4 overflow-x-auto py-2 scrollbar-hide pb-3">
+        {DYNAMIC_DATES.map((d) => {
           const isSelected = selectedDate.id === d.id;
-          const isToday = idx === 0;
           return (
             <button
               key={d.id}
               type="button"
               onClick={() => setSelectedDate(d)}
-              className={`relative shrink-0 min-w-[100px] sm:min-w-[110px] h-[80px] rounded-2xl border p-2.5 flex flex-col justify-between transition-all duration-200 backdrop-blur-md ${
+              className={`relative shrink-0 min-w-[100px] sm:min-w-[110px] h-[80px] rounded-2xl border p-2.5 flex flex-col justify-between transition-all duration-200 backdrop-blur-md cursor-pointer ${
                 isSelected
                   ? "border-[#B90101] bg-[#B90101]/15 shadow-md scale-105"
                   : "shadow-xs hover:scale-[1.02]"
               }`}
               style={!isSelected ? glassCardStyle : undefined}
             >
-              {isToday && (
-                <span className="absolute top-1 right-2 text-[9px] font-extrabold uppercase tracking-widest text-[#B90101]">
-                  Today
-                </span>
-              )}
               <div className="flex items-start justify-between w-full">
                 <span
                   className={`text-xs font-bold ${
@@ -413,28 +426,41 @@ export default function ShowtimeSection({
         })}
       </div>
 
-      {/* 4. Cinema Branch Cards — Each shows grouped halls */}
+      {/* 3. Real-time Showtimes Container strictly from Teacher's API */}
       <div className="space-y-4 sm:space-y-5">
-        {/* Live Backend Showtimes from Teacher's Database */}
-        {liveHalls && liveHalls.length > 0 && (
+        {isShowtimesLoading ? (
+          /* Loading State */
+          <div
+            className="w-full rounded-2xl sm:rounded-3xl border p-12 flex flex-col items-center justify-center gap-3 backdrop-blur-md"
+            style={glassCardStyle}
+          >
+            <div className="w-8 h-8 rounded-full border-2 border-[#B90101] border-t-transparent animate-spin" />
+            <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+              Loading real-time showtimes...
+            </p>
+          </div>
+        ) : liveHalls && liveHalls.length > 0 ? (
+          /* Live Showtimes from Teacher's Database */
           <div
             className="w-full rounded-2xl sm:rounded-3xl border border-[#B90101]/40 overflow-hidden shadow-md backdrop-blur-md"
             style={glassCardStyle}
           >
+            {/* Header */}
             <div
               className="flex items-center justify-between px-5 sm:px-6 py-4 border-b bg-[#B90101]/10"
               style={borderDividerStyle}
             >
               <div className="flex items-center gap-3">
                 <h3 className="text-base sm:text-lg font-black text-neutral-900 dark:text-white">
-                  FilmZone Cinema (Live Schedule)
+                  FilmZone Cinema
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-[#B90101] text-white">
-                  Teacher API Live
+                  Live Schedule
                 </span>
               </div>
             </div>
 
+            {/* Halls List */}
             <div className="divide-y" style={borderDividerStyle}>
               {liveHalls.map((hall) => {
                 const isGold = hall.goldClass;
@@ -445,6 +471,7 @@ export default function ShowtimeSection({
                   >
                     {renderHallHeader(hall)}
 
+                    {/* Showtime Pill Buttons */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1">
                       {hall.slots.map((slot) => {
                         const slotKey = `${hall.id}-${slot.time}`;
@@ -453,15 +480,8 @@ export default function ShowtimeSection({
                           <button
                             key={slot.uuid || slot.time}
                             type="button"
-                            onClick={() =>
-                              handleTimeClick(
-                                { branchName: "FilmZone Cinema" },
-                                hall,
-                                slot.time,
-                                slot.raw,
-                              )
-                            }
-                            className="px-5 sm:px-6 py-2 rounded-full font-bold text-xs sm:text-sm tracking-wide transition-all active:scale-95 border cursor-pointer"
+                            onClick={() => handleTimeClick(hall, slot)}
+                            className="px-5 sm:px-6 py-2 rounded-full font-bold text-xs sm:text-sm tracking-wide transition-all active:scale-95 border cursor-pointer flex items-center gap-2"
                             style={
                               isActive
                                 ? {
@@ -490,7 +510,7 @@ export default function ShowtimeSection({
                             }
                           >
                             <span>{slot.time}</span>
-                            <span className="ml-2 text-[10px] opacity-75">
+                            <span className="text-[10px] opacity-75">
                               ${slot.price.toFixed(2)}
                             </span>
                           </button>
@@ -502,92 +522,24 @@ export default function ShowtimeSection({
               })}
             </div>
           </div>
-        )}
-
-        {filteredBranches.map((branch) => (
+        ) : (
+          /* Clean Empty State when no showtimes are scheduled */
           <div
-            key={branch.id}
-            className="w-full rounded-2xl sm:rounded-3xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow backdrop-blur-md"
+            className="w-full rounded-2xl sm:rounded-3xl border p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-3 backdrop-blur-md"
             style={glassCardStyle}
           >
-            {/* Branch Name Header */}
-            <div
-              className="flex items-center justify-between px-5 sm:px-6 py-4 border-b"
-              style={borderDividerStyle}
-            >
-              <h3 className="text-base sm:text-lg font-black text-neutral-900 dark:text-white">
-                {branch.branchName}
-              </h3>
+            <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center text-neutral-400">
+              <CalendarX className="w-6 h-6 text-neutral-400 dark:text-neutral-500" />
             </div>
-
-            {/* Hall Groups — one block per hall */}
-            <div className="divide-y" style={borderDividerStyle}>
-              {branch.halls.map((hall) => {
-                const isGold = hall.goldClass;
-                return (
-                  <div
-                    key={hall.id}
-                    className="px-5 sm:px-6 py-4 sm:py-5 space-y-3"
-                  >
-                    {/* Hall Type Header (2D big / GOLD CLASS) */}
-                    {renderHallHeader(hall)}
-
-                    {/* Showtime Pill Buttons — glassmorphism style */}
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1">
-                      {hall.times.map((time) => {
-                        const slotKey = `${hall.id}-${time}`;
-                        const isActive = selectedTimeSlot === slotKey;
-                        return (
-                          <button
-                            key={time}
-                            type="button"
-                            onClick={() => handleTimeClick(branch, hall, time)}
-                            className="px-5 sm:px-6 py-2 rounded-full font-bold text-xs sm:text-sm tracking-wide transition-all active:scale-95 border"
-                            style={
-                              isActive
-                                ? isGold
-                                  ? {
-                                      backgroundColor: "#FFB800",
-                                      borderColor: "#FFB800",
-                                      color: "#1a1a1a",
-                                      transform: "scale(1.05)",
-                                    }
-                                  : {
-                                      backgroundColor: "#B90101",
-                                      borderColor: "#B90101",
-                                      color: "#ffffff",
-                                      transform: "scale(1.05)",
-                                    }
-                                : isGold
-                                  ? {
-                                      backgroundColor: isDark
-                                        ? "var(--primary-color-30)"
-                                        : "var(--primary-color-5)",
-                                      borderColor: "#FFB800",
-                                      color: "#FFB800",
-                                    }
-                                  : {
-                                      backgroundColor: isDark
-                                        ? "var(--primary-color-30)"
-                                        : "var(--primary-color-5)",
-                                      borderColor: isDark
-                                        ? "var(--border-dark-mode)"
-                                        : "var(--border-light-mode)",
-                                      color: isDark ? "#ffffff" : "#171717",
-                                    }
-                            }
-                          >
-                            {time}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <h3 className="text-base sm:text-lg font-bold text-neutral-800 dark:text-neutral-200">
+              No Showtimes Scheduled
+            </h3>
+            <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 max-w-md">
+              There are currently no showtimes scheduled for this date. Please
+              select another date above or check back soon!
+            </p>
           </div>
-        ))}
+        )}
       </div>
     </section>
   );

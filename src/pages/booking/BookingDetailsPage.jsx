@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+import { useSearchParams, useNavigate, useLocation } from "react-router";
+
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Clock, Plus, Minus, ArrowLeft } from "lucide-react";
@@ -9,11 +10,16 @@ import {
   updateConcessionQuantity,
   setSelectedSeats,
   setBookingConfirmation,
+  clearSeats,
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
 import { useGetTVDetailsQuery } from "../../services/api/tvApi";
-import { useCreateBookingMutation } from "../../services/api/cinemaApi";
+
+import {
+  useCreateBookingMutation,
+  useReleaseHoldMutation,
+} from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 
 import { CONCESSIONS } from "../../data/concessionsData";
@@ -152,9 +158,20 @@ export default function BookingDetailsPage() {
     0,
   );
 
-  const showtimeUuid = searchParams.get("showtimeUuid");
-  const holdId = searchParams.get("holdId");
-  const initialExpiresIn = parseInt(searchParams.get("expiresIn"), 10) || 600;
+  const location = useLocation();
+  const [releaseHold] = useReleaseHoldMutation();
+  const [isReleasing, setIsReleasing] = useState(false);
+
+  const showtimeUuid =
+    searchParams.get("showtimeUuid") || booking.showtime?.showtimeUuid;
+  const holdId =
+    searchParams.get("holdId") ||
+    location.state?.holdId ||
+    booking.showtime?.holdId;
+  const initialExpiresIn =
+    parseInt(searchParams.get("expiresIn"), 10) ||
+    location.state?.expiresInSeconds ||
+    300;
 
   const [createBooking, { isLoading: isCreatingBooking }] =
     useCreateBookingMutation();
@@ -164,12 +181,68 @@ export default function BookingDetailsPage() {
 
   // Live Countdown Timer (synced with server expiresIn)
   const [timeLeft, setTimeLeft] = useState(initialExpiresIn);
+  const [hasExpired, setHasExpired] = useState(false);
+
+  const handleExpiry = async () => {
+    try {
+      if (showtimeUuid && holdId) {
+        await releaseHold({ showtimeUuid, holdId }).unwrap();
+      }
+    } catch (err) {
+      console.warn("Hold expiry release note:", err);
+    } finally {
+      dispatch(clearSeats());
+      toast.warn(
+        "Your 5-minute seat hold has expired. Please select your seats again.",
+      );
+      const params = new URLSearchParams(searchParams);
+      params.delete("holdId");
+      params.delete("expiresIn");
+      navigate(`/booking/seats?${params.toString()}`, { replace: true });
+    }
+  };
+
   useEffect(() => {
+    if (timeLeft <= 0) {
+      if (!hasExpired) {
+        setHasExpired(true);
+        handleExpiry();
+      }
+      return;
+    }
+
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
+
     return () => clearInterval(timer);
-  }, []);
+  }, [timeLeft, hasExpired]);
+
+  const handleBack = async () => {
+    if (isReleasing) return;
+    setIsReleasing(true);
+    try {
+      if (showtimeUuid && holdId) {
+        await releaseHold({ showtimeUuid, holdId }).unwrap();
+      }
+    } catch (err) {
+      console.warn("Release hold on back navigation:", err);
+    } finally {
+      dispatch(clearSeats());
+      const params = new URLSearchParams(searchParams);
+      params.delete("holdId");
+      params.delete("expiresIn");
+      params.delete("seats");
+      params.delete("seatUuids");
+      navigate(`/booking/seats?${params.toString()}`, { replace: true });
+    }
+  };
 
   const formatTimer = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -234,18 +307,6 @@ export default function BookingDetailsPage() {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
-        {/* Top Navigation & Back Button */}
-        <div className="flex items-center">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-[#B90101] dark:hover:text-[#B90101] transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-        </div>
-
         {/* 1. Stepper Bar (Active at Step 3: Booking Details) */}
         <BookingStepper currentStep={3} />
 
@@ -485,10 +546,20 @@ export default function BookingDetailsPage() {
             <div className="flex items-center gap-4 pt-1">
               <button
                 type="button"
-                onClick={() => navigate(-1)}
-                className="flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20"
+                onClick={handleBack}
+                disabled={isReleasing || isCreatingBooking}
+                className={`flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 ${
+                  isReleasing ? "opacity-75 cursor-wait" : "cursor-pointer"
+                }`}
               >
-                Back
+                {isReleasing ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>Releasing...</span>
+                  </>
+                ) : (
+                  <span>Back</span>
+                )}
               </button>
 
               <button

@@ -151,9 +151,21 @@ export default function Navbar() {
 
   // Track scroll position for dynamic homepage navbar transition
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const nextScrolled = window.scrollY > 30;
+          setIsScrolled((prev) =>
+            prev !== nextScrolled ? nextScrolled : prev,
+          );
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
+
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);

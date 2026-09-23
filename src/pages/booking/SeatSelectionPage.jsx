@@ -91,22 +91,7 @@ export default function SeatSelectionPage() {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
-  // 3-Minute Countdown Timer
-  const [timeLeft, setTimeLeft] = useState(180);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTimer = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
 
   const showtimeUuid = searchParams.get("showtimeUuid");
   const rawPrice = searchParams.get("price");
@@ -287,6 +272,15 @@ export default function SeatSelectionPage() {
     }
   };
 
+  const handleBackToMovie = () => {
+    dispatch(clearSeats());
+    if (movieId) {
+      navigate(isTV ? `/stream/${movieId}` : `/movies/${movieId}`);
+    } else {
+      navigate(-1);
+    }
+  };
+
   if (!showtimeUuid) {
     return (
       <div className="relative min-h-[60vh] flex flex-col items-center justify-center text-center p-6 space-y-4 font-sans select-none">
@@ -302,7 +296,7 @@ export default function SeatSelectionPage() {
         </p>
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={handleBackToMovie}
           className="mt-4 px-6 py-2.5 rounded-full bg-[#B90101] text-white font-bold text-sm hover:brightness-110 active:scale-95 transition cursor-pointer"
         >
           Go Back to Movie
@@ -323,7 +317,7 @@ export default function SeatSelectionPage() {
         <div className="flex items-center">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={handleBackToMovie}
             className="flex items-center gap-2 text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-[#B90101] dark:hover:text-[#B90101] transition cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -347,10 +341,13 @@ export default function SeatSelectionPage() {
             )}
           </div>
 
-          {/* Timer Pill */}
-          <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#B90101] text-[#B90101] font-bold text-xs sm:text-sm bg-[#B90101]/5 shadow-xs">
-            <Clock className="w-4 h-4 text-[#B90101]" />
-            <span className="tracking-wider">{formatTimer(timeLeft)}</span>
+          {/* Hall & Format Pill */}
+          <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-neutral-300/80 dark:border-white/10 text-neutral-700 dark:text-neutral-300 font-bold text-xs bg-neutral-100 dark:bg-white/5 shadow-xs">
+            <span className="tracking-wide">
+              {hallType === "gold"
+                ? "Gold Class VIP"
+                : `${screenType} Standard`}
+            </span>
           </div>
         </div>
 

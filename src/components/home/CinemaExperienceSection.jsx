@@ -200,19 +200,32 @@ function CinemaExperienceCard({ exp, idx, isLeft }) {
 
 export default function CinemaExperienceSection() {
   const sectionRef = useRef(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const timelineLineRef = useRef(null);
 
-  // Track scroll position for subtle streaming along the timeline
+  // Track scroll position for subtle streaming along the timeline without React re-renders
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      if (!sectionRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      const progress = Math.min(
-        Math.max((windowHeight - rect.top) / (windowHeight + rect.height), 0),
-        1,
-      );
-      setScrollProgress(progress);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (sectionRef.current && timelineLineRef.current) {
+            const rect = sectionRef.current.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            const progress = Math.min(
+              Math.max(
+                (windowHeight - rect.top) / (windowHeight + rect.height),
+                0,
+              ),
+              1,
+            );
+            const heightPercent = Math.min(Math.max(progress * 115, 12), 100);
+            timelineLineRef.current.style.height = `${heightPercent}%`;
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -267,9 +280,10 @@ export default function CinemaExperienceSection() {
 
           {/* 2. Scroll-Driven Active Red Line with Tight Laser Glow */}
           <div
+            ref={timelineLineRef}
             className="absolute top-0 left-0 w-full bg-[#B90101] rounded-full transition-all duration-150"
             style={{
-              height: `${Math.min(Math.max(scrollProgress * 115, 12), 100)}%`,
+              height: "12%",
               boxShadow: "0 0 4px rgba(185, 1, 1, 0.45)",
             }}
           />

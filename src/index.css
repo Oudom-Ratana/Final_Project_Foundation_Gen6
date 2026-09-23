@@ -139,24 +139,35 @@
     font-family: "Google Sans", sans-serif !important;
   }
 
+  /* Hardware-accelerated fixed background layer (0 repaints on scroll) */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -999;
+    background: var(--bg-light-mode);
+    pointer-events: none;
+    transform: translateZ(0);
+    will-change: transform;
+    transition: background 0.3s ease;
+  }
+
+  html.dark body::before {
+    background: var(--bg-dark-mode);
+  }
+
   body,
   #root {
-    background: var(--bg-light-mode);
-    background-attachment: fixed;
     color: #171717;
     font-family: "Google Sans", sans-serif !important;
     font-size: 18px;
     line-height: 1.6;
     min-height: 100vh;
     overflow-x: hidden;
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
+    transition: color 0.3s ease;
   }
 
   html.dark body {
-    background: var(--bg-dark-mode);
-    background-attachment: fixed;
     color: #ffffff;
   }
 
@@ -235,7 +246,6 @@
 
 .bg-dark-mode {
   background: var(--bg-dark-mode) !important;
-  background-attachment: fixed;
 }
 
 .bg-cinema-radial {
