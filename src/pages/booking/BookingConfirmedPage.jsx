@@ -472,9 +472,9 @@ export default function BookingConfirmedPage() {
 
               {/* Perforated Ticket Tear Line with Notches */}
               <div className="relative flex items-center justify-center my-2 shrink-0">
-                <div className="absolute -left-3.5 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-r border-neutral-200 " />
+                <div className="absolute -left-3.5 w-6 h-6 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-r border-neutral-200 " />
                 <div className="w-full border-b-2 border-dashed border-neutral-300 dark:border-neutral-700" />
-                <div className="absolute -right-3.5 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-l border-neutral-200 " />
+                <div className="absolute -right-3.5 w-6 h-6 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-l border-neutral-200 " />
               </div>
 
               {/* Card Body: QR Code vertically centered */}

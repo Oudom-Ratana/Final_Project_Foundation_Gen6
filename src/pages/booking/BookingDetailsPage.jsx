@@ -28,7 +28,7 @@ export default function BookingDetailsPage() {
   const glassCardStyle = {
     backgroundColor: isDark
       ? "var(--primary-color-30)"
-      : "var(--primary-color-5)",
+      : "white",
     borderColor: isDark
       ? "var(--border-dark-mode)"
       : "var(--border-light-mode)",
@@ -247,7 +247,7 @@ export default function BookingDetailsPage() {
                       className="flex flex-col justify-between space-y-3 p-2 rounded-2xl transition hover:scale-[1.01]"
                     >
                       {/* Image */}
-                      <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-[var(--primary-color-30)]">
+                      <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-[var(--primary-color-30)]">
                         <img
                           src={item.image}
                           alt={item.name}

@@ -167,7 +167,7 @@ export default function Navbar() {
           <img
             src={theme === "dark" ? FilmZoneDarkLogo : filmZoneLogo}
             alt="FilmZone Logo"
-            className="h-6 sm:h-7.5 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-sm"
+            className="h-8 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-sm"
           />
         </Link>
 

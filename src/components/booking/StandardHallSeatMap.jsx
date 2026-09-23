@@ -189,7 +189,7 @@ export default function StandardHallSeatMap({
                         title={`Couple Seat ${seatId} • ${avatarInfo.name}`}
                       >
                         <div
-                          className="w-[30px] h-[30px] rounded-full overflow-hidden border-2 shadow-sm flex items-center justify-center bg-neutral-800"
+                          className="w-[30px] h-[30px] rounded-full overflow-hidden border-2 shadow-sm flex items-center justify-center bg-white"
                           style={{ borderColor: avatarInfo.color }}
                         >
                           <img

@@ -87,7 +87,7 @@ export default function ComingSoonSection() {
             Coming Soon
           </h2>
         </div>
-        <div className="h-[480px] w-full rounded-3xl bg-neutral-100 dark:bg-[var(--primary-color-30)] animate-pulse flex items-center justify-center text-neutral-400">
+        <div className="h-[480px] w-full rounded-3xl bg-white dark:bg-[var(--primary-color-30)] animate-pulse flex items-center justify-center text-neutral-400">
           Loading Upcoming Blockbusters...
         </div>
       </section>
@@ -133,7 +133,7 @@ export default function ComingSoonSection() {
         </div>
 
         {/* Counter Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-100 border dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-neutral-200 text-neutral-600 dark:text-neutral-300 text-xs font-bold self-start sm:self-auto">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-neutral-200 text-neutral-600 dark:text-neutral-300 text-xs font-bold self-start sm:self-auto">
           <Sparkles className="w-3.5 h-3.5 text-[#EAB308]" />
           <span>
             {activeIndex + 1} of {len} Upcoming
@@ -143,7 +143,7 @@ export default function ComingSoonSection() {
 
       {/* 3D Curved Apple Vision Glassmorphic Stage */}
       <div
-        className="relative w-full py-8 overflow-hidden rounded-[36px] bg-gradient-to-b from-neutral-100/70 via-neutral-100/30 to-neutral-200/40 dark:from-[var(--primary-color-20)] dark:via-[var(--primary-color-30)] dark:to-[var(--primary-color-40)] border border-neutral-200/70 dark:border-(--border-dark-mode) shadow-xs dark:shadow-none backdrop-blur-xl flex flex-col items-center justify-center min-h-[580px] sm:min-h-[640px]"
+        className="relative w-full py-8 overflow-hidden rounded-[36px] bg-gradient-to-b from-white/80 via-white/70 to-white/60 dark:from-[var(--primary-color-20)] dark:via-[var(--primary-color-30)] dark:to-[var(--primary-color-40)] border border-neutral-200/70 dark:border-(--border-dark-mode) shadow-xs dark:shadow-none backdrop-blur-xl flex flex-col items-center justify-center min-h-[580px] sm:min-h-[640px]"
         style={{ perspective: "1400px" }}
       >
         {/* Soft Ambient Spotlight Glow */}

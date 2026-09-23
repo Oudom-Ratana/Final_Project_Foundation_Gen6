@@ -2,7 +2,7 @@ export default function ComingSoonCardSkeleton() {
   return (
     <div className="space-y-3 font-sans animate-pulse">
       {/* Landscape Banner Skeleton */}
-      <div className="aspect-[16/10] w-full rounded-[22px] bg-neutral-300/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-200/50 " />
+      <div className="aspect-[16/10] w-full rounded-[22px] bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-200/50 " />
 
       {/* Title & Date Skeleton */}
       <div className="space-y-2 pt-1">

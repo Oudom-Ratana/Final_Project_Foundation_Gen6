@@ -303,7 +303,7 @@ export default function StreamPage() {
               placeholder={
                 isTV ? "Search TV shows, series..." : "Search movies..."
               }
-              className="w-full pl-12 pr-11 py-3 rounded-full border text-[18px] font-medium text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-white/50 focus:outline-none focus:border-[#B90101] focus:ring-2 focus:ring-[#B90101]/20 transition-all shadow-md dark:shadow-xl bg-white/90 dark:bg-[#1A1F25]/60 border-neutral-300/80 dark:border-white/15 backdrop-blur-md"
+              className="w-full pl-12 pr-11 py-3 rounded-full border text-[18px] font-medium text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-white/50 focus:outline-none focus:border-[#B90101] focus:ring-2 focus:ring-[#B90101]/20 transition-all shadow-md dark:shadow-xl bg-white dark:bg-[var(--primary-color-30)] border-neutral-300/80 dark:border-(--border-dark-mode) backdrop-blur-md"
             />
             {searchTerm && (
               <button
@@ -351,7 +351,7 @@ export default function StreamPage() {
 
             {/* Sort Options Bar (Popular, Top Rated, Newest) */}
             {!queryParam && (
-              <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80 text-[18px] font-bold shadow-xs">
+              <div className="flex items-center p-1 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80 text-[18px] font-bold shadow-xs">
                 {SORT_OPTIONS.map((opt) => {
                   const isSortActive = sortBy === opt.value;
                   const IconComp = opt.icon;
@@ -375,7 +375,7 @@ export default function StreamPage() {
             )}
 
             {/* Category Toggle Pills (TV Series vs Movies) */}
-            <div className="flex items-center p-1 rounded-full bg-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80 text-[18px] font-bold shadow-xs">
+            <div className="flex items-center p-1 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80 text-[18px] font-bold shadow-xs">
               <button
                 type="button"
                 onClick={() => handleCategoryChange("tv")}
@@ -408,7 +408,7 @@ export default function StreamPage() {
         {/* 3. Horizontal Genre Filter Pills Bar */}
         {!queryParam && (
           <div className="overflow-x-auto pb-2 pt-1 select-none scrollbar-none">
-            <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80  text-[18px] font-bold shadow-xs">
+            <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80  text-[18px] font-bold shadow-xs">
               {activeGenreList.map((g) => {
                 const isGenreActive = selectedGenre === g.id;
                 return (

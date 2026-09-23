@@ -14,7 +14,7 @@ export default function SeatPricingCards({ hallType = "standard" }) {
   const glassCardStyle = {
     backgroundColor: isDark
       ? "var(--primary-color-30)"
-      : "var(--primary-color-5)",
+      : "white",
     borderColor: isDark
       ? "var(--border-dark-mode)"
       : "var(--border-light-mode)",

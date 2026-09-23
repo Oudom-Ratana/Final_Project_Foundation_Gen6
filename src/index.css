@@ -84,9 +84,8 @@
     --border-light-mode: rgba(39, 42, 48, 0.05); /*[#272A30]/5*/
 
     /* Glassmorphism - dark  Mode */
-    --primary-color-30: rgba(39, 42, 48, 0.3);
-      --primary-color-30: rgba(39, 42, 48, 0.3);
-    --primary-color-40: rgba(39, 42, 48, 0.4);
+    --primary-color-30: rgba(39, 42, 48, 0.4);
+    --primary-color-40: rgba(1, 2, 4, 0.3);
     --border-dark-mode: rgba(255, 255, 255, 0.2);
 
     /* Figma Dark Mode Background: 2 layers (Front: Radial gradient, Behind: Pure black) */

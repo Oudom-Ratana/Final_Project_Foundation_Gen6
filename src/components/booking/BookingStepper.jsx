@@ -17,7 +17,7 @@ export default function BookingStepper({ currentStep = 2 }) {
       style={{
         backgroundColor: isDark
           ? "var(--primary-color-30)"
-          : "var(--primary-color-5)",
+          : "white",
         borderColor: isDark
           ? "var(--border-dark-mode)"
           : "var(--border-light-mode)",
@@ -74,7 +74,7 @@ export default function BookingStepper({ currentStep = 2 }) {
         {/* Connecting line 2-3 */}
         <div
           className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
-            isStep3Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-[var(--primary-color-30)]"
+            isStep3Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-neutral-400"
           }`}
         />
 
@@ -103,7 +103,7 @@ export default function BookingStepper({ currentStep = 2 }) {
         {/* Connecting line 3-4 */}
         <div
           className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
-            isStep4Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-[var(--primary-color-30)]"
+            isStep4Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-neutral-400"
           }`}
         />
 

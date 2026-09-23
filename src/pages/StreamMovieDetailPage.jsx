@@ -366,7 +366,7 @@ export default function StreamMovieDetailPage() {
                 <button
                   type="button"
                   onClick={handleOpenTrailer}
-                  className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border bg-[var(--primary-color-5)] border-[var(--border-light-mode)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] text-neutral-900 font-sans font-bold text-sm uppercase tracking-wider hover:brightness-105 hover:scale-105 active:scale-95 transition cursor-pointer"
+                  className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border bg-white border-[var(--border-light-mode)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] text-neutral-900 font-sans font-bold text-sm uppercase tracking-wider hover:brightness-105 hover:scale-105 active:scale-95 transition cursor-pointer"
                 >
                   <Play className="w-4 h-4 fill-current text-[var(--primary-red)]" />
                   <span className="text-[var(--primary-red)]">
@@ -378,7 +378,7 @@ export default function StreamMovieDetailPage() {
                   type="button"
                   disabled
                   title="Official trailer not available on TMDB for this title"
-                  className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-neutral-300/60 dark:border-white/10 bg-neutral-100/60 dark:bg-white/5 text-neutral-400 dark:text-neutral-500 font-sans font-bold text-sm uppercase tracking-wider cursor-not-allowed opacity-60"
+                  className="flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-neutral-300/60 dark:border-(--border-dark-mode) bg-neutral-100/60 dark:bg-[var(--primary-color-30)] text-neutral-400 dark:text-neutral-500 font-sans font-bold text-sm uppercase tracking-wider cursor-not-allowed opacity-60"
                 >
                   <Film className="w-4 h-4" />
                   <span>Trailer Unavailable</span>
@@ -424,7 +424,7 @@ export default function StreamMovieDetailPage() {
                           className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                             isSelected
                               ? "bg-[#B90101] text-white"
-                              : "bg-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-300 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)]"
+                              : "bg-white hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-300 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)]"
                           }`}
                         >
                           <Play
@@ -449,7 +449,7 @@ export default function StreamMovieDetailPage() {
               return (
                 <div
                   key={index}
-                  className="rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md p-4 sm:p-5 text-center flex flex-col items-center justify-center gap-2 shadow-sm dark:shadow-xl hover:scale-105 transition-transform"
+                  className="rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-white dark:bg-[var(--primary-color-30)] backdrop-blur-md p-4 sm:p-5 text-center flex flex-col items-center justify-center gap-2 shadow-sm dark:shadow-xl hover:scale-105 transition-transform"
                 >
                   {/* Red Circle Icon */}
                   <div className="w-10 h-10 rounded-full bg-[#B90101] flex items-center justify-center text-white shadow-md">
