@@ -6,6 +6,7 @@ import { Clock, ArrowLeft, User, Users } from "lucide-react";
 import {
   toggleSeat,
   clearSeats,
+  clearConcessions,
   selectSelectedSeats,
   setShowtime,
   setMovie,
@@ -268,6 +269,7 @@ export default function SeatSelectionPage() {
       if (movie) {
         dispatch(setMovie(movie));
       }
+      dispatch(clearConcessions());
       dispatch(
         setShowtime({
           time,

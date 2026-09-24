@@ -12,6 +12,7 @@ import {
   setBookingConfirmation,
   setMovie,
   clearSeats,
+  clearConcessions,
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
@@ -21,6 +22,8 @@ import {
   useCreateBookingMutation,
   useCreatePaymentMutation,
   useGetCinemaMovieByUuidQuery,
+  useGetAllConcessionsQuery,
+  useUpsertBookingConcessionOrderMutation,
 } from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import PaymentKhqrModal from "../../components/booking/PaymentKhqrModal";
@@ -125,6 +128,31 @@ export default function BookingDetailsPage() {
 
   const concessions = booking.concessions || [];
 
+  // Fetch live concessions menu from Teacher API via RTK Query
+  const { data: apiConcessions, isLoading: isConcessionsLoading } =
+    useGetAllConcessionsQuery();
+
+  const concessionsList = useMemo(() => {
+    if (
+      apiConcessions &&
+      Array.isArray(apiConcessions) &&
+      apiConcessions.length > 0
+    ) {
+      return apiConcessions.map((item) => ({
+        id: item.uuid,
+        uuid: item.uuid,
+        name: item.name,
+        price: Number(item.price) || 0,
+        description: item.description || "",
+        category: item.category,
+        image:
+          item.imageUrl ||
+          "https://images.unsplash.com/photo-1585647347483-22b66260dfff?auto=format&fit=crop&w=800&q=80",
+      }));
+    }
+    return CONCESSIONS;
+  }, [apiConcessions]);
+
   const normalizedCinemaMovie = cinemaMovie
     ? {
         id: cinemaMovie.uuid,
@@ -220,6 +248,7 @@ export default function BookingDetailsPage() {
 
   const handleExpiry = () => {
     dispatch(clearSeats());
+    dispatch(clearConcessions());
     toast.warn(
       "Your 5-minute seat hold has expired. Please select your seats again.",
     );
@@ -254,8 +283,9 @@ export default function BookingDetailsPage() {
   }, [timeLeft, hasExpired]);
 
   const handleBack = () => {
-    // Reset seats in state and return to seat map without triggering 403 on DELETE
+    // Reset seats and concessions in state and return to seat map
     dispatch(clearSeats());
+    dispatch(clearConcessions());
     const params = new URLSearchParams(searchParams);
     params.delete("holdId");
     params.delete("expiresIn");
@@ -277,6 +307,9 @@ export default function BookingDetailsPage() {
   const handleRemoveConcession = (item) => {
     dispatch(updateConcessionQuantity({ item, delta: -1 }));
   };
+
+  const [upsertBookingConcessionOrder] =
+    useUpsertBookingConcessionOrderMutation();
 
   const [createPayment, { isLoading: isCreatingPayment }] =
     useCreatePaymentMutation();
@@ -324,6 +357,31 @@ export default function BookingDetailsPage() {
           res?.reference ||
           res?.ticketQrToken?.slice(0, 8)?.toUpperCase() ||
           `FZ-${(bookingUuid || "").slice(0, 8).toUpperCase()}`;
+
+        // Sync selected concessions to booking in Teacher API before payment
+        const validConcessionItems = concessions
+          .filter(
+            (c) => (c.uuid || c.id) && String(c.uuid || c.id).includes("-"),
+          )
+          .map((c) => ({
+            concessionItemUuid: c.uuid || c.id,
+            quantity: c.quantity,
+          }));
+
+        if (bookingUuid && validConcessionItems.length > 0) {
+          try {
+            await upsertBookingConcessionOrder({
+              bookingUuid,
+              items: validConcessionItems,
+            }).unwrap();
+            console.log(
+              "Concessions successfully synced to booking:",
+              validConcessionItems,
+            );
+          } catch (concessionErr) {
+            console.warn("Concession order sync note:", concessionErr);
+          }
+        }
 
         // Attempt real payment creation in Teacher API
         if (bookingUuid && bookingUuid !== "undefined") {
@@ -402,76 +460,90 @@ export default function BookingDetailsPage() {
               style={glassCardStyle}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                {CONCESSIONS.map((item) => {
-                  const existing = concessions.find((c) => c.id === item.id);
-                  const qty = existing ? existing.quantity : 0;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex flex-col justify-between space-y-3 p-2 rounded-2xl transition hover:scale-[1.01]"
-                    >
-                      {/* Image */}
-                      <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-neutral-800">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
+                {isConcessionsLoading
+                  ? Array.from({ length: 4 }).map((_, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-2xl animate-pulse space-y-3"
+                      >
+                        <div className="w-full aspect-[4/3] rounded-2xl bg-neutral-200 dark:bg-neutral-800/60" />
+                        <div className="h-4 bg-neutral-200 dark:bg-neutral-800/60 rounded w-3/4" />
+                        <div className="h-3 bg-neutral-200 dark:bg-neutral-800/60 rounded w-1/2" />
                       </div>
+                    ))
+                  : concessionsList.map((item) => {
+                      const itemId = item.uuid || item.id;
+                      const existing = concessions.find(
+                        (c) => (c.uuid || c.id) === itemId,
+                      );
+                      const qty = existing ? existing.quantity : 0;
 
-                      {/* Info Row: Name & Price */}
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-white">
-                          {item.name}
-                        </h3>
-                        <span className="font-black text-sm sm:text-base text-neutral-900 dark:text-white">
-                          ${item.price.toFixed(2)}
-                        </span>
-                      </div>
-
-                      {/* Description & Add/Quantity Row */}
-                      <div className="flex items-end justify-between gap-2">
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 whitespace-pre-line leading-relaxed">
-                          {item.description}
-                        </p>
-
-                        {/* + Add or Quantity Buttons */}
-                        {qty === 0 ? (
-                          <button
-                            type="button"
-                            onClick={() => handleAddConcession(item)}
-                            className="px-4 py-1.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs tracking-wide uppercase transition active:scale-95 flex items-center gap-1 shrink-0 shadow-sm"
-                          >
-                            <Plus className="w-3 h-3 stroke-[3]" />
-                            <span>Add</span>
-                          </button>
-                        ) : (
-                          <div className="flex items-center gap-1.5 bg-[#B90101] text-white px-2.5 py-1 rounded-full text-xs font-black shadow-sm">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveConcession(item)}
-                              className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition"
-                            >
-                              <Minus className="w-3 h-3 stroke-[3]" />
-                            </button>
-                            <span className="min-w-[16px] text-center font-black">
-                              {qty}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleAddConcession(item)}
-                              className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition"
-                            >
-                              <Plus className="w-3 h-3 stroke-[3]" />
-                            </button>
+                      return (
+                        <div
+                          key={itemId}
+                          className="flex flex-col justify-between space-y-3 p-2 rounded-2xl transition hover:scale-[1.01]"
+                        >
+                          {/* Image */}
+                          <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-neutral-800">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+
+                          {/* Info Row: Name & Price */}
+                          <div className="flex items-center justify-between gap-2">
+                            <h3 className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-white line-clamp-1">
+                              {item.name}
+                            </h3>
+                            <span className="font-black text-sm sm:text-base text-neutral-900 dark:text-white shrink-0">
+                              ${item.price.toFixed(2)}
+                            </span>
+                          </div>
+
+                          {/* Description & Add/Quantity Row */}
+                          <div className="flex items-end justify-between gap-2">
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400 whitespace-pre-line leading-relaxed line-clamp-2">
+                              {item.description}
+                            </p>
+
+                            {/* + Add or Quantity Buttons */}
+                            {qty === 0 ? (
+                              <button
+                                type="button"
+                                onClick={() => handleAddConcession(item)}
+                                className="px-4 py-1.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs tracking-wide uppercase transition active:scale-95 flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                              >
+                                <Plus className="w-3 h-3 stroke-[3]" />
+                                <span>Add</span>
+                              </button>
+                            ) : (
+                              <div className="flex items-center gap-1.5 bg-[#B90101] text-white px-2.5 py-1 rounded-full text-xs font-black shadow-sm shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveConcession(item)}
+                                  className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition cursor-pointer"
+                                >
+                                  <Minus className="w-3 h-3 stroke-[3]" />
+                                </button>
+                                <span className="min-w-[16px] text-center font-black">
+                                  {qty}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddConcession(item)}
+                                  className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition cursor-pointer"
+                                >
+                                  <Plus className="w-3 h-3 stroke-[3]" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
               </div>
             </div>
           </div>
@@ -582,7 +654,7 @@ export default function BookingDetailsPage() {
                   <div className="space-y-2">
                     {concessions.map((c) => (
                       <div
-                        key={c.id}
+                        key={c.uuid || c.id}
                         className="flex items-center justify-between text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-200"
                       >
                         <span>
