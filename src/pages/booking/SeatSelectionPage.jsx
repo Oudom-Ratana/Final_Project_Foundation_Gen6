@@ -17,6 +17,7 @@ import { useGetTVDetailsQuery } from "../../services/api/tvApi";
 import {
   useGetShowtimeSeatsQuery,
   useHoldSeatsMutation,
+  useGetCinemaMovieByUuidQuery,
 } from "../../services/api/cinemaApi";
 import { selectIsAuthenticated } from "../../redux/slices/authSlice";
 
@@ -76,15 +77,51 @@ export default function SeatSelectionPage() {
       reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
     );
 
-  // Fetch movie or TV details if not already present in Redux
-  const { data: movieData } = useGetMovieDetailsQuery(movieId, {
-    skip: !movieId || isTV || Boolean(reduxMovie?.id),
-  });
-  const { data: tvData } = useGetTVDetailsQuery(movieId, {
-    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
+  // Check if movieId is a Teacher API UUID
+  const isUuid = Boolean(movieId && movieId.includes("-"));
+  const { data: cinemaMovie } = useGetCinemaMovieByUuidQuery(movieId, {
+    skip: !movieId || !isUuid,
   });
 
-  const movie = reduxMovie || (isTV ? tvData : movieData || tvData);
+  const isCurrentReduxMovie =
+    reduxMovie &&
+    (reduxMovie.uuid === movieId ||
+      String(reduxMovie.id) === String(movieId) ||
+      (cinemaMovie && reduxMovie.uuid === cinemaMovie.uuid));
+
+  // Fetch movie or TV details from TMDB if numeric ID
+  const { data: movieData } = useGetMovieDetailsQuery(movieId, {
+    skip: !movieId || isTV || isUuid || Boolean(isCurrentReduxMovie),
+  });
+  const { data: tvData } = useGetTVDetailsQuery(movieId, {
+    skip: !movieId || !isTV || isUuid || Boolean(isCurrentReduxMovie),
+  });
+
+  const normalizedCinemaMovie = cinemaMovie
+    ? {
+        id: cinemaMovie.uuid,
+        uuid: cinemaMovie.uuid,
+        title: cinemaMovie.title,
+        poster_path: cinemaMovie.posterUrl,
+        backdrop_path: cinemaMovie.backdropUrl,
+        overview: cinemaMovie.overview,
+        runtime: cinemaMovie.runtimeMinutes,
+        release_date: cinemaMovie.releaseDate,
+      }
+    : null;
+
+  const movie =
+    (isCurrentReduxMovie ? reduxMovie : null) ||
+    normalizedCinemaMovie ||
+    (isTV ? tvData : movieData || tvData) ||
+    reduxMovie;
+
+  // Sync current cinema movie to Redux so all pages stay consistent
+  useEffect(() => {
+    if (normalizedCinemaMovie && !isCurrentReduxMovie) {
+      dispatch(setMovie(normalizedCinemaMovie));
+    }
+  }, [normalizedCinemaMovie, isCurrentReduxMovie, dispatch]);
 
   // Redux Selected Seats & Theme
   const selectedSeats = useSelector(selectSelectedSeats);

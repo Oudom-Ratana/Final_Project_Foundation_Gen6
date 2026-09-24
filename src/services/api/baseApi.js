@@ -43,27 +43,16 @@ const tmdbBaseQuery = fetchBaseQuery({
 const cinemaBaseQuery = fetchBaseQuery({
   baseUrl: CINEMA_API_BASE,
   prepareHeaders: (header, { getState }) => {
-    // If Authorization is explicitly set to empty (e.g. for /auth/refresh), do not attach the expired token
-    if (header.get("Authorization") === "") {
-      header.delete("Authorization");
-      return header;
-    }
-
-    const rawToken =
+    const accessToken =
       getState()?.auth?.accessToken || sessionStorage.getItem("accessToken");
-    const token = typeof rawToken === "string" ? rawToken.trim() : "";
-
-    if (token && token.length > 5) {
-      header.set(
-        "Authorization",
-        token.startsWith("Bearer ") ? token : `Bearer ${token}`,
-      );
+    if (accessToken) {
+      header.set("Authorization", `Bearer ${accessToken}`);
     }
     return header;
   },
 });
 
-// Teacher's baseQueryWithReAuth: 100% pure RTK Query silent refresh
+// Teacher's exact baseQueryWithReAuth
 const baseQueryWithReAuth = async (args, api, extraOptions) => {
   const url = typeof args === "string" ? args : args?.url || "";
 
@@ -75,49 +64,37 @@ const baseQueryWithReAuth = async (args, api, extraOptions) => {
   // 2. Execute request with Teacher's cinema baseQuery
   let result = await cinemaBaseQuery(args, api, extraOptions);
 
-  // 3. If 401 Unauthorized, automatically refresh using pure RTK Query
+  // 3. If 401 Unauthorized, use Teacher's exact fetch refresh logic
   if (result?.error?.status === 401) {
     const refreshToken = sessionStorage.getItem("refreshToken");
 
-    if (
-      refreshToken &&
-      !url.includes("/auth/refresh") &&
-      !url.includes("/auth/login")
-    ) {
-      // Pure RTK Query: call cinemaBaseQuery without the expired Authorization header
-      const refreshResult = await cinemaBaseQuery(
-        {
-          url: "/auth/refresh",
-          method: "POST",
-          headers: {
-            Authorization: "", // Tells prepareHeaders NOT to attach the expired token
-          },
-          body: {
-            refreshToken: refreshToken,
-          },
+    if (refreshToken && !url.includes("/auth/")) {
+      const res = await fetch(`${CINEMA_API_BASE}/auth/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        api,
-        extraOptions,
-      );
+        body: JSON.stringify({
+          refreshToken: refreshToken,
+        }),
+      });
 
-      if (refreshResult?.data?.accessToken) {
-        const newAccessToken = refreshResult.data.accessToken;
+      if (res.ok) {
+        const data = await res.json();
+        console.log("==> new accessToken:", data?.accessToken);
 
-        // 1. Store new accessToken in Redux and sessionStorage
-        api.dispatch(setAccessToken(newAccessToken));
-        sessionStorage.setItem("accessToken", newAccessToken);
+        // Store new accessToken in Redux and sessionStorage
+        api.dispatch(setAccessToken(data?.accessToken));
+        sessionStorage.setItem("accessToken", data?.accessToken);
 
-        if (refreshResult.data.refreshToken) {
-          sessionStorage.setItem(
-            "refreshToken",
-            refreshResult.data.refreshToken,
-          );
+        if (data?.refreshToken) {
+          sessionStorage.setItem("refreshToken", data.refreshToken);
         }
 
-        // 2. Automatically retry original query with the new token
+        // Automatically retry original query with the new token
         result = await cinemaBaseQuery(args, api, extraOptions);
       } else {
-        // Refresh token genuinely invalid or expired -> logout
+        // Only log out if refresh token is genuinely invalid or expired on server
         api.dispatch(logout());
       }
     }

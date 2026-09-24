@@ -214,8 +214,8 @@ export default function PaymentKhqrModal({
               disabled={isSimulating || isPaid}
               className="w-full py-2 px-3 rounded-full text-[11px] font-bold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white border border-neutral-300 dark:border-white/10 hover:border-neutral-400 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Demo / Test Payment Success</span>
+              {/* <Sparkles className="w-3.5 h-3.5 text-amber-500" /> */}
+              <span>Done</span>
             </button>
           </div>
         </div>
