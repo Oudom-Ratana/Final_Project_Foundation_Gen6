@@ -1,39 +1,132 @@
-/**
- * concessionsData.js
- * Food & drinks menu items for cinema concessions
- */
-
-export const CONCESSIONS = [
+export const FALLBACK_CONCESSIONS = [
   {
-    id: "couple-set-1",
-    name: "Couple set",
-    price: 9.0,
-    description: "Popcorn (L)\n2 Soft drink (L)\n1 French fries",
-    image:
-      "https://i.pinimg.com/736x/80/fe/53/80fe536edbe5f558f2b16af90a94cc6f.jpg",
+    uuid: "f1",
+    name: "Classic Butter Popcorn",
+    description: "Freshly popped, warm popcorn tossed in rich, melted butter.",
+    category: "FOOD",
+    price: 5.5,
+    imageUrl:
+      "https://images.unsplash.com/photo-1585647347384-259e51c86e08?q=80&w=1200&auto=format&fit=crop",
   },
   {
-    id: "couple-set-2",
-    name: "Couple set",
-    price: 9.0,
-    description: "Popcorn (L)\n2 Soft drink (L)\n1 French fries",
-    image:
-      "https://i.pinimg.com/736x/80/fe/53/80fe536edbe5f558f2b16af90a94cc6f.jpg",
+    uuid: "f2",
+    name: "Loaded Nachos",
+    description:
+      "Crispy tortilla chips smothered in hot jalapeño cheese sauce.",
+    category: "FOOD",
+    price: 6.5,
+    imageUrl:
+      "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?q=80&w=1200&auto=format&fit=crop",
   },
   {
-    id: "couple-set-3",
-    name: "Couple set",
-    price: 9.0,
-    description: "Popcorn (L)\n2 Soft drink (L)\n1 French fries",
-    image:
-      "https://i.pinimg.com/736x/80/fe/53/80fe536edbe5f558f2b16af90a94cc6f.jpg",
+    uuid: "d1",
+    name: "Ice-Cold Soda",
+    description: "Your choice of classic fountain drinks, served over ice.",
+    category: "DRINK",
+    price: 4.0,
+    imageUrl:
+      "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=1200&auto=format&fit=crop",
   },
   {
-    id: "couple-set-4",
-    name: "Couple set",
-    price: 9.0,
-    description: "Popcorn (L)\n2 Soft drink (L)\n1 French fries",
-    image:
-      "https://i.pinimg.com/736x/80/fe/53/80fe536edbe5f558f2b16af90a94cc6f.jpg",
+    uuid: "d2",
+    name: "Slushie Freeze",
+    description:
+      "Sweet, icy refreshment available in cherry and blue raspberry.",
+    category: "DRINK",
+    price: 4.5,
+    imageUrl:
+      "https://images.unsplash.com/photo-1558231336-391f1a54b395?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    uuid: "c1",
+    name: "Solo Combo",
+    description: "One regular popcorn and one regular fountain drink.",
+    category: "COMBO",
+    price: 8.5,
+    imageUrl:
+      "https://images.unsplash.com/photo-1662664917631-f92cb71a33a5?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    uuid: "c2",
+    name: "Couple's Combo",
+    description: "One large popcorn and two regular fountain drinks to share.",
+    category: "COMBO",
+    price: 12.0,
+    imageUrl:
+      "https://images.unsplash.com/photo-1585647347483-22b66260dfff?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    uuid: "f3",
+    name: "Hot Dog Combo",
+    description: "A classic grilled hot dog wrapped in a soft, warm bun.",
+    category: "FOOD",
+    price: 5.0,
+    imageUrl:
+      "https://images.unsplash.com/photo-1541214113241-212e8d2dc6d6?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    uuid: "c3",
+    name: "Family Feast",
+    description:
+      "Two large popcorns, four fountain drinks, and two candies of choice.",
+    category: "COMBO",
+    price: 24.0,
+    imageUrl:
+      "https://images.unsplash.com/photo-1662664918731-0027f3d2f9dc?q=80&w=1200&auto=format&fit=crop",
   },
 ];
+
+export const CONCESSION_HERO_SLIDES = [
+  {
+    id: "hero-1",
+    badge: "New Arrival",
+    title: "PREMIUM NACHO BOWL",
+    description:
+      "Upgrade your movie experience with our new fully loaded premium nachos, featuring fresh jalapeños and extra cheese.",
+    ctaText: "Order Now",
+    ctaLink: "/deals",
+    image:
+      "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?q=80&w=1200&auto=format&fit=crop",
+    offerTag: "JUST $7.99",
+  },
+  {
+    id: "hero-2",
+    badge: "Combo Deal",
+    title: "THE COUPLE'S SPECIAL",
+    description:
+      "Share the magic. Get a large popcorn and two medium drinks for a perfect movie date night.",
+    ctaText: "Get Combo",
+    ctaLink: "/deals",
+    image:
+      "https://images.unsplash.com/photo-1585647347483-22b66260dfff?q=80&w=1200&auto=format&fit=crop",
+    offerTag: "SAVE 20%",
+  },
+  {
+    id: "hero-3",
+    badge: "Sweet Treats",
+    title: "MOVIE CANDY MADNESS",
+    description:
+      "Satisfy your sweet tooth with our wide selection of classic and new theater candies.",
+    ctaText: "See Menu",
+    ctaLink: "/deals",
+    image:
+      "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?q=80&w=1200&auto=format&fit=crop",
+    offerTag: "MIX & MATCH",
+  },
+];
+
+export const CONCESSION_TICKER_ITEMS = [
+  "FRESH POPCORN",
+  "ICE-COLD DRINKS",
+  "COMBO DEALS",
+  "CRISPY NACHOS",
+  "SWEET TREATS",
+  "HOT DEALS ONLY",
+];
+
+// Backward compatibility: BookingDetailsPage uses item.id and item.image
+export const CONCESSIONS = FALLBACK_CONCESSIONS.map((item) => ({
+  ...item,
+  id: item.uuid,
+  image: item.imageUrl,
+}));
