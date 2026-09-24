@@ -210,14 +210,14 @@ export default function Navbar() {
 
         {/* 2. Center: Navigation Links (Home, Promo, Stream, About) */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          <NavLink to="/" className={navLinkClass}>
+          {/* <NavLink to="/" className={navLinkClass}>
             Home
-          </NavLink>
-          {/* <NavLink to="/promo" className={navLinkClass}>
-            Promo
           </NavLink> */}
           <NavLink to="/stream" className={navLinkClass}>
             Movies
+          </NavLink>
+          <NavLink to="/deals" className={navLinkClass}>
+            Deals
           </NavLink>
           <NavLink to="/about" className={navLinkClass}>
             About
@@ -408,6 +408,14 @@ export default function Navbar() {
             className={navLinkClass}
           >
             Home
+          </NavLink>
+
+          <NavLink
+            to="/deals"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={navLinkClass}
+          >
+            Deals
           </NavLink>
 
           <NavLink

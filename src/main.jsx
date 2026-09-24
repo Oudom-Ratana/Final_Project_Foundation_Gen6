@@ -17,8 +17,8 @@ import HomePage from "./pages/HomePage";
 import StreamPage from "./pages/StreamPage";
 import MovieDetailPage from "./pages/MovieDetailPage";
 import StreamMovieDetailPage from "./pages/StreamMovieDetailPage";
-import PromotionPage from "./pages/promotions/PromotionPage";
-import DetailPage from "./pages/promotions/DetailPage";
+import ConcessionPage from "./pages/concessions/ConcessionPage";
+import ConcessionDetailPage from "./pages/concessions/ConcessionDetailPage";
 import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
 import BookingDetailsPage from "./pages/booking/BookingDetailsPage";
 import BookingConfirmedPage from "./pages/booking/BookingConfirmedPage";
@@ -90,12 +90,23 @@ const router = createBrowserRouter([
         element: <BookingConfirmedPage />,
       },
       {
-        path: "/promo",
-        element: <PromotionPage />,
+        path: "/deals",
+        element: <ConcessionPage />,
         children: [
           {
             path: ":id",
-            element: <DetailPage />,
+            element: <ConcessionDetailPage />,
+          },
+        ],
+      },
+      {
+        // Redirect old /promo links to /deals
+        path: "/promo",
+        element: <ConcessionPage />,
+        children: [
+          {
+            path: ":id",
+            element: <ConcessionDetailPage />,
           },
         ],
       },
