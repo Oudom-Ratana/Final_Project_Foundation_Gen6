@@ -61,7 +61,7 @@ export default function ConcessionCard({ item }) {
             isDark ? "text-[#FFD700]" : "text-[#B90101]"
           }`}
         >
-          $${Number(price).toFixed(2)}
+          ${Number(price).toFixed(2)}
         </span>
       </div>
     </Link>

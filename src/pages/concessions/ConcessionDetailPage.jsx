@@ -110,7 +110,7 @@ export default function ConcessionDetailPage() {
 
               <div className="mt-5">
                 <div className={`text-4xl font-black ${isDark ? "text-[#FFD700]" : "text-[#B90101]"}`}>
-                  $${Number(item.price).toFixed(2)}
+                  ${Number(item.price).toFixed(2)}
                 </div>
               </div>
 
