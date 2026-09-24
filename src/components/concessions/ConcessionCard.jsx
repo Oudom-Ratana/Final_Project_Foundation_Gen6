@@ -11,11 +11,12 @@ const BADGE_STYLES = {
 export default function ConcessionCard({ item }) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
-  const { uuid, name, description, category, price, imageUrl } = item;
+  const { uuid, name, category, price, imageUrl } = item;
 
   return (
     <Link
       to={`/deals/${uuid}`}
+      preventScrollReset={true}
       className={`group block rounded-xl border transition-shadow duration-200 hover:shadow-lg ${
         isDark ? "border-white/10" : "border-neutral-200"
       }`}
@@ -47,26 +48,21 @@ export default function ConcessionCard({ item }) {
         )}
       </div>
 
-      <div className="p-4">
+      <div className="p-4 flex items-center justify-between gap-3">
         <h3
-          className={`font-extrabold text-sm sm:text-base tracking-wide ${
+          className={`font-extrabold text-sm sm:text-base tracking-wide leading-tight ${
             isDark ? "text-white" : "text-neutral-900"
           }`}
         >
           {name}
         </h3>
-        <p
-          className={`mt-1.5 text-[14px] leading-relaxed line-clamp-2 ${
-            isDark ? "text-neutral-400" : "text-neutral-600"
+        <span
+          className={`shrink-0 font-black text-2xl sm:text-3xl tracking-tight drop-shadow-sm ${
+            isDark ? "text-[#FFD700]" : "text-[#B90101]"
           }`}
         >
-          {description}
-        </p>
-        <div className="mt-3 flex items-center justify-between">
-          <span className={`font-black text-lg ${isDark ? "text-[#FFD700]" : "text-[#B90101]"}`}>
-            ${Number(price).toFixed(2)}
-          </span>
-        </div>
+          $${Number(price).toFixed(2)}
+        </span>
       </div>
     </Link>
   );

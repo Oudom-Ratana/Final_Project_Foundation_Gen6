@@ -76,45 +76,6 @@ export const FALLBACK_CONCESSIONS = [
   },
 ];
 
-export const CONCESSION_HERO_SLIDES = [
-  {
-    id: "hero-1",
-    badge: "New Arrival",
-    title: "PREMIUM NACHO BOWL",
-    description:
-      "Upgrade your movie experience with our new fully loaded premium nachos, featuring fresh jalapeños and extra cheese.",
-    ctaText: "Order Now",
-    ctaLink: "/deals",
-    image:
-      "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?q=80&w=1200&auto=format&fit=crop",
-    offerTag: "JUST $7.99",
-  },
-  {
-    id: "hero-2",
-    badge: "Combo Deal",
-    title: "THE COUPLE'S SPECIAL",
-    description:
-      "Share the magic. Get a large popcorn and two medium drinks for a perfect movie date night.",
-    ctaText: "Get Combo",
-    ctaLink: "/deals",
-    image:
-      "https://images.unsplash.com/photo-1585647347483-22b66260dfff?q=80&w=1200&auto=format&fit=crop",
-    offerTag: "SAVE 20%",
-  },
-  {
-    id: "hero-3",
-    badge: "Sweet Treats",
-    title: "MOVIE CANDY MADNESS",
-    description:
-      "Satisfy your sweet tooth with our wide selection of classic and new theater candies.",
-    ctaText: "See Menu",
-    ctaLink: "/deals",
-    image:
-      "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?q=80&w=1200&auto=format&fit=crop",
-    offerTag: "MIX & MATCH",
-  },
-];
-
 export const CONCESSION_TICKER_ITEMS = [
   "FRESH POPCORN",
   "ICE-COLD DRINKS",

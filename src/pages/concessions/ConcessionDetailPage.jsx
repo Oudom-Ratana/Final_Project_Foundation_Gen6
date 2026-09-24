@@ -36,11 +36,17 @@ export default function ConcessionDetailPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const close = () => navigate("/deals");
+  const close = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/deals", { preventScrollReset: true });
+    }
+  };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-label={item ? item.name : "Item details"}
@@ -63,7 +69,7 @@ export default function ConcessionDetailPage() {
           type="button"
           onClick={close}
           aria-label="Close"
-          className="absolute top-5 right-5 z-10 text-[#B90101] hover:opacity-70 transition-opacity duration-200"
+          className="absolute top-5 right-5 z-10 text-[#B90101] hover:opacity-70 transition-opacity duration-200 cursor-pointer"
         >
           <X className="w-6 h-6" strokeWidth={2.5} />
         </button>
@@ -104,7 +110,7 @@ export default function ConcessionDetailPage() {
 
               <div className="mt-5">
                 <div className={`text-4xl font-black ${isDark ? "text-[#FFD700]" : "text-[#B90101]"}`}>
-                  ${Number(item.price).toFixed(2)}
+                  $${Number(item.price).toFixed(2)}
                 </div>
               </div>
 

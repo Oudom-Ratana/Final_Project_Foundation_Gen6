@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { selectTheme } from "../../redux/slices/uiSlice";
-import { CONCESSION_HERO_SLIDES } from "../../data/concessionsData";
+import { useGetAllConcessionsQuery } from "../../services/api/cinemaApi";
 import ScrollReveal from "../common/ScrollReveal";
 
 export default function ConcessionHero() {
@@ -11,7 +10,23 @@ export default function ConcessionHero() {
   const isDark = theme === "dark";
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const slides = CONCESSION_HERO_SLIDES;
+  const { data: apiData, isLoading } = useGetAllConcessionsQuery();
+
+  // ONLY real items from the backend API
+  const slides = useMemo(() => {
+    if (!apiData || apiData.length === 0) return [];
+
+    return apiData.map((item) => ({
+      id: item.uuid,
+      badge: item.category || "FOOD",
+      title: (item.name || "").toUpperCase(),
+      description:
+        item.description || "Cinema snack available at FilmZone.",
+      image: item.imageUrl,
+      offerTag: `$${Number(item.price || 0).toFixed(2)}`,
+    }));
+  }, [apiData]);
+
   const totalSlides = slides.length;
 
   // Auto slide strictly every 4 seconds (4000ms)
@@ -23,19 +38,40 @@ export default function ConcessionHero() {
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [totalSlides, currentIndex]);
+  }, [totalSlides]);
 
   const handlePrev = () => {
+    if (totalSlides === 0) return;
     setCurrentIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
 
   const handleNext = () => {
+    if (totalSlides === 0) return;
     setCurrentIndex((prev) => (prev + 1) % totalSlides);
   };
 
-  const activePromo = slides[currentIndex] || slides[0];
-  const { badge, title, description, ctaText, ctaLink } = activePromo;
+  if (isLoading) {
+    return (
+      <div className="w-full h-72 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#B90101] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (totalSlides === 0) {
+    return null;
+  }
+
+  const activePromo = slides[currentIndex] || slides[0] || {};
+  const { badge = "DEAL", title = "", description = "" } = activePromo;
   const titleLines = (title || "").split(" ");
+
+  const badgeClass =
+    badge === "DRINK"
+      ? "bg-blue-600 border-blue-400 text-white"
+      : badge === "COMBO"
+        ? "bg-[#B90101] border-[#FFD700] text-white"
+        : "bg-[#FFD700] border-[#B90101] text-[#B90101]";
 
   return (
     <section className="w-full">
@@ -47,11 +83,7 @@ export default function ConcessionHero() {
             className="transition-all duration-500"
           >
             <span
-              className={`inline-block italic font-bold text-xs uppercase tracking-wide px-4 py-1.5 rounded-full border-2 ${
-                isDark
-                  ? "bg-[#FFD700] border-[#B90101] text-[#B90101]"
-                  : "bg-[#FFD700] border-[#B90101] text-[#B90101]"
-              }`}
+              className={`inline-block italic font-bold text-xs uppercase tracking-wide px-4 py-1.5 rounded-full border-2 ${badgeClass}`}
             >
               {badge}
             </span>
@@ -77,14 +109,6 @@ export default function ConcessionHero() {
             >
               <p className="text-[15px] leading-relaxed">{description}</p>
             </div>
-
-            <Link
-              to={ctaLink}
-              className="mt-7 inline-flex items-center gap-2 bg-[#B90101] hover:bg-[#8b0101] text-white font-semibold text-[15px] px-6 py-3 rounded-full transition-colors duration-200"
-            >
-              {ctaText}
-              <span aria-hidden="true">→</span>
-            </Link>
           </div>
         </ScrollReveal>
 
@@ -129,7 +153,7 @@ export default function ConcessionHero() {
               <button
                 type="button"
                 onClick={handlePrev}
-                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/20 backdrop-blur-md flex items-center justify-center text-white hover:border-[#B90101] hover:scale-110 active:scale-95 transition-all shadow-xl"
+                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/20 backdrop-blur-md flex items-center justify-center text-white hover:border-[#B90101] hover:scale-110 active:scale-95 transition-all shadow-xl cursor-pointer"
                 style={{ backgroundColor: "rgba(26, 31, 37, 0.50)" }}
                 aria-label="Previous Slide"
               >
@@ -142,7 +166,7 @@ export default function ConcessionHero() {
               <button
                 type="button"
                 onClick={handleNext}
-                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/20 backdrop-blur-md flex items-center justify-center text-white hover:border-[#B90101] hover:scale-110 active:scale-95 transition-all shadow-xl"
+                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/20 backdrop-blur-md flex items-center justify-center text-white hover:border-[#B90101] hover:scale-110 active:scale-95 transition-all shadow-xl cursor-pointer"
                 style={{ backgroundColor: "rgba(26, 31, 37, 0.50)" }}
                 aria-label="Next Slide"
               >
