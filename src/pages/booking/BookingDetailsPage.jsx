@@ -432,10 +432,8 @@ export default function BookingDetailsPage() {
                       </div>
 
                       {/* Description & Add/Quantity Row */}
-                      <div className="flex items-end justify-between gap-2">
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 whitespace-pre-line leading-relaxed">
-                          {item.description}
-                        </p>
+                      <div className="flex items-center justify-end">
+                        
 
                         {/* + Add or Quantity Buttons */}
                         {qty === 0 ? (

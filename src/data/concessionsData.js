@@ -6,7 +6,7 @@ export const FALLBACK_CONCESSIONS = [
     category: "FOOD",
     price: 5.5,
     imageUrl:
-      "https://images.unsplash.com/photo-1585647347384-259e51c86e08?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1578849278619-e73505e9610f?q=80&w=1200&auto=format&fit=crop",
   },
   {
     uuid: "f2",
@@ -35,7 +35,7 @@ export const FALLBACK_CONCESSIONS = [
     category: "DRINK",
     price: 4.5,
     imageUrl:
-      "https://images.unsplash.com/photo-1558231336-391f1a54b395?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=1200&auto=format&fit=crop",
   },
   {
     uuid: "c1",
