@@ -7,135 +7,321 @@ import {
   Ticket,
   Star,
   CheckCircle2,
-  LogOut,
-  Trash2,
   Camera,
-  Calendar,
-  Phone,
+  LogIn,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   selectCurrentUser,
-  selectIsAuthenticated,
-  updateUser,
+  updateUser as updateReduxUser,
   logout,
 } from "../redux/slices/authSlice";
-import { selectFavouriteMovies } from "../redux/slices/favouriteSlice";
-import { selectAllTickets } from "../redux/slices/ticketSlice";
 import {
-  updateStoredUser,
-  deleteStoredUser,
-} from "../services/mockAuthService";
+  useGetCurrentUserQuery,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+  useGetMyFavoriteCountQuery,
+  useLogoutApiMutation,
+} from "../services/api/authApi";
+import {
+  useGetMyTicketsQuery,
+  useUploadImageMutation,
+} from "../services/api/cinemaApi";
+
+// Helper to resolve full URL from relative backend path
+const resolveAvatarUrl = (url) => {
+  if (!url || typeof url !== "string") return "";
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("blob:") ||
+    url.startsWith("data:")
+  ) {
+    return url;
+  }
+  return `https://cinema-booking-api.eunglyzhia.com${url.startsWith("/") ? "" : "/"}${url}`;
+};
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const user = useSelector(selectCurrentUser);
-  const isAuthenticated = useSelector(selectIsAuthenticated);
-  const favouriteMovies = useSelector(selectFavouriteMovies) || [];
-  const allTickets = useSelector(selectAllTickets) || [];
+  // Authentication token
+  const token =
+    useSelector((state) => state.auth?.accessToken || state.auth?.token) ||
+    sessionStorage.getItem("accessToken");
 
-  // Fallback defaults if user is not fully populated
-  const defaultUser = {
-    id: "user_demo_1",
-    name: "Peter Parker",
-    email: "peterparker@gmail.com",
-    avatar: null,
-    dob: "10-10-2001",
-    phone: "012 345 678",
-    createdAt: "2026-01-01T00:00:00.000Z",
-    points: 168,
-  };
+  // Redux cached user
+  const cachedUser = useSelector(selectCurrentUser);
 
-  const activeUser = user || defaultUser;
+  // 1. RTK Query: Live current user profile
+  const {
+    data: liveUser,
+    isLoading: isUserLoading,
+    refetch: refetchUser,
+  } = useGetCurrentUserQuery(undefined, {
+    skip: !token,
+    refetchOnMountOrArgChange: true,
+  });
 
-  // Form states
-  const [userName, setUserName] = useState(activeUser.name || "Peter Parker");
-  const [dob, setDob] = useState(activeUser.dob || "10-10-2001");
-  const [phone, setPhone] = useState(activeUser.phone || "012 345 678");
+  // 2. RTK Query: Stats from Teacher's API
+  const { data: favoriteCountData } = useGetMyFavoriteCountQuery(undefined, {
+    skip: !token,
+  });
+  const { data: ticketsData } = useGetMyTicketsQuery(
+    { page: 0, size: 5 },
+    { skip: !token },
+  );
 
-  // Editable toggles
-  const [isEditingDob, setIsEditingDob] = useState(false);
-  const [isEditingPhone, setIsEditingPhone] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  // 3. RTK Query Mutations
+  const [updateUserApi, { isLoading: isUpdating }] = useUpdateUserMutation();
+  const [uploadImageApi, { isLoading: isUploadingAvatar }] =
+    useUploadImageMutation();
+  const [deleteUserApi, { isLoading: isDeleting }] = useDeleteUserMutation();
+  const [logoutApi] = useLogoutApiMutation();
+
+  // Consolidated user object
+  const activeUser = liveUser || cachedUser || {};
+
+  // Form states matching Teacher's UpdateUserRequest schema
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Sync server data & stored avatar into form fields
   useEffect(() => {
-    if (user) {
-      setUserName(user.name || "");
-      setDob(user.dob || "10-10-2001");
-      setPhone(user.phone || "012 345 678");
+    if (activeUser && Object.keys(activeUser).length > 0) {
+      const userUuid = activeUser.uuid || activeUser.id;
+      setFirstName(activeUser.firstName || "");
+      setLastName(activeUser.lastName || "");
+      setUsername(activeUser.username || "");
+      setEmail(activeUser.email || "");
+      setPhone(activeUser.phone || "");
+
+      // Check stored avatar by user UUID first, then user.avatar
+      const storedAvatar = userUuid
+        ? localStorage.getItem(`user_avatar_${userUuid}`)
+        : null;
+      const initialAvatar = storedAvatar || activeUser.avatar || "";
+      if (initialAvatar) {
+        setAvatarUrl(resolveAvatarUrl(initialAvatar));
+      }
     }
-  }, [user]);
+  }, [
+    activeUser.uuid,
+    activeUser.id,
+    activeUser.username,
+    activeUser.email,
+    activeUser.phone,
+    activeUser.avatar,
+  ]);
 
   // Points & Counts calculation
   const memberYear = activeUser.createdAt
     ? new Date(activeUser.createdAt).getFullYear()
     : "2026";
-  const userPoints = activeUser.points || 168;
-  const favCount = favouriteMovies.length > 0 ? favouriteMovies.length : 6;
-  const bookedCount = allTickets.length > 0 ? allTickets.length : 7;
-  const earnedPoints = Math.round(userPoints / 20) || 8;
+  const userPoints = activeUser.points ?? 0;
+  const favCount = favoriteCountData?.count ?? 0;
+  const bookedCount =
+    ticketsData?.totalElements ?? ticketsData?.content?.length ?? 0;
+  const earnedPoints = Math.round(userPoints / 20) || 0;
 
-  // Booking history items (derived from real tickets or standard demo tickets matching Figma)
-  const displayBookings =
-    allTickets.length > 0
-      ? allTickets.slice(0, 3).map((ticket) => ({
-          id: ticket.id,
-          title:
-            ticket.movieTitle || ticket.title || "Spider-Man : No Way Home",
-          date: ticket.showtimeDate || ticket.date || "Jul 13, 2026",
-        }))
-      : [
-          { id: "1", title: "Spider-Man : No Way Home", date: "Jul 13, 2026" },
-          { id: "2", title: "Spider-Man : No Way Home", date: "Jul 13, 2026" },
-          { id: "3", title: "Spider-Man : No Way Home", date: "Jul 13, 2026" },
-        ];
+  // Booking history items from Teacher's API
+  const displayBookings = (ticketsData?.content || [])
+    .slice(0, 3)
+    .map((ticket) => ({
+      id: ticket.ticketUuid || ticket.id,
+      title: ticket.movieTitle || "Cinema Movie",
+      date: ticket.showDate
+        ? `${ticket.showDate} ${ticket.showTime ? `• ${ticket.showTime}` : ""} (Seat ${ticket.seatLabel || "N/A"})`
+        : "Upcoming Show",
+    }));
 
-  const handleSaveChange = (e) => {
+  // Handle Save Profile Changes via RTK Query
+  const handleSaveChange = async (e) => {
     e?.preventDefault();
-    if (!userName.trim()) {
-      toast.error("User name cannot be empty");
+
+    const targetUuid = activeUser.uuid || activeUser.id;
+    if (!targetUuid) {
+      toast.error("User ID not found. Please log in again.");
       return;
     }
 
-    setIsSaving(true);
-    const updatedData = {
-      name: userName.trim(),
-      dob: dob.trim(),
-      phone: phone.trim(),
-    };
-
-    // Update in Redux
-    dispatch(updateUser(updatedData));
-
-    // Update in mock localStorage storage
-    if (activeUser?.id) {
-      updateStoredUser(activeUser.id, updatedData);
+    if (!username.trim() || username.trim().length < 3) {
+      toast.error("Username must be at least 3 characters long.");
+      return;
     }
 
-    setIsEditingDob(false);
-    setIsEditingPhone(false);
-    setIsSaving(false);
+    try {
+      const payload = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        username: username.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+      };
 
-    toast.success("Profile updated successfully!");
+      const result = await updateUserApi({
+        uuid: targetUuid,
+        userData: payload,
+      }).unwrap();
+
+      // Sync into Redux store so Navbar and Header reflect immediately
+      const displayName =
+        `${result.firstName || ""} ${result.lastName || ""}`.trim() ||
+        result.username ||
+        payload.username;
+
+      dispatch(
+        updateReduxUser({
+          ...result,
+          name: displayName,
+          avatar: avatarUrl,
+        }),
+      );
+
+      toast.success("Profile updated successfully!");
+      refetchUser();
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      const errMsg =
+        err?.data?.message ||
+        err?.data?.error ||
+        "Failed to update profile. Please verify your data.";
+      toast.error(errMsg);
+    }
   };
 
-  const handleLogout = () => {
+  // Handle Avatar Upload via RTK Query (POST /api/v1/files/images)
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file.");
+      return;
+    }
+
+    // 1. Instant local preview
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarUrl(previewUrl);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const userUuid = activeUser.uuid || activeUser.id;
+
+    try {
+      // 2. Upload to Teacher's Cinema API (POST /api/v1/files/images)
+      const uploadRes = await uploadImageApi(formData).unwrap();
+      const rawUrl = uploadRes?.url || uploadRes?.imageUrl;
+      if (rawUrl) {
+        // 3. Resolve Full URL (Prepend teacher domain if relative)
+        const fullUrl = resolveAvatarUrl(rawUrl);
+        setAvatarUrl(fullUrl);
+
+        // 4. Persist per User in localStorage
+        if (userUuid) {
+          localStorage.setItem(`user_avatar_${userUuid}`, fullUrl);
+        }
+
+        // 5. Update Redux store so Navbar reflects the new avatar
+        dispatch(updateReduxUser({ avatar: fullUrl }));
+        toast.success("Avatar uploaded and saved successfully!");
+      }
+    } catch (err) {
+      console.error("Avatar upload failed:", err);
+      toast.error(err?.data?.message || "Failed to upload avatar image.");
+    }
+  };
+
+  // Handle Logout
+  const handleLogout = async () => {
+    const refreshToken = (
+      sessionStorage.getItem("refreshToken") ||
+      localStorage.getItem("cinema_refresh_token") ||
+      activeUser?.refreshToken ||
+      ""
+    ).trim();
+
+    if (refreshToken) {
+      try {
+        await logoutApi({ refreshToken }).unwrap();
+      } catch (err) {
+        console.warn("Server logout response:", err);
+      }
+    }
+
     dispatch(logout());
     toast.info("Logged out successfully");
     navigate("/");
   };
 
-  const handleDeleteAccount = () => {
-    if (activeUser?.id) {
-      deleteStoredUser(activeUser.id);
+  // Handle Delete Account via RTK Query
+  const handleDeleteAccount = async () => {
+    const targetUuid = activeUser.uuid || activeUser.id;
+    if (!targetUuid) return;
+
+    try {
+      await deleteUserApi(targetUuid).unwrap();
+      dispatch(logout());
+      toast.warn("Account deleted successfully.");
+      navigate("/");
+    } catch (err) {
+      console.error("Account deletion failed:", err);
+      toast.error(err?.data?.message || "Could not delete account.");
     }
-    dispatch(logout());
-    toast.warn("Account deleted successfully");
-    navigate("/");
   };
+
+  // State: Unauthenticated
+  if (!token) {
+    return (
+      <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
+        <div className="w-16 h-16 rounded-full bg-[#B90101]/10 flex items-center justify-center">
+          <User className="w-8 h-8 text-[#B90101]" />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white">
+          Sign In to View Profile
+        </h2>
+        <p className="text-neutral-500 dark:text-neutral-400 max-w-md">
+          Please sign in to your FilmZone account to view your cinema profile,
+          manage account information, and view tickets.
+        </p>
+        <Link
+          to="/login"
+          className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-white font-bold text-[14px] shadow-lg hover:brightness-110 active:scale-95 transition"
+          style={{ backgroundColor: "#B90101" }}
+        >
+          <LogIn size={16} />
+          <span>Sign In to Account</span>
+        </Link>
+      </div>
+    );
+  }
+
+  // State: Loading User Profile
+  if (isUserLoading && !activeUser.uuid && !activeUser.id) {
+    return (
+      <div className="w-full py-28 flex flex-col items-center justify-center text-center space-y-4 font-sans">
+        <div className="w-10 h-10 border-4 border-[#B90101] border-t-transparent rounded-full animate-spin" />
+        <p className="text-neutral-500 dark:text-neutral-400 font-semibold text-sm">
+          Loading profile from Cinema API...
+        </p>
+      </div>
+    );
+  }
+
+  const fullName =
+    `${firstName} ${lastName}`.trim() ||
+    username ||
+    activeUser.name ||
+    "Cinema Member";
 
   return (
     <div className="w-full min-h-screen py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto font-sans">
@@ -153,29 +339,50 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Avatar, Name, Email, Points, Logout */}
           <div className="lg:col-span-4 flex flex-col items-center text-center relative">
-            {/* Avatar */}
+            {/* Avatar Container with Upload Camera Overlay */}
             <div className="relative group">
               <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center border-4 border-white dark:border-neutral-700 shadow-md">
-                {activeUser.avatar ? (
+                {avatarUrl ? (
                   <img
-                    src={activeUser.avatar}
-                    alt={activeUser.name}
+                    src={avatarUrl}
+                    alt={fullName}
+                    onError={() => setAvatarUrl("")}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <User className="w-16 h-16 text-neutral-400 dark:text-neutral-500" />
                 )}
               </div>
+
+              {/* Camera Upload Trigger */}
+              <label
+                htmlFor="avatar-upload-input"
+                className="absolute bottom-1 right-1 p-2 rounded-full bg-[#B90101] text-white hover:brightness-110 active:scale-95 transition shadow-lg cursor-pointer"
+                title="Change Avatar Photo"
+              >
+                {isUploadingAvatar ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
+                <input
+                  id="avatar-upload-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </label>
             </div>
 
-            {/* User Name */}
+            {/* User Full Name */}
             <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white mt-4 tracking-tight">
-              {activeUser.name || "Peter Parker"}
+              {fullName}
             </h2>
 
             {/* Email with Verified Badge */}
             <div className="flex items-center justify-center gap-1.5 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-              <span>{activeUser.email || "peterparker@gmail.com"}</span>
+              <span>{email || "member@filmzone.com"}</span>
               <CheckCircle2 className="w-3.5 h-3.5 text-[#B90101] shrink-0" />
             </div>
 
@@ -187,7 +394,7 @@ export default function ProfilePage() {
             {/* Points Badge */}
             <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-500 dark:text-amber-400 mt-1.5">
               <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
-              <span>{userPoints} Point</span>
+              <span>{userPoints} Points</span>
             </div>
 
             {/* Left Column Bottom Action Buttons */}
@@ -215,91 +422,94 @@ export default function ProfilePage() {
 
           {/* Right Column: Editable Profile Fields */}
           <div className="lg:col-span-8 lg:pl-6">
-            <form onSubmit={handleSaveChange} className="space-y-5">
-              {/* Field 1: User Name */}
+            <form onSubmit={handleSaveChange} className="space-y-4">
+              {/* Row 1: First Name & Last Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="First Name"
+                    className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Last Name"
+                    className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Username */}
               <div>
-                <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-2">
-                  User Name
+                <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                  Username <span className="text-[#B90101]">*</span>
                 </label>
                 <input
                   type="text"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Enter your name"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username (min 3 characters)"
+                  required
+                  minLength={3}
                   className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
                 />
               </div>
 
-              {/* Field 2: Date of Birth */}
+              {/* Row 3: Email Address */}
               <div>
-                <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-2">
-                  Date of Birth{" "}
-                  <span className="text-[#B90101] font-semibold">
-                    (Optional)
-                  </span>
+                <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                  Email Address
                 </label>
-                <div className="relative flex items-center">
-                  <input
-                    type="text"
-                    value={dob}
-                    onChange={(e) => setDob(e.target.value)}
-                    disabled={!isEditingDob}
-                    placeholder="DD-MM-YYYY"
-                    className={`w-full px-5 pr-24 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner ${
-                      !isEditingDob
-                        ? "opacity-90 select-none cursor-default"
-                        : ""
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingDob((prev) => !prev)}
-                    className="absolute right-4 text-xs sm:text-sm font-bold text-[#B90101] hover:underline cursor-pointer"
-                  >
-                    {isEditingDob ? "Done" : "Change"}
-                  </button>
-                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter email address"
+                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                />
               </div>
 
-              {/* Field 3: Phone Number */}
+              {/* Row 4: Phone Number */}
               <div>
-                <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-2">
-                  Phone Number{" "}
-                  <span className="text-[#B90101] font-semibold">
-                    (Optional)
-                  </span>
+                <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                  Phone Number
                 </label>
-                <div className="relative flex items-center">
-                  <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    disabled={!isEditingPhone}
-                    placeholder="012 345 678"
-                    className={`w-full px-5 pr-24 py-3 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner ${
-                      !isEditingPhone
-                        ? "opacity-90 select-none cursor-default"
-                        : ""
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingPhone((prev) => !prev)}
-                    className="absolute right-4 text-xs sm:text-sm font-bold text-[#B90101] hover:underline cursor-pointer"
-                  >
-                    {isEditingPhone ? "Done" : "Change"}
-                  </button>
-                </div>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="012 345 678"
+                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                />
               </div>
 
               {/* Save Change Button */}
               <div className="flex justify-end pt-3">
                 <button
                   type="submit"
-                  disabled={isSaving}
-                  className="px-7 py-2.5 rounded-full border border-[#B90101] text-xs sm:text-sm font-bold text-[#B90101] hover:bg-[#B90101] hover:text-white transition shadow-sm active:scale-95 cursor-pointer disabled:opacity-50"
+                  disabled={isUpdating}
+                  className="px-8 py-2.5 rounded-full border border-[#B90101] text-xs sm:text-sm font-bold text-[#B90101] hover:bg-[#B90101] hover:text-white transition shadow-sm active:scale-95 cursor-pointer disabled:opacity-50 flex items-center gap-2"
                 >
-                  {isSaving ? "Saving..." : "Save Change"}
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving to API...</span>
+                    </>
+                  ) : (
+                    <span>Save Changes</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -335,7 +545,7 @@ export default function ProfilePage() {
               </Link>
 
               {/* Vertical Divider */}
-              <div className="w-px h-10 bg-neutral-200 dark:border-white/10" />
+              <div className="w-px h-10 bg-neutral-200 dark:bg-white/10" />
 
               {/* Column 2: Ticket Booked */}
               <Link
@@ -352,7 +562,7 @@ export default function ProfilePage() {
               </Link>
 
               {/* Vertical Divider */}
-              <div className="w-px h-10 bg-neutral-200 dark:border-white/10" />
+              <div className="w-px h-10 bg-neutral-200 dark:bg-white/10" />
 
               {/* Column 3: Point Earned */}
               <div className="flex flex-col items-center">
@@ -388,22 +598,28 @@ export default function ProfilePage() {
 
             {/* Bookings List */}
             <div className="space-y-2.5">
-              {displayBookings.map((item, idx) => (
-                <div
-                  key={`${item.id}-${idx}`}
-                  className="flex items-center justify-between px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/50 dark:bg-black/20 hover:border-[#B90101]/40 transition"
-                >
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
-                      {item.title}
-                    </h4>
-                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-                      {item.date}
-                    </p>
+              {displayBookings.length > 0 ? (
+                displayBookings.map((item, idx) => (
+                  <div
+                    key={`${item.id}-${idx}`}
+                    className="flex items-center justify-between px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/50 dark:bg-black/20 hover:border-[#B90101]/40 transition"
+                  >
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
+                        {item.title}
+                      </h4>
+                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                        {item.date}
+                      </p>
+                    </div>
+                    <CheckCircle2 className="w-4 h-4 text-[#B90101] shrink-0" />
                   </div>
-                  <CheckCircle2 className="w-4 h-4 text-[#B90101] shrink-0" />
+                ))
+              ) : (
+                <div className="py-6 text-center text-xs text-neutral-400">
+                  No cinema booking history found yet.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -418,7 +634,8 @@ export default function ProfilePage() {
             </h3>
             <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
               Are you sure you want to delete your account? All your profile
-              information and data will be removed.
+              information and data will be permanently removed from the cinema
+              database.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
@@ -431,9 +648,10 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={handleDeleteAccount}
-                className="px-5 py-2 rounded-full bg-[#B90101] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition cursor-pointer"
+                disabled={isDeleting}
+                className="px-5 py-2 rounded-full bg-[#B90101] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition cursor-pointer disabled:opacity-50"
               >
-                Yes, Delete
+                {isDeleting ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
           </div>

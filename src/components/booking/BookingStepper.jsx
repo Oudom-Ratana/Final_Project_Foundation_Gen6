@@ -13,7 +13,7 @@ export default function BookingStepper({ currentStep = 2 }) {
 
   return (
     <div
-      className="w-full rounded-full border backdrop-blur-md px-4 sm:px-8 py-3.5 shadow-sm select-none"
+      className="w-full rounded-full border backdrop-blur-md px-4 sm:px-8 py-2.5 sm:py-3 shadow-sm select-none"
       style={{
         backgroundColor: isDark
           ? "var(--primary-color-30)"

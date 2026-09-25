@@ -5,7 +5,7 @@ import { selectTheme } from "../../redux/slices/uiSlice";
 import istadLightLogo from "../../assets/logo/ISTAD_Light.png";
 import istadDarkLogo from "../../assets/logo/istad-Dark.png";
 import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
-import FilmZoneDarkLogo from "../../assets/logo/FilmZone_DarkModeLogo.png"
+import FilmZoneDarkLogo from "../../assets/logo/FilmZone_DarkModeLogo.png";
 import { bg } from "zod/v4/locales";
 
 // --- Static content -------------------------------------------------
@@ -14,7 +14,7 @@ import { bg } from "zod/v4/locales";
 
 const QUICK_LINKS = [
   { label: "Home", to: "/" },
-  // { label: "Promo", to: "/promo" },
+  { label: "Deals", to: "/deals" },
   { label: "Movies", to: "/stream" },
   { label: "About", to: "/about" },
 ];
@@ -24,7 +24,7 @@ const QUICK_LINKS = [
 const MORE_LINKS = [
   // { label: "Free Movie", to: "/stream" },
   { label: "My Ticket", to: "/my-tickets" },
-  { label: "Promo", to: "/promo" },
+  // { label: "Deals", to: "/deals" },
   { label: "Favourite", to: "/favourite" },
   { label: "How to Book", to: "/how-to-book" },
 ];

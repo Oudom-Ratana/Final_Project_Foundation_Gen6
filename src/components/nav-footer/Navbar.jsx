@@ -18,6 +18,7 @@ import {
   selectIsAuthenticated,
   logout,
 } from "../../redux/slices/authSlice";
+import { useLogoutApiMutation } from "../../services/api/authApi";
 import { selectTheme, toggleTheme } from "../../redux/slices/uiSlice";
 import { selectFavouriteMovies } from "../../redux/slices/favouriteSlice";
 import { toast } from "react-toastify";
@@ -34,10 +35,39 @@ export default function Navbar() {
   const favoriteCount = favouriteMovies.length;
   const isAdmin = user?.role === "admin" || user?.role === "ADMIN";
 
+  const storedAvatar = user?.uuid
+    ? localStorage.getItem(`user_avatar_${user.uuid}`)
+    : null;
+  const userAvatar = user?.avatar || storedAvatar;
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef(null);
   const mobileProfileDropdownRef = useRef(null);
+
+  const [logoutApi] = useLogoutApiMutation();
+
+  const handleLogout = async () => {
+    const refreshToken = (
+      sessionStorage.getItem("refreshToken") ||
+      localStorage.getItem("cinema_refresh_token") ||
+      user?.refreshToken ||
+      ""
+    ).trim();
+
+    if (refreshToken) {
+      try {
+        await logoutApi({ refreshToken }).unwrap();
+      } catch (err) {
+        console.warn("Server logout response:", err);
+      }
+    }
+
+    dispatch(logout());
+    setIsProfileDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+    toast.info("Logged out successfully");
+  };
 
   // Circular Theme Toggle via View Transitions API
   const handleThemeToggle = (e) => {
@@ -126,9 +156,21 @@ export default function Navbar() {
 
   // Track scroll position for dynamic homepage navbar transition
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const nextScrolled = window.scrollY > 30;
+          setIsScrolled((prev) =>
+            prev !== nextScrolled ? nextScrolled : prev,
+          );
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
+
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -173,14 +215,14 @@ export default function Navbar() {
 
         {/* 2. Center: Navigation Links (Home, Promo, Stream, About) */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          <NavLink to="/" className={navLinkClass}>
+          {/* <NavLink to="/" className={navLinkClass}>
             Home
-          </NavLink>
-          {/* <NavLink to="/promo" className={navLinkClass}>
-            Promo
           </NavLink> */}
           <NavLink to="/stream" className={navLinkClass}>
             Movies
+          </NavLink>
+          <NavLink to="/deals" className={navLinkClass}>
+            Deals
           </NavLink>
           <NavLink to="/about" className={navLinkClass}>
             About
@@ -233,9 +275,9 @@ export default function Navbar() {
                 aria-label="User profile menu"
                 title={user.name}
               >
-                {user.avatar ? (
+                {userAvatar ? (
                   <img
-                    src={user.avatar}
+                    src={userAvatar}
                     alt={user.name}
                     className="w-full h-full object-cover"
                   />
@@ -303,11 +345,7 @@ export default function Navbar() {
                   {/* 4. Logout Option */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsProfileDropdownOpen(false);
-                      dispatch(logout());
-                      toast.info("Logged out successfully");
-                    }}
+                    onClick={handleLogout}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[#B90101] hover:bg-red-500/10 transition cursor-pointer text-left"
                   >
                     <LogOut className="w-4 h-4" />
@@ -378,6 +416,14 @@ export default function Navbar() {
           </NavLink>
 
           <NavLink
+            to="/deals"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={navLinkClass}
+          >
+            Deals
+          </NavLink>
+
+          <NavLink
             to="/stream"
             onClick={() => setIsMobileMenuOpen(false)}
             className={navLinkClass}
@@ -427,9 +473,9 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-2.5 truncate hover:opacity-90 transition cursor-pointer flex-1"
                 >
-                  {user.avatar ? (
+                  {userAvatar ? (
                     <img
-                      src={user.avatar}
+                      src={userAvatar}
                       alt={user.name}
                       className="w-9 h-9 rounded-full object-cover bg-white/20 border border-white/40 shrink-0"
                     />
@@ -448,11 +494,7 @@ export default function Navbar() {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    dispatch(logout());
-                    setIsMobileMenuOpen(false);
-                    toast.info("Logged out successfully");
-                  }}
+                  onClick={handleLogout}
                   className="p-2 rounded-xl bg-black/20 hover:bg-black/30 transition text-white cursor-pointer ml-2"
                   title="Logout"
                 >

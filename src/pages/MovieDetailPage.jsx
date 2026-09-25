@@ -6,6 +6,7 @@ import {
   useGetMovieTrailersQuery,
 } from "../services/api/movieApi";
 import { useGetTVDetailsQuery } from "../services/api/tvApi";
+import { useGetCinemaMovieByUuidQuery } from "../services/api/cinemaApi";
 import ShowtimeSection from "../components/booking/ShowtimeSection";
 import MovieDetailSkeleton from "../components/common/MovieDetailSkeleton";
 import { formatMovieRuntime } from "../utils/formatRuntime";
@@ -22,33 +23,48 @@ export default function MovieDetailPage() {
 
   const isExplicitTV = searchParams.get("type") === "tv";
 
-  // Fetch movie details from TMDB (skipped if isExplicitTV)
+  // Detect if the route param is a UUID (from Teacher's DB) or a numeric TMDB ID
+  const isUuid = id?.includes("-");
+
+  // If UUID: fetch the cinema record first to resolve the real tmdbId
+  const { data: cinemaMovie, isLoading: isCinemaLoading } =
+    useGetCinemaMovieByUuidQuery(id, { skip: !isUuid });
+
+  // The actual TMDB ID to use for detail/trailer queries
+  const tmdbId = isUuid ? cinemaMovie?.tmdbId : id;
+
+  // Fetch movie details from TMDB (skipped if isExplicitTV, or UUID not resolved yet)
   const {
     data: movieData,
     isLoading: isMovieLoading,
     isError: isMovieError,
-  } = useGetMovieDetailsQuery(id, { skip: isExplicitTV });
+  } = useGetMovieDetailsQuery(tmdbId, { skip: isExplicitTV || !tmdbId });
 
   // Fetch TV details from TMDB (active if isExplicitTV or if movie query fails)
   const {
     data: tvData,
     isLoading: isTVLoading,
     isError: isTVError,
-  } = useGetTVDetailsQuery(id, { skip: !isExplicitTV && !isMovieError });
+  } = useGetTVDetailsQuery(tmdbId, { skip: !isExplicitTV && !isMovieError });
 
   const movie = isExplicitTV ? tvData : movieData || tvData;
 
-  // Determine if still waiting for initial data from either movie query or fallback TV query
-  const isInitialLoading = isExplicitTV
-    ? isTVLoading || (!tvData && !isTVError)
-    : isMovieLoading ||
-      (!movieData && !isMovieError) ||
-      (isMovieError && (isTVLoading || (!tvData && !isTVError)));
+  // Determine if still waiting for initial data
+  const isInitialLoading = isUuid
+    ? isCinemaLoading ||
+      !tmdbId ||
+      isMovieLoading ||
+      (!movieData && !isMovieError)
+    : isExplicitTV
+      ? isTVLoading || (!tvData && !isTVError)
+      : isMovieLoading ||
+        (!movieData && !isMovieError) ||
+        (isMovieError && (isTVLoading || (!tvData && !isTVError)));
 
   const isActuallyError = isExplicitTV ? isTVError : isMovieError && isTVError;
 
-  const { data: trailersData } = useGetMovieTrailersQuery(id, {
-    skip: isExplicitTV,
+  const { data: trailersData } = useGetMovieTrailersQuery(tmdbId, {
+    skip: isExplicitTV || !tmdbId,
   });
 
   const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
@@ -98,7 +114,7 @@ export default function MovieDetailPage() {
           : formatMovieRuntime(
               movie.runtime,
               movie.id,
-              isTV,
+              isExplicitTV,
               movie.number_of_seasons,
             );
 
@@ -443,7 +459,6 @@ export default function MovieDetailPage() {
                     Top Cast
                   </h2>
                 </div>
-                
               </div>
 
               {/* Seamless Auto-Scrolling Carousel Track with Edge Fades */}

@@ -150,12 +150,14 @@ export default function StandardHallSeatMap({
             {STANDARD_COL_GROUPS.map((group, gIdx) => (
               <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
                 {group.map((col) => {
-                  if (col === 7 || col === 10) {
+                  // User requested: Remove A5 and A8 to create spacing, making A6 and A7 couple seat
+                  if (col === 5 || col === 8) {
                     return (
                       <div
-                        key={col}
+                        key={`spacer-${col}`}
                         className="p-0.5"
                         style={{ width: 34, minWidth: 34 }}
+                        aria-hidden="true"
                       />
                     );
                   }

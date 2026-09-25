@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+import { useSearchParams, useNavigate, useLocation } from "react-router";
+
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { Clock, Plus, Minus, ArrowLeft } from "lucide-react";
 import {
   selectSelectedSeats,
@@ -8,11 +10,24 @@ import {
   updateConcessionQuantity,
   setSelectedSeats,
   setBookingConfirmation,
+  setMovie,
+  clearSeats,
+  clearConcessions,
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
 import { useGetTVDetailsQuery } from "../../services/api/tvApi";
+
+import {
+  useCreateBookingMutation,
+  useCreatePaymentMutation,
+  useGetCinemaMovieByUuidQuery,
+  useGetAllConcessionsQuery,
+  useUpsertBookingConcessionOrderMutation,
+} from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
+import PaymentKhqrModal from "../../components/booking/PaymentKhqrModal";
+
 import { CONCESSIONS } from "../../data/concessionsData";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 
@@ -50,11 +65,23 @@ export default function BookingDetailsPage() {
       reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
     );
 
+  // Check if movieId is a Teacher API UUID
+  const isUuid = Boolean(movieId && movieId.includes("-"));
+  const { data: cinemaMovie } = useGetCinemaMovieByUuidQuery(movieId, {
+    skip: !movieId || !isUuid,
+  });
+
+  const isCurrentReduxMovie =
+    reduxMovie &&
+    (reduxMovie.uuid === movieId ||
+      String(reduxMovie.id) === String(movieId) ||
+      (cinemaMovie && reduxMovie.uuid === cinemaMovie.uuid));
+
   const { data: movieData } = useGetMovieDetailsQuery(movieId, {
-    skip: !movieId || isTV || Boolean(reduxMovie?.id),
+    skip: !movieId || isTV || isUuid || Boolean(isCurrentReduxMovie),
   });
   const { data: tvData } = useGetTVDetailsQuery(movieId, {
-    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
+    skip: !movieId || !isTV || isUuid || Boolean(isCurrentReduxMovie),
   });
 
   const reduxSelectedSeats = useSelector(selectSelectedSeats);
@@ -101,11 +128,58 @@ export default function BookingDetailsPage() {
 
   const concessions = booking.concessions || [];
 
-  const movie = reduxMovie ||
-    (isTV ? tvData : movieData || tvData) || {
-      title: "Spider-Man: Brand New Day",
-      poster_path: null,
+  // Fetch live concessions menu from Teacher API via RTK Query
+  const { data: apiConcessions, isLoading: isConcessionsLoading } =
+    useGetAllConcessionsQuery();
+
+  const concessionsList = useMemo(() => {
+    if (
+      apiConcessions &&
+      Array.isArray(apiConcessions) &&
+      apiConcessions.length > 0
+    ) {
+      return apiConcessions.map((item) => ({
+        id: item.uuid,
+        uuid: item.uuid,
+        name: item.name,
+        price: Number(item.price) || 0,
+        description: item.description || "",
+        category: item.category,
+        image:
+          item.imageUrl ||
+          "https://images.unsplash.com/photo-1585647347483-22b66260dfff?auto=format&fit=crop&w=800&q=80",
+      }));
+    }
+    return CONCESSIONS;
+  }, [apiConcessions]);
+
+  const normalizedCinemaMovie = cinemaMovie
+    ? {
+        id: cinemaMovie.uuid,
+        uuid: cinemaMovie.uuid,
+        title: cinemaMovie.title,
+        poster_path: cinemaMovie.posterUrl,
+        backdrop_path: cinemaMovie.backdropUrl,
+        overview: cinemaMovie.overview,
+        runtime: cinemaMovie.runtimeMinutes,
+        release_date: cinemaMovie.releaseDate,
+      }
+    : null;
+
+  const movie = (isCurrentReduxMovie ? reduxMovie : null) ||
+    normalizedCinemaMovie ||
+    (isTV ? tvData : movieData || tvData) ||
+    reduxMovie || {
+      title: cinemaMovie?.title || "Movie Booking",
+      poster_path: cinemaMovie?.posterUrl || null,
     };
+
+  // Sync current cinema movie to Redux so all downstream pages stay consistent
+  useEffect(() => {
+    if (normalizedCinemaMovie && !isCurrentReduxMovie) {
+      dispatch(setMovie(normalizedCinemaMovie));
+    }
+  }, [normalizedCinemaMovie, isCurrentReduxMovie, dispatch]);
 
   // Dynamic screenType: from query params, or booking slice, or inferred from BRANCH_SHOWTIMES
   const resolvedScreenType = useMemo(() => {
@@ -149,17 +223,76 @@ export default function BookingDetailsPage() {
     0,
   );
 
+  const location = useLocation();
+
+  const showtimeUuid =
+    searchParams.get("showtimeUuid") || booking.showtime?.showtimeUuid;
+  const holdId =
+    searchParams.get("holdId") ||
+    location.state?.holdId ||
+    booking.showtime?.holdId;
+  const initialExpiresIn =
+    parseInt(searchParams.get("expiresIn"), 10) ||
+    location.state?.expiresInSeconds ||
+    300;
+
+  const [createBooking, { isLoading: isCreatingBooking }] =
+    useCreateBookingMutation();
+
   // Combined Total
   const totalPaid = ticketsTotal + concessionsTotal;
 
-  // 3-Minute Live Countdown Timer
-  const [timeLeft, setTimeLeft] = useState(180);
+  // Live Countdown Timer (synced with server expiresIn)
+  const [timeLeft, setTimeLeft] = useState(initialExpiresIn);
+  const [hasExpired, setHasExpired] = useState(false);
+
+  const handleExpiry = () => {
+    dispatch(clearSeats());
+    dispatch(clearConcessions());
+    toast.warn(
+      "Your 5-minute seat hold has expired. Please select your seats again.",
+    );
+    const params = new URLSearchParams(searchParams);
+    params.delete("holdId");
+    params.delete("expiresIn");
+    params.delete("seats");
+    params.delete("seatUuids");
+    navigate(`/booking/seats?${params.toString()}`, { replace: true });
+  };
+
   useEffect(() => {
+    if (timeLeft <= 0) {
+      if (!hasExpired) {
+        setHasExpired(true);
+        handleExpiry();
+      }
+      return;
+    }
+
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
+
     return () => clearInterval(timer);
-  }, []);
+  }, [timeLeft, hasExpired]);
+
+  const handleBack = () => {
+    // Reset seats and concessions in state and return to seat map
+    dispatch(clearSeats());
+    dispatch(clearConcessions());
+    const params = new URLSearchParams(searchParams);
+    params.delete("holdId");
+    params.delete("expiresIn");
+    params.delete("seats");
+    params.delete("seatUuids");
+    navigate(`/booking/seats?${params.toString()}`, { replace: true });
+  };
 
   const formatTimer = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -175,11 +308,26 @@ export default function BookingDetailsPage() {
     dispatch(updateConcessionQuantity({ item, delta: -1 }));
   };
 
-  const handleContinue = () => {
-    const bookingRef = `FZ-${Math.floor(100000 + Math.random() * 900000)}`;
+  const [upsertBookingConcessionOrder] =
+    useUpsertBookingConcessionOrderMutation();
+
+  const [createPayment, { isLoading: isCreatingPayment }] =
+    useCreatePaymentMutation();
+
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [activePaymentUuid, setActivePaymentUuid] = useState(null);
+  const [activeBookingUuid, setActiveBookingUuid] = useState(null);
+  const [activeBookingRef, setActiveBookingRef] = useState(null);
+
+  const navigateToConfirmed = (bookingRef, bookingUuid) => {
     dispatch(setBookingConfirmation(bookingRef));
     const params = new URLSearchParams(searchParams);
     params.set("ref", bookingRef);
+    if (bookingUuid && bookingUuid !== "undefined" && bookingUuid !== "null") {
+      params.set("bookingUuid", bookingUuid);
+    } else {
+      params.delete("bookingUuid");
+    }
     params.set("screenType", resolvedScreenType);
     params.set("seats", selectedSeats.map((s) => s.id).join(","));
     if (concessions.length > 0) {
@@ -191,135 +339,222 @@ export default function BookingDetailsPage() {
     navigate(`/booking/confirmed?${params.toString()}`);
   };
 
+  const handleContinue = async () => {
+    try {
+      let bookingRef = null;
+      let bookingUuid = null;
+
+      if (showtimeUuid && holdId) {
+        const res = await createBooking({ showtimeUuid, holdId }).unwrap();
+        console.log("createBooking API response:", res);
+        bookingUuid =
+          res?.uuid ||
+          res?.bookingUuid ||
+          res?.data?.uuid ||
+          res?.data?.bookingUuid;
+        bookingRef =
+          res?.bookingReference ||
+          res?.reference ||
+          res?.ticketQrToken?.slice(0, 8)?.toUpperCase() ||
+          `FZ-${(bookingUuid || "").slice(0, 8).toUpperCase()}`;
+
+        // Sync selected concessions to booking in Teacher API before payment
+        const validConcessionItems = concessions
+          .filter(
+            (c) => (c.uuid || c.id) && String(c.uuid || c.id).includes("-"),
+          )
+          .map((c) => ({
+            concessionItemUuid: c.uuid || c.id,
+            quantity: c.quantity,
+          }));
+
+        if (bookingUuid && validConcessionItems.length > 0) {
+          try {
+            await upsertBookingConcessionOrder({
+              bookingUuid,
+              items: validConcessionItems,
+            }).unwrap();
+            console.log(
+              "Concessions successfully synced to booking:",
+              validConcessionItems,
+            );
+          } catch (concessionErr) {
+            console.warn("Concession order sync note:", concessionErr);
+          }
+        }
+
+        // Attempt real payment creation in Teacher API
+        if (bookingUuid && bookingUuid !== "undefined") {
+          try {
+            const payRes = await createPayment(bookingUuid).unwrap();
+            console.log("createPayment API response:", payRes);
+            const paymentUuid =
+              payRes?.uuid ||
+              payRes?.paymentUuid ||
+              payRes?.data?.uuid ||
+              payRes?.data?.paymentUuid;
+            if (paymentUuid && paymentUuid !== "undefined") {
+              setActivePaymentUuid(paymentUuid);
+              setActiveBookingUuid(bookingUuid);
+              setActiveBookingRef(bookingRef);
+              setIsPaymentModalOpen(true);
+              return; // Pause here and show KHQR modal!
+            }
+          } catch (payErr) {
+            console.warn("Payment initiation note:", payErr);
+            // Teacher API Bakong KHQR generator threw 400 on backend.
+            // Open modal in Demo Mode so user can review and complete ticket flow!
+            setActivePaymentUuid(null);
+            setActiveBookingUuid(bookingUuid);
+            setActiveBookingRef(bookingRef);
+            setIsPaymentModalOpen(true);
+            return;
+          }
+        }
+      } else {
+        bookingRef = `FZ-${Math.floor(100000 + Math.random() * 900000)}`;
+      }
+
+      navigateToConfirmed(bookingRef, bookingUuid);
+    } catch (err) {
+      console.error("Failed to create booking:", err);
+      const msg =
+        err?.data?.message ||
+        err?.data?.error ||
+        "Failed to confirm booking. Your seat hold may have expired.";
+      toast.error(msg);
+    }
+  };
+
   return (
-    <div className="relative min-h-screen w-full pb-24 font-sans select-none overflow-x-hidden">
+    <div className="relative min-h-[calc(100vh-70px)] w-full font-sans select-none overflow-x-hidden py-1 sm:py-2 pb-3">
       {/* Deep Red Radial Glow Background for Dark Mode */}
       <div className="pointer-events-none absolute inset-0 -top-10 z-0 overflow-hidden">
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
-        {/* Top Navigation & Back Button */}
-        <div className="flex items-center">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-[#B90101] dark:hover:text-[#B90101] transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-        </div>
-
+      <div className="relative z-10 max-w-6xl mx-auto px-3 sm:px-6 space-y-2 sm:space-y-3">
         {/* 1. Stepper Bar (Active at Step 3: Booking Details) */}
         <BookingStepper currentStep={3} />
 
         {/* 2. Sub-header: "Food & Drinks" on left + Timer on far right under Confirmed */}
-        <div className="flex items-center justify-between pt-1">
-          <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-black text-neutral-900 dark:text-white tracking-tight">
             Food & Drinks
           </h2>
 
           {/* Timer Pill - aligned under Confirmed on far right */}
-          <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#B90101] text-[#B90101] font-bold text-xs sm:text-sm bg-[#B90101]/5 shadow-xs">
-            <Clock className="w-4 h-4 text-[#B90101]" />
+          <div className="flex items-center gap-1.5 px-3 py-1 sm:px-4 sm:py-1 rounded-full border border-[#B90101] text-[#B90101] font-bold text-xs sm:text-sm bg-[#B90101]/5 shadow-xs">
+            <Clock className="w-3.5 h-3.5 text-[#B90101]" />
             <span className="tracking-wider">{formatTimer(timeLeft)}</span>
           </div>
         </div>
 
-        {/* 3. Main Content: 2-Column Responsive Layout (Top Aligned) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT: Food & Drinks Section (7 Cols) */}
-          <div className="lg:col-span-7">
+        {/* 3. Main Content: 2-Column Responsive Layout (Equal 6 Cols Left & Right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* LEFT: Food & Drinks Section (6 Cols - Equal Width) */}
+          <div className="lg:col-span-6 flex flex-col">
             {/* Food & Drinks Grid Card */}
             <div
-              className="w-full rounded-2xl sm:rounded-3xl border p-5 sm:p-7 shadow-sm backdrop-blur-md"
+              className="w-full h-full rounded-2xl sm:rounded-3xl border p-4 sm:p-5 shadow-sm backdrop-blur-md flex flex-col justify-between"
               style={glassCardStyle}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                {CONCESSIONS.map((item) => {
-                  const existing = concessions.find((c) => c.id === item.id);
-                  const qty = existing ? existing.quantity : 0;
+              <div className="max-h-[460px] lg:max-h-[475px] overflow-y-auto pr-1 sm:pr-2 scroll-smooth custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                  {isConcessionsLoading
+                    ? Array.from({ length: 4 }).map((_, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2.5 rounded-2xl animate-pulse space-y-2"
+                        >
+                          <div className="w-full aspect-[16/10] rounded-xl bg-neutral-200 dark:bg-neutral-800/60" />
+                          <div className="h-4 bg-neutral-200 dark:bg-neutral-800/60 rounded w-3/4" />
+                          <div className="h-3 bg-neutral-200 dark:bg-neutral-800/60 rounded w-1/2" />
+                        </div>
+                      ))
+                    : concessionsList.map((item) => {
+                        const itemId = item.uuid || item.id;
+                        const existing = concessions.find(
+                          (c) => (c.uuid || c.id) === itemId,
+                        );
+                        const qty = existing ? existing.quantity : 0;
 
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex flex-col justify-between space-y-3 p-2 rounded-2xl transition hover:scale-[1.01]"
-                    >
-                      {/* Image */}
-                      <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-neutral-800">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-
-                      {/* Info Row: Name & Price */}
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-white">
-                          {item.name}
-                        </h3>
-                        <span className="font-black text-sm sm:text-base text-neutral-900 dark:text-white">
-                          ${item.price.toFixed(2)}
-                        </span>
-                      </div>
-
-                      {/* Description & Add/Quantity Row */}
-                      <div className="flex items-end justify-between gap-2">
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 whitespace-pre-line leading-relaxed">
-                          {item.description}
-                        </p>
-
-                        {/* + Add or Quantity Buttons */}
-                        {qty === 0 ? (
-                          <button
-                            type="button"
-                            onClick={() => handleAddConcession(item)}
-                            className="px-4 py-1.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs tracking-wide uppercase transition active:scale-95 flex items-center gap-1 shrink-0 shadow-sm"
+                        return (
+                          <div
+                            key={itemId}
+                            className="flex flex-col justify-between space-y-2 p-1.5 rounded-2xl transition hover:scale-[1.01]"
                           >
-                            <Plus className="w-3 h-3 stroke-[3]" />
-                            <span>Add</span>
-                          </button>
-                        ) : (
-                          <div className="flex items-center gap-1.5 bg-[#B90101] text-white px-2.5 py-1 rounded-full text-xs font-black shadow-sm">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveConcession(item)}
-                              className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition"
-                            >
-                              <Minus className="w-3 h-3 stroke-[3]" />
-                            </button>
-                            <span className="min-w-[16px] text-center font-black">
-                              {qty}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleAddConcession(item)}
-                              className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition"
-                            >
-                              <Plus className="w-3 h-3 stroke-[3]" />
-                            </button>
+                            {/* Image */}
+                            <div className="w-full aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-neutral-800">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+
+                            {/* Info Row: Name & Price */}
+                            <div className="flex items-center justify-between gap-2 pt-0.5">
+                              <h3 className="font-extrabold text-xs sm:text-sm text-neutral-900 dark:text-white line-clamp-1">
+                                {item.name}
+                              </h3>
+                              <span className="font-black text-xs sm:text-sm text-neutral-900 dark:text-white shrink-0">
+                                ${item.price.toFixed(2)}
+                              </span>
+                            </div>
+
+                            {/* Action Row: Add/Quantity Buttons */}
+                            <div className="flex items-center justify-end">
+                              {/* + Add or Quantity Buttons */}
+                              {qty === 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddConcession(item)}
+                                  className="px-3.5 py-1 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs tracking-wide uppercase transition active:scale-95 flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                >
+                                  <Plus className="w-3 h-3 stroke-[3]" />
+                                  <span>Add</span>
+                                </button>
+                              ) : (
+                                <div className="flex items-center gap-1.5 bg-[#B90101] text-white px-2 py-0.5 rounded-full text-xs font-black shadow-sm shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveConcession(item)}
+                                    className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition cursor-pointer"
+                                  >
+                                    <Minus className="w-2.5 h-2.5 stroke-[3]" />
+                                  </button>
+                                  <span className="min-w-[14px] text-center font-black text-xs">
+                                    {qty}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAddConcession(item)}
+                                    className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition cursor-pointer"
+                                  >
+                                    <Plus className="w-2.5 h-2.5 stroke-[3]" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                        );
+                      })}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* RIGHT: Booking Detail Summary Card (5 Cols) */}
-          <div className="lg:col-span-5 space-y-4">
+          {/* RIGHT: Booking Detail Summary Card (6 Cols - Equal Width & Balanced Height) */}
+          <div className="lg:col-span-6 flex flex-col justify-between space-y-3 sm:space-y-3.5">
             {/* 1. Summary Card */}
             <div
-              className="w-full rounded-2xl sm:rounded-3xl border p-5 sm:p-6 shadow-sm backdrop-blur-md space-y-5"
+              className="w-full flex-1 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 shadow-sm backdrop-blur-md flex flex-col justify-between space-y-3 sm:space-y-3.5"
               style={glassCardStyle}
             >
               {/* Movie Header */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3.5">
                 <img
                   src={
                     movie.poster_path
@@ -327,10 +562,10 @@ export default function BookingDetailsPage() {
                       : "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg"
                   }
                   alt={movie.title}
-                  className="w-14 h-20 sm:w-16 sm:h-22 rounded-xl object-cover shadow-sm shrink-0"
+                  className="w-13 h-18 sm:w-14 sm:h-20 rounded-xl object-cover shadow-sm shrink-0"
                 />
                 <div className="min-w-0">
-                  <h3 className="font-extrabold text-base sm:text-lg text-neutral-900 dark:text-white leading-tight">
+                  <h3 className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-white leading-tight line-clamp-1">
                     {movie.title}
                   </h3>
                   <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 mt-1">
@@ -343,13 +578,13 @@ export default function BookingDetailsPage() {
               <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
 
               {/* Booking Details Grid */}
-              <div className="space-y-3.5 text-xs sm:text-sm">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2.5 text-xs sm:text-sm">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                       Cinema
                     </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                    <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm line-clamp-1">
                       {branch}
                     </strong>
                   </div>
@@ -357,18 +592,18 @@ export default function BookingDetailsPage() {
                     <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                       Hall
                     </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                    <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm">
                       {hallType.includes("gold") ? "Hall 4" : "Hall 3"}
                     </strong>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                       Date
                     </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                    <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm">
                       {date}
                     </strong>
                   </div>
@@ -376,7 +611,7 @@ export default function BookingDetailsPage() {
                     <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                       Time
                     </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                    <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm">
                       {time}
                     </strong>
                   </div>
@@ -386,16 +621,16 @@ export default function BookingDetailsPage() {
                   <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                     Seats
                   </span>
-                  <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                  <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm">
                     {selectedSeats.map((s) => s.id).join(", ")}
                   </strong>
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="font-extrabold text-neutral-800 dark:text-neutral-200">
+                  <span className="font-extrabold text-neutral-800 dark:text-neutral-200 text-xs sm:text-sm">
                     Tickets x{selectedSeats.length}
                   </span>
-                  <span className="font-black text-base text-neutral-900 dark:text-white">
+                  <span className="font-black text-sm sm:text-base text-neutral-900 dark:text-white">
                     ${ticketsTotal.toFixed(2)}
                   </span>
                 </div>
@@ -405,8 +640,8 @@ export default function BookingDetailsPage() {
               <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
 
               {/* Food & Drinks Line Items */}
-              <div className="space-y-2">
-                <h4 className="font-bold text-xs sm:text-sm text-[#B90101] uppercase tracking-wider">
+              <div className="space-y-1.5">
+                <h4 className="font-bold text-xs text-[#B90101] uppercase tracking-wider">
                   Food & Drinks
                 </h4>
                 {concessions.length === 0 ? (
@@ -414,16 +649,16 @@ export default function BookingDetailsPage() {
                     No food & drinks added yet
                   </p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 max-h-[85px] overflow-y-auto custom-scrollbar pr-1">
                     {concessions.map((c) => (
                       <div
-                        key={c.id}
+                        key={c.uuid || c.id}
                         className="flex items-center justify-between text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-200"
                       >
-                        <span>
+                        <span className="line-clamp-1">
                           {c.name} x{c.quantity}
                         </span>
-                        <span className="font-black text-neutral-900 dark:text-white">
+                        <span className="font-black text-neutral-900 dark:text-white shrink-0">
                           ${(c.price * c.quantity).toFixed(2)}
                         </span>
                       </div>
@@ -435,38 +670,68 @@ export default function BookingDetailsPage() {
 
             {/* 2. Total Paid Card */}
             <div
-              className="w-full rounded-2xl sm:rounded-3xl border px-6 py-4 flex items-center justify-between shadow-sm backdrop-blur-md"
+              className="w-full rounded-2xl sm:rounded-3xl border px-5 py-3 flex items-center justify-between shadow-sm backdrop-blur-md"
               style={glassCardStyle}
             >
-              <span className="text-base sm:text-lg font-bold text-[#B90101]">
+              <span className="text-sm sm:text-base font-bold text-[#B90101]">
                 Total paid
               </span>
-              <span className="text-xl sm:text-2xl font-black text-[#B90101]">
+              <span className="text-lg sm:text-xl font-black text-[#B90101]">
                 ${totalPaid.toFixed(2)}
               </span>
             </div>
 
             {/* 3. Action Buttons: Back & Continue */}
-            <div className="flex items-center gap-4 pt-1">
+            <div className="flex items-center gap-3.5 pt-0.5">
               <button
                 type="button"
-                onClick={() => navigate(-1)}
-                className="flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20"
+                onClick={handleBack}
+                disabled={isCreatingBooking}
+                className="flex-1 py-2.5 px-5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
               >
-                Back
+                <span>Back</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleContinue}
-                className="flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20"
+                disabled={isCreatingBooking || isCreatingPayment}
+                className={`flex-1 py-2.5 px-5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 ${
+                  isCreatingBooking || isCreatingPayment
+                    ? "opacity-75 cursor-wait"
+                    : "cursor-pointer"
+                }`}
               >
-                Continue
+                {isCreatingBooking || isCreatingPayment ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>CONFIRMING...</span>
+                  </>
+                ) : (
+                  <span>Continue</span>
+                )}
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Bakong KHQR Payment Modal */}
+      <PaymentKhqrModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        bookingUuid={activeBookingUuid}
+        paymentUuid={activePaymentUuid}
+        bookingRef={activeBookingRef}
+        amount={totalPaid}
+        movieTitle={movie?.title || movie?.name}
+        hallName={hallName}
+        seats={selectedSeats.map((s) => s.id)}
+        onPaymentSuccess={() => {
+          setIsPaymentModalOpen(false);
+          navigateToConfirmed(activeBookingRef, activeBookingUuid);
+        }}
+      />
     </div>
   );
 }

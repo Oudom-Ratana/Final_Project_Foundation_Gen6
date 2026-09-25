@@ -50,13 +50,7 @@ export default function AdminMovieLibraryPage() {
   return (
     <div className="space-y-8 font-sans">
       {/* 1. Header Title & Actions */}
-      <MovieLibraryHeader
-        activePanelId={activePanelId}
-        managedMoviesCount={managedMovies.length}
-        onRestore100={handleRestore100Movies}
-        onClearAll={handleClearAll}
-        onAddCustom={handleOpenAddCustom}
-      />
+      <MovieLibraryHeader onAddCustom={handleOpenAddCustom} />
 
       {/* 2. Top Group & Panel Category Selector */}
       <MovieLibraryTabs

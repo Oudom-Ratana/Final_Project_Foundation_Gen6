@@ -9,6 +9,11 @@ import {
 import { addTicket } from "../../redux/slices/ticketSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
 import { useGetTVDetailsQuery } from "../../services/api/tvApi";
+import {
+  useGetBookingQrCodeQuery,
+  useGetBookingByUuidQuery,
+  useGetCinemaMovieByUuidQuery,
+} from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 
@@ -22,6 +27,28 @@ export default function BookingConfirmedPage() {
   const time = searchParams.get("time") || "6:30 PM";
   const branch = searchParams.get("branch") || "FilmZone SenSok";
   const date = searchParams.get("date") || "26 Aug 2026";
+  const rawBookingUuid = searchParams.get("bookingUuid");
+  const bookingUuid =
+    rawBookingUuid &&
+    rawBookingUuid !== "undefined" &&
+    rawBookingUuid !== "null" &&
+    rawBookingUuid.length > 10
+      ? rawBookingUuid
+      : null;
+
+  // Check booking confirmation status first so we don't trigger 400 "QR code is only available for confirmed bookings"
+  const { data: bookingData } = useGetBookingByUuidQuery(bookingUuid, {
+    skip: !bookingUuid,
+  });
+  const isConfirmed = bookingData?.status === "CONFIRMED";
+
+  const {
+    data: ticketQrBlob,
+    isLoading: isTicketQrLoading,
+    isError: isTicketQrError,
+  } = useGetBookingQrCodeQuery(bookingUuid, {
+    skip: !bookingUuid || !isConfirmed,
+  });
   const bookingRef =
     searchParams.get("ref") ||
     `125273HJ${Math.floor(1000 + Math.random() * 9000)}`;
@@ -34,11 +61,23 @@ export default function BookingConfirmedPage() {
       reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
     );
 
+  // Check if movieId is a Teacher API UUID
+  const isUuid = Boolean(movieId && movieId.includes("-"));
+  const { data: cinemaMovie } = useGetCinemaMovieByUuidQuery(movieId, {
+    skip: !movieId || !isUuid,
+  });
+
+  const isCurrentReduxMovie =
+    reduxMovie &&
+    (reduxMovie.uuid === movieId ||
+      String(reduxMovie.id) === String(movieId) ||
+      (cinemaMovie && reduxMovie.uuid === cinemaMovie.uuid));
+
   const { data: movieData } = useGetMovieDetailsQuery(movieId, {
-    skip: !movieId || isTV || Boolean(reduxMovie?.id),
+    skip: !movieId || isTV || isUuid || Boolean(isCurrentReduxMovie),
   });
   const { data: tvData } = useGetTVDetailsQuery(movieId, {
-    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
+    skip: !movieId || !isTV || isUuid || Boolean(isCurrentReduxMovie),
   });
 
   const reduxSelectedSeats = useSelector(selectSelectedSeats);
@@ -93,10 +132,25 @@ export default function BookingConfirmedPage() {
     return [];
   }, [booking.concessions, concessionsParam]);
 
-  const movie = reduxMovie ||
-    (isTV ? tvData : movieData || tvData) || {
-      title: "Spider-Man: Brand New Day",
-      poster_path: null,
+  const normalizedCinemaMovie = cinemaMovie
+    ? {
+        id: cinemaMovie.uuid,
+        uuid: cinemaMovie.uuid,
+        title: cinemaMovie.title,
+        poster_path: cinemaMovie.posterUrl,
+        backdrop_path: cinemaMovie.backdropUrl,
+        overview: cinemaMovie.overview,
+        runtime: cinemaMovie.runtimeMinutes,
+        release_date: cinemaMovie.releaseDate,
+      }
+    : null;
+
+  const movie = (isCurrentReduxMovie ? reduxMovie : null) ||
+    normalizedCinemaMovie ||
+    (isTV ? tvData : movieData || tvData) ||
+    reduxMovie || {
+      title: cinemaMovie?.title || "Movie Booking",
+      poster_path: cinemaMovie?.posterUrl || null,
     };
 
   const rawScreenType =
@@ -484,8 +538,27 @@ export default function BookingConfirmedPage() {
                 </span>
 
                 {/* Giant Centered Scannable QR Code */}
-                <div className="p-4 bg-white rounded-3xl shadow-sm border border-neutral-200/80 text-neutral-900 flex items-center justify-center">
-                  <QrCode className="w-48 h-48 sm:w-52 sm:h-52" />
+                <div className="p-4 bg-white rounded-3xl shadow-sm border border-neutral-200/80 text-neutral-900 flex items-center justify-center min-h-[210px] min-w-[210px]">
+                  {isTicketQrLoading ? (
+                    <div className="flex flex-col items-center justify-center space-y-2 text-neutral-400">
+                      <div className="w-8 h-8 rounded-full border-3 border-[#B90101] border-t-transparent animate-spin" />
+                      <span className="text-xs font-bold">Loading Pass...</span>
+                    </div>
+                  ) : ticketQrBlob && !isTicketQrError ? (
+                    <img
+                      src={ticketQrBlob}
+                      alt={`Ticket QR for ${bookingRef}`}
+                      className="w-48 h-48 sm:w-52 sm:h-52 object-contain"
+                    />
+                  ) : (
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+                        `FILMZONE-PASS:${bookingRef}`,
+                      )}`}
+                      alt={`Ticket QR for ${bookingRef}`}
+                      className="w-48 h-48 sm:w-52 sm:h-52 object-contain"
+                    />
+                  )}
                 </div>
               </div>
 

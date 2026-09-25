@@ -2,91 +2,62 @@ import { useMemo } from "react";
 import { Link } from "react-router";
 import { Star, Ticket, Calendar, Clock } from "lucide-react";
 import { CardStack } from "../ui/card-stack";
-import { useActiveMovies } from "../../utils/movieCatalogService";
-import { useGetNowPlayingMoviesQuery } from "../../services/api/movieApi";
+import { useGetCinemaMoviesQuery } from "../../services/api/cinemaApi";
 
 export default function MovieCardStack({
   title = "Spotlight Premiere Showcase",
   subtitle = "Swipe or click through our featured blockbusters in interactive 3D fanned view",
   maxMovies = 7,
 }) {
-  const managedMovies = useActiveMovies();
-  const { data: tmdbMovies } = useGetNowPlayingMoviesQuery(1);
+  // Fetch Page 1 from Teacher's Cinema API (distinct from Now Showing which uses Page 0)
+  const { data: cinemaData } = useGetCinemaMoviesQuery({
+    page: 1,
+    size: maxMovies,
+    sortBy: "createdAt",
+    direction: "desc",
+  });
 
-  // Prepare movie items for the card stack
+  // Prepare movie items for the card stack from Teacher's API
   const movieItems = useMemo(() => {
-    // If managedMovies has fewer items, supplement with TMDB movies so stack always has 7 cards
-    let sourceList = [];
-    if (managedMovies && managedMovies.length > 0) {
-      sourceList = [...managedMovies];
-      if (
-        sourceList.length < maxMovies &&
-        tmdbMovies &&
-        tmdbMovies.length > 0
-      ) {
-        const existingIds = new Set(sourceList.map((m) => m.id || m.tmdbId));
-        const extraMovies = tmdbMovies.filter(
-          (m) => !existingIds.has(m.id || m.tmdbId),
-        );
-        sourceList = [...sourceList, ...extraMovies];
-      }
-    } else {
-      sourceList = tmdbMovies || [];
-    }
-
+    const sourceList = cinemaData?.content || [];
     if (!sourceList.length) return [];
 
     return sourceList.slice(0, maxMovies).map((movie, index) => {
-      // Robust backdrop and poster resolution
-      const backdrop = movie.backdrop_path
-        ? movie.backdrop_path.startsWith("http")
-          ? movie.backdrop_path
-          : `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`
-        : movie.poster_path
-          ? movie.poster_path.startsWith("http")
-            ? movie.poster_path
-            : `https://image.tmdb.org/t/p/w780${movie.poster_path}`
-          : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200&auto=format&fit=crop&q=80";
+      // Backdrop and poster from Teacher's Cinema API
+      const backdrop =
+        movie.backdropUrl ||
+        movie.posterUrl ||
+        "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200&auto=format&fit=crop&q=80";
 
-      const poster = movie.poster_path
-        ? movie.poster_path.startsWith("http")
-          ? movie.poster_path
-          : `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-        : backdrop;
+      const poster = movie.posterUrl || backdrop;
+      const movieUuid = movie.uuid || movie.id;
 
-      // Robust full genre resolution (handles "Anime, Action", ["Anime"], or genre_ids)
-      let genreName = "BLOCKBUSTER";
-      if (movie.genreLabel) {
-        genreName = movie.genreLabel;
-      } else if (typeof movie.genre === "string") {
-        genreName = movie.genre.split(",")[0].trim();
-      } else if (typeof movie.genres === "string") {
-        genreName = movie.genres.split(",")[0].trim();
-      } else if (Array.isArray(movie.genres) && movie.genres.length > 0) {
-        genreName =
-          typeof movie.genres[0] === "string"
-            ? movie.genres[0]
-            : movie.genres[0]?.name || "BLOCKBUSTER";
+      let genreName = "PREMIERE";
+      if (movie.genre) {
+        genreName = movie.genre;
+      } else if (movie.language) {
+        genreName = movie.language === "en" ? "HOLLYWOOD" : movie.language;
       }
 
       return {
-        id: movie.id || index,
-        title: movie.title || movie.name || "Untitled Movie",
+        id: movieUuid || index,
+        uuid: movieUuid,
+        title: movie.title || "Untitled Movie",
         description:
           movie.overview ||
           "Experience stunning visuals and immersive sound in FilmZone auditoriums.",
         imageSrc: backdrop,
         posterSrc: poster,
-        href: `/movies/${movie.id}`,
-        rating: (movie.vote_average || 8.6).toFixed(1),
+        href: `/movies/${movieUuid}`,
+        rating: "8.8",
         genre: String(genreName).toUpperCase(),
-        release: (movie.year || movie.release_date || "2026").slice(0, 4),
-        runtime:
-          movie.duration ||
-          (movie.runtime ? `${movie.runtime} min` : "120 min"),
+        release: (movie.releaseDate || "2026").slice(0, 4),
+        runtime: movie.runtimeMinutes
+          ? `${movie.runtimeMinutes} min`
+          : "120 min",
       };
     });
-  }, [managedMovies, tmdbMovies, maxMovies]);
+  }, [cinemaData, maxMovies]);
 
   if (!movieItems.length) return null;
 

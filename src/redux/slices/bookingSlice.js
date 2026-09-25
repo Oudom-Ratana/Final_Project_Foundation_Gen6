@@ -46,17 +46,30 @@ const bookingSlice = createSlice({
     },
     updateConcessionQuantity: (state, action) => {
       const { item, delta } = action.payload;
-      const existing = state.concessions.find((c) => c.id === item.id);
+      const itemId = item.uuid || item.id;
+      const existing = state.concessions.find(
+        (c) => (c.uuid || c.id) === itemId,
+      );
       if (existing) {
         const newQty = existing.quantity + delta;
         if (newQty <= 0) {
-          state.concessions = state.concessions.filter((c) => c.id !== item.id);
+          state.concessions = state.concessions.filter(
+            (c) => (c.uuid || c.id) !== itemId,
+          );
         } else {
           existing.quantity = newQty;
         }
       } else if (delta > 0) {
-        state.concessions.push({ ...item, quantity: 1 });
+        state.concessions.push({
+          ...item,
+          id: itemId,
+          uuid: item.uuid || item.id,
+          quantity: 1,
+        });
       }
+    },
+    clearConcessions: (state) => {
+      state.concessions = [];
     },
     setCustomerInfo: (state, action) => {
       state.customerInfo = { ...state.customerInfo, ...action.payload };
@@ -83,6 +96,7 @@ export const {
   setSelectedSeats,
   clearSeats,
   updateConcessionQuantity,
+  clearConcessions,
   setCustomerInfo,
   setPaymentMethod,
   setBookingStep,
