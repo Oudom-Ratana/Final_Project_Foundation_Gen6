@@ -1,9 +1,16 @@
 {
   "rewrites": [
     {
+      "source": "/cinema-api/:path*",
+      "destination": "https://cinema-booking-api.eunglyzhia.com/api/v1/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://cinema-booking-api.eunglyzhia.com/uploads/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
 }
-
