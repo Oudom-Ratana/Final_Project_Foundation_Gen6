@@ -427,132 +427,134 @@ export default function BookingDetailsPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full pb-24 font-sans select-none overflow-x-hidden">
+    <div className="relative min-h-[calc(100vh-70px)] w-full font-sans select-none overflow-x-hidden py-1 sm:py-2 pb-3">
       {/* Deep Red Radial Glow Background for Dark Mode */}
       <div className="pointer-events-none absolute inset-0 -top-10 z-0 overflow-hidden">
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
+      <div className="relative z-10 max-w-6xl mx-auto px-3 sm:px-6 space-y-2 sm:space-y-3">
         {/* 1. Stepper Bar (Active at Step 3: Booking Details) */}
         <BookingStepper currentStep={3} />
 
         {/* 2. Sub-header: "Food & Drinks" on left + Timer on far right under Confirmed */}
-        <div className="flex items-center justify-between pt-1">
-          <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-black text-neutral-900 dark:text-white tracking-tight">
             Food & Drinks
           </h2>
 
           {/* Timer Pill - aligned under Confirmed on far right */}
-          <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#B90101] text-[#B90101] font-bold text-xs sm:text-sm bg-[#B90101]/5 shadow-xs">
-            <Clock className="w-4 h-4 text-[#B90101]" />
+          <div className="flex items-center gap-1.5 px-3 py-1 sm:px-4 sm:py-1 rounded-full border border-[#B90101] text-[#B90101] font-bold text-xs sm:text-sm bg-[#B90101]/5 shadow-xs">
+            <Clock className="w-3.5 h-3.5 text-[#B90101]" />
             <span className="tracking-wider">{formatTimer(timeLeft)}</span>
           </div>
         </div>
 
-        {/* 3. Main Content: 2-Column Responsive Layout (Top Aligned) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT: Food & Drinks Section (7 Cols) */}
-          <div className="lg:col-span-7">
+        {/* 3. Main Content: 2-Column Responsive Layout (Equal 6 Cols Left & Right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* LEFT: Food & Drinks Section (6 Cols - Equal Width) */}
+          <div className="lg:col-span-6 flex flex-col">
             {/* Food & Drinks Grid Card */}
             <div
-              className="w-full rounded-2xl sm:rounded-3xl border p-5 sm:p-7 shadow-sm backdrop-blur-md"
+              className="w-full h-full rounded-2xl sm:rounded-3xl border p-4 sm:p-5 shadow-sm backdrop-blur-md flex flex-col justify-between"
               style={glassCardStyle}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                {isConcessionsLoading
-                  ? Array.from({ length: 4 }).map((_, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 rounded-2xl animate-pulse space-y-3"
-                      >
-                        <div className="w-full aspect-[4/3] rounded-2xl bg-neutral-200 dark:bg-neutral-800/60" />
-                        <div className="h-4 bg-neutral-200 dark:bg-neutral-800/60 rounded w-3/4" />
-                        <div className="h-3 bg-neutral-200 dark:bg-neutral-800/60 rounded w-1/2" />
-                      </div>
-                    ))
-                  : concessionsList.map((item) => {
-                      const itemId = item.uuid || item.id;
-                      const existing = concessions.find(
-                        (c) => (c.uuid || c.id) === itemId,
-                      );
-                      const qty = existing ? existing.quantity : 0;
-
-                      return (
+              <div className="max-h-[460px] lg:max-h-[475px] overflow-y-auto pr-1 sm:pr-2 scroll-smooth custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                  {isConcessionsLoading
+                    ? Array.from({ length: 4 }).map((_, idx) => (
                         <div
-                          key={itemId}
-                          className="flex flex-col justify-between space-y-3 p-2 rounded-2xl transition hover:scale-[1.01]"
+                          key={idx}
+                          className="p-2.5 rounded-2xl animate-pulse space-y-2"
                         >
-                          {/* Image */}
-                          <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-neutral-800">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
+                          <div className="w-full aspect-[16/10] rounded-xl bg-neutral-200 dark:bg-neutral-800/60" />
+                          <div className="h-4 bg-neutral-200 dark:bg-neutral-800/60 rounded w-3/4" />
+                          <div className="h-3 bg-neutral-200 dark:bg-neutral-800/60 rounded w-1/2" />
+                        </div>
+                      ))
+                    : concessionsList.map((item) => {
+                        const itemId = item.uuid || item.id;
+                        const existing = concessions.find(
+                          (c) => (c.uuid || c.id) === itemId,
+                        );
+                        const qty = existing ? existing.quantity : 0;
 
-                          {/* Info Row: Name & Price */}
-                          <div className="flex items-center justify-between gap-2">
-                            <h3 className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-white line-clamp-1">
-                              {item.name}
-                            </h3>
-                            <span className="font-black text-sm sm:text-base text-neutral-900 dark:text-white shrink-0">
-                              ${item.price.toFixed(2)}
-                            </span>
-                          </div>
+                        return (
+                          <div
+                            key={itemId}
+                            className="flex flex-col justify-between space-y-2 p-1.5 rounded-2xl transition hover:scale-[1.01]"
+                          >
+                            {/* Image */}
+                            <div className="w-full aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-neutral-800">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
 
-                          {/* Action Row: Add/Quantity Buttons */}
-                          <div className="flex items-center justify-end">
-                            {/* + Add or Quantity Buttons */}
-                            {qty === 0 ? (
-                              <button
-                                type="button"
-                                onClick={() => handleAddConcession(item)}
-                                className="px-4 py-1.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs tracking-wide uppercase transition active:scale-95 flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
-                              >
-                                <Plus className="w-3 h-3 stroke-[3]" />
-                                <span>Add</span>
-                              </button>
-                            ) : (
-                              <div className="flex items-center gap-1.5 bg-[#B90101] text-white px-2.5 py-1 rounded-full text-xs font-black shadow-sm shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveConcession(item)}
-                                  className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition cursor-pointer"
-                                >
-                                  <Minus className="w-3 h-3 stroke-[3]" />
-                                </button>
-                                <span className="min-w-[16px] text-center font-black">
-                                  {qty}
-                                </span>
+                            {/* Info Row: Name & Price */}
+                            <div className="flex items-center justify-between gap-2 pt-0.5">
+                              <h3 className="font-extrabold text-xs sm:text-sm text-neutral-900 dark:text-white line-clamp-1">
+                                {item.name}
+                              </h3>
+                              <span className="font-black text-xs sm:text-sm text-neutral-900 dark:text-white shrink-0">
+                                ${item.price.toFixed(2)}
+                              </span>
+                            </div>
+
+                            {/* Action Row: Add/Quantity Buttons */}
+                            <div className="flex items-center justify-end">
+                              {/* + Add or Quantity Buttons */}
+                              {qty === 0 ? (
                                 <button
                                   type="button"
                                   onClick={() => handleAddConcession(item)}
-                                  className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition cursor-pointer"
+                                  className="px-3.5 py-1 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs tracking-wide uppercase transition active:scale-95 flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
                                 >
                                   <Plus className="w-3 h-3 stroke-[3]" />
+                                  <span>Add</span>
                                 </button>
-                              </div>
-                            )}
+                              ) : (
+                                <div className="flex items-center gap-1.5 bg-[#B90101] text-white px-2 py-0.5 rounded-full text-xs font-black shadow-sm shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveConcession(item)}
+                                    className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition cursor-pointer"
+                                  >
+                                    <Minus className="w-2.5 h-2.5 stroke-[3]" />
+                                  </button>
+                                  <span className="min-w-[14px] text-center font-black text-xs">
+                                    {qty}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAddConcession(item)}
+                                    className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition cursor-pointer"
+                                  >
+                                    <Plus className="w-2.5 h-2.5 stroke-[3]" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* RIGHT: Booking Detail Summary Card (5 Cols) */}
-          <div className="lg:col-span-5 space-y-4">
+          {/* RIGHT: Booking Detail Summary Card (6 Cols - Equal Width & Balanced Height) */}
+          <div className="lg:col-span-6 flex flex-col justify-between space-y-3 sm:space-y-3.5">
             {/* 1. Summary Card */}
             <div
-              className="w-full rounded-2xl sm:rounded-3xl border p-5 sm:p-6 shadow-sm backdrop-blur-md space-y-5"
+              className="w-full flex-1 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 shadow-sm backdrop-blur-md flex flex-col justify-between space-y-3 sm:space-y-3.5"
               style={glassCardStyle}
             >
               {/* Movie Header */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3.5">
                 <img
                   src={
                     movie.poster_path
@@ -560,10 +562,10 @@ export default function BookingDetailsPage() {
                       : "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg"
                   }
                   alt={movie.title}
-                  className="w-14 h-20 sm:w-16 sm:h-22 rounded-xl object-cover shadow-sm shrink-0"
+                  className="w-13 h-18 sm:w-14 sm:h-20 rounded-xl object-cover shadow-sm shrink-0"
                 />
                 <div className="min-w-0">
-                  <h3 className="font-extrabold text-base sm:text-lg text-neutral-900 dark:text-white leading-tight">
+                  <h3 className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-white leading-tight line-clamp-1">
                     {movie.title}
                   </h3>
                   <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 mt-1">
@@ -576,13 +578,13 @@ export default function BookingDetailsPage() {
               <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
 
               {/* Booking Details Grid */}
-              <div className="space-y-3.5 text-xs sm:text-sm">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2.5 text-xs sm:text-sm">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                       Cinema
                     </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                    <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm line-clamp-1">
                       {branch}
                     </strong>
                   </div>
@@ -590,18 +592,18 @@ export default function BookingDetailsPage() {
                     <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                       Hall
                     </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                    <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm">
                       {hallType.includes("gold") ? "Hall 4" : "Hall 3"}
                     </strong>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                       Date
                     </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                    <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm">
                       {date}
                     </strong>
                   </div>
@@ -609,7 +611,7 @@ export default function BookingDetailsPage() {
                     <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                       Time
                     </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                    <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm">
                       {time}
                     </strong>
                   </div>
@@ -619,16 +621,16 @@ export default function BookingDetailsPage() {
                   <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
                     Seats
                   </span>
-                  <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
+                  <strong className="font-black text-neutral-900 dark:text-white text-xs sm:text-sm">
                     {selectedSeats.map((s) => s.id).join(", ")}
                   </strong>
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="font-extrabold text-neutral-800 dark:text-neutral-200">
+                  <span className="font-extrabold text-neutral-800 dark:text-neutral-200 text-xs sm:text-sm">
                     Tickets x{selectedSeats.length}
                   </span>
-                  <span className="font-black text-base text-neutral-900 dark:text-white">
+                  <span className="font-black text-sm sm:text-base text-neutral-900 dark:text-white">
                     ${ticketsTotal.toFixed(2)}
                   </span>
                 </div>
@@ -638,8 +640,8 @@ export default function BookingDetailsPage() {
               <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
 
               {/* Food & Drinks Line Items */}
-              <div className="space-y-2">
-                <h4 className="font-bold text-xs sm:text-sm text-[#B90101] uppercase tracking-wider">
+              <div className="space-y-1.5">
+                <h4 className="font-bold text-xs text-[#B90101] uppercase tracking-wider">
                   Food & Drinks
                 </h4>
                 {concessions.length === 0 ? (
@@ -647,16 +649,16 @@ export default function BookingDetailsPage() {
                     No food & drinks added yet
                   </p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 max-h-[85px] overflow-y-auto custom-scrollbar pr-1">
                     {concessions.map((c) => (
                       <div
                         key={c.uuid || c.id}
                         className="flex items-center justify-between text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-200"
                       >
-                        <span>
+                        <span className="line-clamp-1">
                           {c.name} x{c.quantity}
                         </span>
-                        <span className="font-black text-neutral-900 dark:text-white">
+                        <span className="font-black text-neutral-900 dark:text-white shrink-0">
                           ${(c.price * c.quantity).toFixed(2)}
                         </span>
                       </div>
@@ -668,24 +670,24 @@ export default function BookingDetailsPage() {
 
             {/* 2. Total Paid Card */}
             <div
-              className="w-full rounded-2xl sm:rounded-3xl border px-6 py-4 flex items-center justify-between shadow-sm backdrop-blur-md"
+              className="w-full rounded-2xl sm:rounded-3xl border px-5 py-3 flex items-center justify-between shadow-sm backdrop-blur-md"
               style={glassCardStyle}
             >
-              <span className="text-base sm:text-lg font-bold text-[#B90101]">
+              <span className="text-sm sm:text-base font-bold text-[#B90101]">
                 Total paid
               </span>
-              <span className="text-xl sm:text-2xl font-black text-[#B90101]">
+              <span className="text-lg sm:text-xl font-black text-[#B90101]">
                 ${totalPaid.toFixed(2)}
               </span>
             </div>
 
             {/* 3. Action Buttons: Back & Continue */}
-            <div className="flex items-center gap-4 pt-1">
+            <div className="flex items-center gap-3.5 pt-0.5">
               <button
                 type="button"
                 onClick={handleBack}
                 disabled={isCreatingBooking}
-                className="flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 py-2.5 px-5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Back</span>
               </button>
@@ -694,7 +696,7 @@ export default function BookingDetailsPage() {
                 type="button"
                 onClick={handleContinue}
                 disabled={isCreatingBooking || isCreatingPayment}
-                className={`flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 ${
+                className={`flex-1 py-2.5 px-5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 ${
                   isCreatingBooking || isCreatingPayment
                     ? "opacity-75 cursor-wait"
                     : "cursor-pointer"

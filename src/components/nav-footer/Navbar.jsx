@@ -35,6 +35,11 @@ export default function Navbar() {
   const favoriteCount = favouriteMovies.length;
   const isAdmin = user?.role === "admin" || user?.role === "ADMIN";
 
+  const storedAvatar = user?.uuid
+    ? localStorage.getItem(`user_avatar_${user.uuid}`)
+    : null;
+  const userAvatar = user?.avatar || storedAvatar;
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef(null);
@@ -270,9 +275,9 @@ export default function Navbar() {
                 aria-label="User profile menu"
                 title={user.name}
               >
-                {user.avatar ? (
+                {userAvatar ? (
                   <img
-                    src={user.avatar}
+                    src={userAvatar}
                     alt={user.name}
                     className="w-full h-full object-cover"
                   />
@@ -468,9 +473,9 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-2.5 truncate hover:opacity-90 transition cursor-pointer flex-1"
                 >
-                  {user.avatar ? (
+                  {userAvatar ? (
                     <img
-                      src={user.avatar}
+                      src={userAvatar}
                       alt={user.name}
                       className="w-9 h-9 rounded-full object-cover bg-white/20 border border-white/40 shrink-0"
                     />

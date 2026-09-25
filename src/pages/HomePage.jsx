@@ -36,7 +36,7 @@ export default function HomePage() {
         {/* Concessions & Snack Combos */}
         <PopcornBarSection />
 
-        {/* Featured Series & Shows */}
+        {/* Featured Cinema Movies from Teacher API */}
         <FeaturedSeriesSection />
 
         {/* Official Video Trailer Spotlight */}
