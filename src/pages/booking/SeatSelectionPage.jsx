@@ -18,6 +18,9 @@ import { useGetTVDetailsQuery } from "../../services/api/tvApi";
 import {
   useGetShowtimeSeatsQuery,
   useHoldSeatsMutation,
+  useCreateGroupBookingMutation,
+  useGetGroupBookingByUuidQuery,
+  useGetGroupMembersQuery,
   useGetCinemaMovieByUuidQuery,
 } from "../../services/api/cinemaApi";
 import { selectIsAuthenticated } from "../../redux/slices/authSlice";
@@ -141,6 +144,24 @@ export default function SeatSelectionPage() {
 
   const [holdSeats, { isLoading: isHolding }] = useHoldSeatsMutation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const currentUser = useSelector((state) => state.auth?.user);
+
+  const groupUuidParam = searchParams.get("groupUuid");
+  const [createGroupBooking, { isLoading: isCreatingGroup }] = useCreateGroupBookingMutation();
+  const [currentGroup, setCurrentGroup] = useState(null);
+
+  const activeGroupUuid = groupUuidParam || currentGroup?.uuid;
+
+  // Poll live group details & members every 3 seconds if activeGroupUuid exists
+  const { data: groupBookingData } = useGetGroupBookingByUuidQuery(activeGroupUuid, {
+    skip: !activeGroupUuid,
+    pollingInterval: 3000,
+  });
+
+  const { data: groupMembers = [] } = useGetGroupMembersQuery(activeGroupUuid, {
+    skip: !activeGroupUuid,
+    pollingInterval: 3000,
+  });
 
   // Real-time seat availability from Teacher API
   const {
@@ -159,45 +180,74 @@ export default function SeatSelectionPage() {
   const groupSeatAvatars = useMemo(() => {
     if (bookingType !== "group") return {};
 
-    const map = {
-      F6: {
-        avatar:
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-        color: "#3B82F6",
-        name: "Capibarra",
-        initials: "C",
-        isLocked: true,
-      },
-      B8: {
-        avatar:
-          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-        color: "#10B981",
-        name: "Kapoy",
-        initials: "K",
-        isLocked: true,
-      },
-    };
+    const map = {};
+
+    const userInitials = (currentUser?.firstName?.[0] || currentUser?.name?.[0] || "U").toUpperCase();
+    const userName = currentUser?.firstName
+      ? `${currentUser.firstName} ${currentUser.lastName || ""}`.trim()
+      : currentUser?.name || "You";
+    const storedUserAvatar = currentUser?.uuid
+      ? localStorage.getItem(`user_avatar_${currentUser.uuid}`)
+      : null;
+    const userAvatar =
+      currentUser?.avatar ||
+      storedUserAvatar ||
+      currentUser?.profileImage ||
+      currentUser?.imageUrl ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=FFD700&color=000&bold=true`;
 
     // Current user's selected seats get the gold ring avatar
     selectedSeats.forEach((seat) => {
       map[seat.id] = {
-        avatar:
-          "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80",
+        avatar: userAvatar,
         color: "#FFD700",
-        name: "You",
-        initials: "U",
+        name: userName,
+        initials: userInitials,
         isLocked: false,
       };
     });
 
     return map;
-  }, [bookingType, selectedSeats]);
+  }, [bookingType, selectedSeats, currentUser]);
 
   // Switch Booking Type (Standard vs Group)
-  const handleBookingTypeChange = (newType) => {
+  const handleBookingTypeChange = async (newType) => {
     if (newType === "group") {
-      setIsGroupModalOpen(true);
+      if (!activeGroupUuid && showtimeUuid) {
+        if (!isAuthenticated) {
+          toast.info("Please log in to start a Group Booking!");
+          navigate(
+            `/login?redirect=${encodeURIComponent(
+              window.location.pathname + window.location.search
+            )}`
+          );
+          return;
+        }
+
+        try {
+          const groupName = movie?.title ? `${movie.title} Squad` : "FilmZone Squad";
+          const res = await createGroupBooking({
+            showtimeUuid: showtimeUuid,
+            name: groupName,
+          }).unwrap();
+
+          setCurrentGroup(res);
+          setIsGroupModalOpen(true);
+
+          const params = new URLSearchParams(searchParams);
+          params.set("type", "group");
+          params.set("groupUuid", res.uuid);
+          params.set("screenType", screenType);
+          navigate(`/booking/seats?${params.toString()}`, { replace: true });
+          return;
+        } catch (err) {
+          toast.error(err?.data?.message || "Failed to create group booking.");
+        }
+      } else {
+        setIsGroupModalOpen(true);
+      }
     }
+
     if (newType === bookingType) return;
     const params = new URLSearchParams(searchParams);
     params.set("type", newType);
@@ -210,10 +260,7 @@ export default function SeatSelectionPage() {
     seatsToToggle.forEach((seat) => {
       const seatId = seat.seatLabel;
 
-      // Friends' seats in group mode cannot be selected/deselected by you
-      if (bookingType === "group" && (seatId === "F6" || seatId === "B8")) {
-        return;
-      }
+      // Seat selection in group mode
 
       dispatch(
         toggleSeat({
@@ -391,14 +438,14 @@ export default function SeatSelectionPage() {
         </div>
 
         {/* Booking Type Switcher Bar (Standard Booking vs Group Booking) */}
-        <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-neutral-100 dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 shadow-xs">
+        <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-200/80  shadow-xs">
           <div className="flex items-center gap-2">
             <span className="text-xs sm:text-sm font-bold text-neutral-600 dark:text-neutral-400">
               Booking Type:
             </span>
           </div>
 
-          <div className="inline-flex p-1 rounded-full bg-neutral-200/80 dark:bg-neutral-900 border border-neutral-300 dark:border-white/10 text-xs font-bold">
+          <div className="inline-flex p-1 rounded-full bg-neutral-100/50 border border-neutral-300 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] text-xs font-bold">
             <button
               type="button"
               onClick={() => handleBookingTypeChange("standard")}
@@ -435,7 +482,7 @@ export default function SeatSelectionPage() {
           style={{
             backgroundColor: isDark
               ? "var(--primary-color-30)"
-              : "var(--primary-color-5)",
+              : "white",
             borderColor: isDark
               ? "var(--border-dark-mode)"
               : "var(--border-light-mode)",
@@ -477,7 +524,7 @@ export default function SeatSelectionPage() {
 
         {/* 6. Legend: Standard or Group Legend with Live Presence */}
         {bookingType === "group" ? (
-          <GroupSeatLegend mySeats={selectedSeats.map((s) => s.id)} />
+          <GroupSeatLegend mySeats={selectedSeats.map((s) => s.id)} members={groupMembers} onOpenInviteModal={() => setIsGroupModalOpen(true)} />
         ) : (
           <SeatLegend />
         )}
@@ -497,7 +544,10 @@ export default function SeatSelectionPage() {
           isOpen={isGroupModalOpen}
           onClose={() => setIsGroupModalOpen(false)}
           onContinue={() => setIsGroupModalOpen(false)}
-          groupCode="ABCD1234"
+          groupCode={groupBookingData?.inviteToken || currentGroup?.inviteToken || ""}
+          inviteToken={groupBookingData?.inviteToken || currentGroup?.inviteToken || ""}
+          groupName={groupBookingData?.name || currentGroup?.name || "FilmZone Squad"}
+          isLoading={isCreatingGroup}
         />
       </div>
     </div>

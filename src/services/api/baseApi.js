@@ -41,8 +41,10 @@ const isCinemaApiEndpoint = (url) => {
     url.startsWith("/tickets") ||
     url.startsWith("/payments") ||
     url.startsWith("/files") ||
-    url.startsWith("/api/v1") ||
-    url.startsWith("/cinema-api")
+    url.startsWith("/group-bookings") ||
+    url.startsWith("/group-payments") ||
+    url.startsWith("/cinema-api") ||
+    url.startsWith("/api/v1")
   );
 };
 
@@ -141,6 +143,8 @@ export const baseApi = createApi({
     "Auth",
     "User",
     "Favorite",
+    "GroupBooking",
+    "GroupPayment",
   ],
   endpoints: () => ({}),
 });

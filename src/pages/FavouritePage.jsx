@@ -8,6 +8,7 @@ import {
   removeFromFavourite,
   setFavouriteMovies,
 } from "../redux/slices/favouriteSlice";
+import { selectIsAuthenticated } from "../redux/slices/authSlice";
 import {
   useGetMyFavoritesQuery,
   useToggleFavoriteMutation,
@@ -16,7 +17,6 @@ import { useGetCinemaMoviesQuery } from "../services/api/cinemaApi";
 
 export default function FavouritePage() {
   const dispatch = useDispatch();
-
   // Authentication check: Read JWT token
   const token =
     useSelector((state) => state.auth?.accessToken || state.auth?.token) ||
