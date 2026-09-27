@@ -4,27 +4,10 @@ import { setAccessToken, logout } from "../../redux/slices/authSlice";
 const TMDB_API_BASE =
   import.meta.env.VITE_API_BASE_URL || "https://api.themoviedb.org/3";
 const TMDB_ACCESS_TOKEN = import.meta.env.VITE_TMDB_ACCESS_TOKEN;
-// Resolves the Cinema API Base URL dynamically:
-// In production on Vercel (or any non-localhost host), ALWAYS route through /cinema-api proxy
-// to bypass the backend's strict localhost CORS whitelist via Vercel's serverless proxy.
-const getCinemaApiBase = () => {
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-    if (
-      hostname &&
-      hostname !== "localhost" &&
-      !hostname.includes("127.0.0.1")
-    ) {
-      return "/cinema-api";
-    }
-  }
-  return (
-    import.meta.env.VITE_CINEMA_API_BASE_URL ||
-    "https://cinema-booking-api.eunglyzhia.com/api/v1"
-  );
-};
+const CINEMA_API_BASE =
+  import.meta.env.VITE_CINEMA_API_BASE_URL ||
+  "https://cinema-booking-api.eunglyzhia.com/api/v1";
 
-const CINEMA_API_BASE = getCinemaApiBase();
 
 // Checks if the endpoint belongs to the Teacher's Cinema Booking API
 const isCinemaApiEndpoint = (url) => {
