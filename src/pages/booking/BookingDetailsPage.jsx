@@ -24,6 +24,13 @@ import {
   useGetCinemaMovieByUuidQuery,
   useGetAllConcessionsQuery,
   useUpsertBookingConcessionOrderMutation,
+  useAttachMemberBookingMutation,
+  useMarkMemberReadyMutation,
+  useMarkMemberSelectingMutation,
+  useLockGroupBookingMutation,
+  useCreateGroupPaymentMutation,
+  useGetGroupBookingByUuidQuery,
+  useGetGroupMembersQuery,
 } from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import PaymentKhqrModal from "../../components/booking/PaymentKhqrModal";
@@ -314,7 +321,36 @@ export default function BookingDetailsPage() {
   const [createPayment, { isLoading: isCreatingPayment }] =
     useCreatePaymentMutation();
 
+  // Group Booking Hooks & State
+  const groupUuid = searchParams.get("groupUuid");
+  const isGroupMode = (searchParams.get("type") || "").toLowerCase() === "group" || Boolean(groupUuid);
+  const currentUser = useSelector((state) => state.auth?.user);
+
+  const [attachMemberBooking, { isLoading: isAttaching }] = useAttachMemberBookingMutation();
+  const [markMemberReady, { isLoading: isMarkingReady }] = useMarkMemberReadyMutation();
+  const [markMemberSelecting, { isLoading: isMarkingSelecting }] = useMarkMemberSelectingMutation();
+  const [lockGroupBooking, { isLoading: isLockingGroup }] = useLockGroupBookingMutation();
+  const [createGroupPayment, { isLoading: isCreatingGroupPayment }] = useCreateGroupPaymentMutation();
+
+  const { data: groupBooking, refetch: refetchGroup } = useGetGroupBookingByUuidQuery(groupUuid, {
+    skip: !groupUuid,
+    pollingInterval: 2500,
+  });
+
+  const { data: groupMembers = [], refetch: refetchMembers } = useGetGroupMembersQuery(groupUuid, {
+    skip: !groupUuid,
+    pollingInterval: 2500,
+  });
+
+  const isHost = Boolean(
+    groupBooking &&
+    currentUser &&
+    (groupBooking.hostUuid === currentUser.uuid || groupBooking.hostUuid === currentUser.id)
+  );
+
+  const [isMyBookingAttached, setIsMyBookingAttached] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isGroupPaymentActive, setIsGroupPaymentActive] = useState(false);
   const [activePaymentUuid, setActivePaymentUuid] = useState(null);
   const [activeBookingUuid, setActiveBookingUuid] = useState(null);
   const [activeBookingRef, setActiveBookingRef] = useState(null);
@@ -383,7 +419,51 @@ export default function BookingDetailsPage() {
           }
         }
 
-        // Attempt real payment creation in Teacher API
+        // ==========================================
+        // GROUP BOOKING FLOW (Steps 8 - 15)
+        // ==========================================
+        if (isGroupMode && groupUuid && bookingUuid) {
+          // Step 8: Attach created booking to group member
+          try {
+            await attachMemberBooking({ groupUuid, bookingUuid }).unwrap();
+            setIsMyBookingAttached(true);
+            toast.success("Booking attached to squad!");
+          } catch (attachErr) {
+            console.warn("Attach booking note:", attachErr);
+          }
+
+          // Step 10: Non-host members mark ready
+          if (!isHost) {
+            try {
+              await markMemberReady(groupUuid).unwrap();
+              toast.success("You are marked as READY! Waiting for the host to complete squad payment.");
+            } catch (readyErr) {
+              toast.info(readyErr?.data?.message || "Status updated to ready.");
+            }
+            return;
+          }
+
+          // Host Flow: Step 12 (Lock) & Step 13 (Group Payment)
+          try {
+            await lockGroupBooking(groupUuid).unwrap();
+            toast.info("Group locked for payment.");
+
+            const groupPayRes = await createGroupPayment(groupUuid).unwrap();
+            const paymentUuid = groupPayRes?.uuid || groupPayRes?.paymentUuid;
+
+            setActivePaymentUuid(paymentUuid);
+            setActiveBookingUuid(bookingUuid);
+            setActiveBookingRef(bookingRef);
+            setIsGroupPaymentActive(true);
+            setIsPaymentModalOpen(true);
+            return;
+          } catch (groupPayErr) {
+            toast.error(groupPayErr?.data?.message || "Failed to initiate group payment.");
+            return;
+          }
+        }
+
+        // Standard Solo Booking Payment Flow
         if (bookingUuid && bookingUuid !== "undefined") {
           try {
             const payRes = await createPayment(bookingUuid).unwrap();
@@ -397,16 +477,16 @@ export default function BookingDetailsPage() {
               setActivePaymentUuid(paymentUuid);
               setActiveBookingUuid(bookingUuid);
               setActiveBookingRef(bookingRef);
+              setIsGroupPaymentActive(false);
               setIsPaymentModalOpen(true);
-              return; // Pause here and show KHQR modal!
+              return;
             }
           } catch (payErr) {
             console.warn("Payment initiation note:", payErr);
-            // Teacher API Bakong KHQR generator threw 400 on backend.
-            // Open modal in Demo Mode so user can review and complete ticket flow!
             setActivePaymentUuid(null);
             setActiveBookingUuid(bookingUuid);
             setActiveBookingRef(bookingRef);
+            setIsGroupPaymentActive(false);
             setIsPaymentModalOpen(true);
             return;
           }

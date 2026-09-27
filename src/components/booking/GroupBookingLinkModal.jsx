@@ -19,13 +19,19 @@ export default function GroupBookingLinkModal({
   isOpen,
   onClose,
   onContinue,
-  groupCode = "ABCD1234",
+  groupCode = "",
+  inviteToken = "",
+  groupName = "",
+  isLoading = false,
 }) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = `https://filmzone.com/group/${groupCode}`;
+  const token = inviteToken || groupCode;
+  const shareUrl = token
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/group-booking/join/${token}`
+    : "";
 
   // Close modal on Escape key & Hide Navbar completely while modal is open
   useEffect(() => {
