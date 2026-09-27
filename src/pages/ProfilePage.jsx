@@ -335,7 +335,7 @@ export default function ProfilePage() {
       </div>
 
       {/* 2. Main Profile Card */}
-      <div className="relative rounded-[32px] border border-neutral-200 dark:border-white/10 bg-white/90 dark:bg-[#1A1F25]/40 backdrop-blur-xl shadow-xl overflow-hidden p-6 sm:p-10 mb-8 transition-all">
+      <div className="relative rounded-[32px] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white/90  backdrop-blur-xl shadow-xl overflow-hidden p-6 sm:p-10 mb-8 transition-all">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Avatar, Name, Email, Points, Logout */}
           <div className="lg:col-span-4 flex flex-col items-center text-center relative">
@@ -463,7 +463,7 @@ export default function ProfilePage() {
                   placeholder="Enter your username (min 3 characters)"
                   required
                   minLength={3}
-                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
                 />
               </div>
 
@@ -477,7 +477,7 @@ export default function ProfilePage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter email address"
-                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
                 />
               </div>
 
@@ -491,7 +491,7 @@ export default function ProfilePage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="012 345 678"
-                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
                 />
               </div>
 
@@ -520,7 +520,7 @@ export default function ProfilePage() {
       {/* 3. Bottom Row: My Activity & Booking History Cards */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8">
         {/* Card 1: My Activity (md:col-span-5) */}
-        <div className="md:col-span-5 rounded-[28px] border border-neutral-200 dark:border-white/10 bg-white/90 dark:bg-[#1A1F25]/40 backdrop-blur-xl p-6 sm:p-7 shadow-xl flex flex-col justify-between">
+        <div className="md:col-span-5 rounded-[28px] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white/90 backdrop-blur-xl p-6 sm:p-7 shadow-xl flex flex-col justify-between">
           <div>
             <h3 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white">
               My Activity
@@ -545,7 +545,7 @@ export default function ProfilePage() {
               </Link>
 
               {/* Vertical Divider */}
-              <div className="w-px h-10 bg-neutral-200 dark:bg-white/10" />
+              <div className="w-px h-10 bg-neutral-200 dark:border-(--border-dark-mode)" />
 
               {/* Column 2: Ticket Booked */}
               <Link
@@ -562,7 +562,7 @@ export default function ProfilePage() {
               </Link>
 
               {/* Vertical Divider */}
-              <div className="w-px h-10 bg-neutral-200 dark:bg-white/10" />
+              <div className="w-px h-10 bg-neutral-200 dark:border-(--border-dark-mode)" />
 
               {/* Column 3: Point Earned */}
               <div className="flex flex-col items-center">
@@ -579,7 +579,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Card 2: Booking History (md:col-span-7) */}
-        <div className="md:col-span-7 rounded-[28px] border border-neutral-200 dark:border-white/10 bg-white/90 dark:bg-[#1A1F25]/40 backdrop-blur-xl p-6 sm:p-7 shadow-xl flex flex-col justify-between">
+        <div className="md:col-span-7 rounded-[28px] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white/90 backdrop-blur-xl p-6 sm:p-7 shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <h3 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white">
@@ -602,7 +602,7 @@ export default function ProfilePage() {
                 displayBookings.map((item, idx) => (
                   <div
                     key={`${item.id}-${idx}`}
-                    className="flex items-center justify-between px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/50 dark:bg-black/20 hover:border-[#B90101]/40 transition"
+                    className="flex items-center justify-between px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50/50 hover:border-[#B90101]/40 transition"
                   >
                     <div>
                       <h4 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
@@ -628,7 +628,7 @@ export default function ProfilePage() {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 p-6 sm:p-8 max-w-sm w-full space-y-4 shadow-2xl">
+          <div className="bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] rounded-3xl border border-neutral-200 p-6 sm:p-8 max-w-sm w-full space-y-4 shadow-2xl">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
               Delete Account?
             </h3>

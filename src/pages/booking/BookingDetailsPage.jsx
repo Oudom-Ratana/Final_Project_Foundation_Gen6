@@ -50,7 +50,7 @@ export default function BookingDetailsPage() {
   const glassCardStyle = {
     backgroundColor: isDark
       ? "var(--primary-color-30)"
-      : "var(--primary-color-5)",
+      : "white",
     borderColor: isDark
       ? "var(--border-dark-mode)"
       : "var(--border-light-mode)",
@@ -655,7 +655,7 @@ export default function BookingDetailsPage() {
               </div>
 
               {/* Dashed Divider */}
-              <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
+              <div className="border-b border-dashed border-neutral-300 dark:border-(--border-dark-mode)" />
 
               {/* Booking Details Grid */}
               <div className="space-y-2.5 text-xs sm:text-sm">
@@ -717,7 +717,7 @@ export default function BookingDetailsPage() {
               </div>
 
               {/* Dashed Divider */}
-              <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
+              <div className="border-b border-dashed border-neutral-300 dark:border-(--border-dark-mode)" />
 
               {/* Food & Drinks Line Items */}
               <div className="space-y-1.5">
