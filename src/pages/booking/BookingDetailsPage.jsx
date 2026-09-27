@@ -375,6 +375,23 @@ export default function BookingDetailsPage() {
     navigate(`/booking/confirmed?${params.toString()}`);
   };
 
+  // Member Auto-Redirect: When Host completes payment and group becomes CONFIRMED
+  useEffect(() => {
+    if (isGroupMode && !isHost && groupBooking?.status === "CONFIRMED") {
+      toast.success("Host has completed group payment! Your booking is confirmed.");
+      const resolvedRef =
+        activeBookingRef ||
+        `FZ-${(groupBooking.uuid || "").slice(0, 8).toUpperCase()}`;
+      navigateToConfirmed(resolvedRef, activeBookingUuid);
+    }
+  }, [
+    groupBooking?.status,
+    isGroupMode,
+    isHost,
+    activeBookingRef,
+    activeBookingUuid,
+  ]);
+
   const handleContinue = async () => {
     try {
       let bookingRef = null;
@@ -807,6 +824,7 @@ export default function BookingDetailsPage() {
         movieTitle={movie?.title || movie?.name}
         hallName={hallName}
         seats={selectedSeats.map((s) => s.id)}
+        isGroupPayment={isGroupPaymentActive}
         onPaymentSuccess={() => {
           setIsPaymentModalOpen(false);
           navigateToConfirmed(activeBookingRef, activeBookingUuid);

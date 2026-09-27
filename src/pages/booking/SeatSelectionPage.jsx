@@ -346,6 +346,9 @@ export default function SeatSelectionPage() {
         params.set("holdId", holdId);
         params.set("expiresIn", String(expiresInSeconds));
       }
+      if (activeGroupUuid) {
+        params.set("groupUuid", activeGroupUuid);
+      }
 
       navigate(`/booking/details?${params.toString()}`);
     } catch (err) {
