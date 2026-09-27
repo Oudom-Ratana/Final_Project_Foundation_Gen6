@@ -162,18 +162,19 @@ export default function BookingDetailsPage() {
     return CONCESSIONS;
   }, [apiConcessions]);
 
-  const normalizedCinemaMovie = cinemaMovie
-    ? {
-        id: cinemaMovie.uuid,
-        uuid: cinemaMovie.uuid,
-        title: cinemaMovie.title,
-        poster_path: cinemaMovie.posterUrl,
-        backdrop_path: cinemaMovie.backdropUrl,
-        overview: cinemaMovie.overview,
-        runtime: cinemaMovie.runtimeMinutes,
-        release_date: cinemaMovie.releaseDate,
-      }
-    : null;
+  const normalizedCinemaMovie = useMemo(() => {
+    if (!cinemaMovie) return null;
+    return {
+      id: cinemaMovie.uuid,
+      uuid: cinemaMovie.uuid,
+      title: cinemaMovie.title,
+      poster_path: cinemaMovie.posterUrl,
+      backdrop_path: cinemaMovie.backdropUrl,
+      overview: cinemaMovie.overview,
+      runtime: cinemaMovie.runtimeMinutes,
+      release_date: cinemaMovie.releaseDate,
+    };
+  }, [cinemaMovie]);
 
   const movie = (isCurrentReduxMovie ? reduxMovie : null) ??
     normalizedCinemaMovie ??
@@ -427,12 +428,13 @@ export default function BookingDetailsPage() {
     if (isGroupMode && !isHost && groupBooking?.status === "CONFIRMED") {
       toast.success("Host has completed group payment! Your booking is confirmed.");
       const resolvedRef =
-        activeBookingRef ||
-        `FZ-${(groupBooking.uuid || "").slice(0, 8).toUpperCase()}`;
+        activeBookingRef ??
+        `FZ-${(groupBooking?.uuid ?? "").slice(0, 8).toUpperCase()}`;
       navigateToConfirmed(resolvedRef, activeBookingUuid);
     }
   }, [
     groupBooking?.status,
+    groupBooking?.uuid,
     isGroupMode,
     isHost,
     activeBookingRef,
@@ -441,10 +443,11 @@ export default function BookingDetailsPage() {
 
   const handleContinue = async () => {
     try {
-      let bookingRef = null;
-      let bookingUuid = null;
+      const paramBookingUuid = searchParams.get("bookingUuid");
+      let bookingUuid = paramBookingUuid && paramBookingUuid.length > 10 ? paramBookingUuid : null;
+      let bookingRef = searchParams.get("ref");
 
-      if (showtimeUuid && holdId) {
+      if (!bookingUuid && showtimeUuid && holdId) {
         const res = await createBooking({ showtimeUuid, holdId }).unwrap();
         console.log("createBooking API response:", res);
         bookingUuid =
@@ -457,7 +460,13 @@ export default function BookingDetailsPage() {
           res?.reference ??
           res?.ticketQrToken?.slice(0, 8)?.toUpperCase() ??
           `FZ-${(bookingUuid ?? "").slice(0, 8).toUpperCase()}`;
+      }
 
+      if (!bookingRef && bookingUuid) {
+        bookingRef = `FZ-${bookingUuid.slice(0, 8).toUpperCase()}`;
+      }
+
+      if (bookingUuid) {
         // Sync selected concessions to booking in Teacher API before payment
         const validConcessionItems = concessions
           .filter((c) => {
@@ -469,7 +478,7 @@ export default function BookingDetailsPage() {
             quantity: c.quantity,
           }));
 
-        if (bookingUuid && validConcessionItems.length > 0) {
+        if (validConcessionItems.length > 0) {
           try {
             await upsertBookingConcessionOrder({
               bookingUuid,
@@ -487,14 +496,16 @@ export default function BookingDetailsPage() {
         // ==========================================
         // GROUP BOOKING FLOW (Steps 8 - 15)
         // ==========================================
-        if (isGroupMode && groupUuid && bookingUuid) {
-          // Step 8: Attach created booking to group member
-          try {
-            await attachMemberBooking({ groupUuid, bookingUuid }).unwrap();
-            setIsMyBookingAttached(true);
-            toast.success("Booking attached to squad!");
-          } catch (attachErr) {
-            console.warn("Attach booking note:", attachErr);
+        if (isGroupMode && groupUuid) {
+          // Step 8: Attach created booking to group member if not attached yet
+          if (!isMyBookingAttached) {
+            try {
+              await attachMemberBooking({ groupUuid, bookingUuid }).unwrap();
+              setIsMyBookingAttached(true);
+              toast.success("Booking attached to squad!");
+            } catch (attachErr) {
+              console.warn("Attach booking note:", attachErr);
+            }
           }
 
           // Step 10: Non-host members mark ready
@@ -514,7 +525,7 @@ export default function BookingDetailsPage() {
             toast.info("Group locked for payment.");
 
             const groupPayRes = await createGroupPayment(groupUuid).unwrap();
-            const paymentUuid = groupPayRes?.uuid || groupPayRes?.paymentUuid;
+            const paymentUuid = groupPayRes?.uuid ?? groupPayRes?.paymentUuid;
             if (groupPayRes?.amount) {
               setSquadPaymentAmount(groupPayRes.amount);
             }
@@ -621,9 +632,9 @@ export default function BookingDetailsPage() {
                         </div>
                       ))
                     : concessionsList.map((item) => {
-                        const itemId = item.uuid || item.id;
+                        const itemId = item.uuid ?? item.id;
                         const existing = concessions.find(
-                          (c) => (c.uuid || c.id) === itemId,
+                          (c) => (c.uuid ?? c.id) === itemId,
                         );
                         const qty = existing ? existing.quantity : 0;
 
@@ -704,7 +715,7 @@ export default function BookingDetailsPage() {
               {/* Movie Header */}
               <div className="flex items-center gap-3.5">
                 <img
-                  src={movie.posterUrl || movie.poster_path}
+                  src={movie.posterUrl ?? movie.poster_path}
                   alt={movie.title}
                   className="w-13 h-18 sm:w-14 sm:h-20 rounded-xl object-cover shadow-sm shrink-0"
                 />
@@ -796,7 +807,7 @@ export default function BookingDetailsPage() {
                   <div className="space-y-1.5 max-h-[85px] overflow-y-auto custom-scrollbar pr-1">
                     {concessions.map((c) => (
                       <div
-                        key={c.uuid || c.id}
+                        key={c.uuid ?? c.id}
                         className="flex items-center justify-between text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-200"
                       >
                         <span className="line-clamp-1">

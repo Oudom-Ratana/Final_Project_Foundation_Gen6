@@ -15,14 +15,44 @@ import {
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
 import {
+  cinemaApi,
   useGetShowtimeSeatsQuery,
   useHoldSeatsMutation,
+  useCreateBookingMutation,
   useCreateGroupBookingMutation,
   useGetGroupBookingByUuidQuery,
   useGetGroupMembersQuery,
+  useAttachMemberBookingMutation,
   useGetCinemaMovieByUuidQuery,
   useGetShowtimeByUuidQuery,
 } from "../../services/api/cinemaApi";
+
+// Clean extraction of seat labels from member or booking payload
+const extractSeatLabels = (target) => {
+  if (!target) return [];
+  if (Array.isArray(target)) {
+    return target.flatMap(extractSeatLabels);
+  }
+  if (typeof target === "string") {
+    return target.includes(",") ? target.split(",").map((s) => s.trim()) : [target];
+  }
+  if (Array.isArray(target.seats)) {
+    return target.seats.flatMap(extractSeatLabels);
+  }
+  if (Array.isArray(target.seatLabels)) {
+    return target.seatLabels.flatMap(extractSeatLabels);
+  }
+  if (Array.isArray(target.tickets)) {
+    return target.tickets.flatMap((t) => extractSeatLabels(t.seatLabel ?? t.seat ?? t));
+  }
+  if (target.seatLabel) {
+    return [target.seatLabel];
+  }
+  if (target.rowLabel && target.seatNumber) {
+    return [`${target.rowLabel}${target.seatNumber}`];
+  }
+  return [];
+};
 import { selectIsAuthenticated } from "../../redux/slices/authSlice";
 
 // Modular Subcomponents & Data
@@ -96,6 +126,8 @@ export default function SeatSelectionPage() {
       : STANDARD_SINGLE_PRICE;
 
   const [holdSeats, { isLoading: isHolding }] = useHoldSeatsMutation();
+  const [createBooking] = useCreateBookingMutation();
+  const [attachMemberBooking] = useAttachMemberBookingMutation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const currentUser = useSelector((state) => state.auth?.user);
 
@@ -115,6 +147,50 @@ export default function SeatSelectionPage() {
     skip: !activeGroupUuid,
     pollingInterval: 3000,
   });
+
+  // Track each group member's resolved seats from Teacher API
+  const [memberSeatsMap, setMemberSeatsMap] = useState({});
+
+  useEffect(() => {
+    if (!activeGroupUuid || !Array.isArray(groupMembers) || groupMembers.length === 0) return;
+
+    let isMounted = true;
+
+    groupMembers.forEach((member) => {
+      const memberKey = member.uuid ?? member.userUuid;
+      const directSeats = extractSeatLabels(member.seats ?? member.seatLabels ?? member.booking);
+
+      if (directSeats.length > 0) {
+        setMemberSeatsMap((prev) => {
+          if (JSON.stringify(prev[memberKey]) === JSON.stringify(directSeats)) return prev;
+          return { ...prev, [memberKey]: directSeats };
+        });
+        return;
+      }
+
+      // If member has attached bookingUuid, resolve booking seats via RTK Query
+      const bUuid = member.bookingUuid ?? member.booking?.uuid;
+      if (bUuid) {
+        dispatch(cinemaApi.endpoints.getBookingByUuid.initiate(bUuid))
+          .unwrap()
+          .then((bData) => {
+            if (!isMounted || !bData) return;
+            const bSeats = extractSeatLabels(bData);
+            if (bSeats.length > 0) {
+              setMemberSeatsMap((prev) => {
+                if (JSON.stringify(prev[memberKey]) === JSON.stringify(bSeats)) return prev;
+                return { ...prev, [memberKey]: bSeats };
+              });
+            }
+          })
+          .catch(() => {});
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeGroupUuid, groupMembers, dispatch]);
 
   // Real-time seat availability from Teacher API
   const {
@@ -157,7 +233,7 @@ export default function SeatSelectionPage() {
     dispatch(clearSeats());
   }, [movieId, time, date, hallType, bookingType, showtimeUuid, dispatch]);
 
-  // Group seat avatars: shows live presence members on the map
+  // Group seat avatars: displays avatars for squad members across devices
   const groupSeatAvatars = useMemo(() => {
     if (bookingType !== "group") return {};
 
@@ -177,13 +253,49 @@ export default function SeatSelectionPage() {
       currentUser?.imageUrl ??
       `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=FFD700&color=000&bold=true`;
 
-    // 1. Map teammates' held seats from active squad
+    const currentUserId = currentUser?.uuid ?? currentUser?.id ?? "me";
+    const palette = ["#10B981", "#6366F1", "#EC4899", "#F59E0B", "#3B82F6", "#8B5CF6", "#14B8A6"];
+
+    // 1. Map squad members from server (Teacher API groupMembers + resolved memberSeatsMap)
+    if (activeGroupUuid && Array.isArray(groupMembers) && groupMembers.length > 0) {
+      groupMembers.forEach((member, index) => {
+        const mUserUuid = member.userUuid ?? member.uuid;
+        if (mUserUuid === currentUserId || member.uuid === currentUserId) return;
+
+        const memberKey = member.uuid ?? member.userUuid;
+        const memberSeats = memberSeatsMap[memberKey] ?? extractSeatLabels(member.seats ?? member.booking);
+
+        if (Array.isArray(memberSeats) && memberSeats.length > 0) {
+          const memberColor = palette[index % palette.length];
+          const memberName = member.firstName
+            ? `${member.firstName} ${member.lastName ?? ""}`.trim()
+            : (member.name ?? `Friend ${index + 1}`);
+          const memberInitial = (memberName[0] ?? "F").toUpperCase();
+          const memberAvatar =
+            member.avatarUrl ??
+            member.avatar ??
+            member.profileImage ??
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(memberName)}&background=${memberColor.replace("#", "")}&color=fff&size=128&bold=true`;
+
+          memberSeats.forEach((seatId) => {
+            map[seatId] = {
+              avatar: memberAvatar,
+              color: memberColor,
+              name: memberName,
+              initials: memberInitial,
+              isLocked: true, // Teammates cannot override or click another member's seat
+            };
+          });
+        }
+      });
+    }
+
+    // 2. Also map localStorage squad data for instant multi-tab sync
     if (activeGroupUuid) {
       try {
         const groupSeatsKey = `group_seats_${activeGroupUuid}`;
-        const squadData = JSON.parse(localStorage.getItem(groupSeatsKey) || "{}");
-        const currentUserId = currentUser?.uuid ?? currentUser?.id ?? "me";
-        const palette = ["#10B981", "#6366F1", "#EC4899", "#F59E0B", "#3B82F6", "#8B5CF6", "#14B8A6"];
+        const rawSquad = localStorage.getItem(groupSeatsKey);
+        const squadData = rawSquad ? JSON.parse(rawSquad) : {};
 
         Object.entries(squadData).forEach(([uId, data], index) => {
           if (uId !== currentUserId && Array.isArray(data?.seats)) {
@@ -195,13 +307,15 @@ export default function SeatSelectionPage() {
               `https://ui-avatars.com/api/?name=${encodeURIComponent(memberName)}&background=${memberColor.replace("#", "")}&color=fff&size=128&bold=true`;
 
             data.seats.forEach((seatId) => {
-              map[seatId] = {
-                avatar: memberAvatar,
-                color: memberColor,
-                name: memberName,
-                initials: memberInitial,
-                isLocked: true, // Teammates cannot override or click another member's seat
-              };
+              if (!map[seatId]) {
+                map[seatId] = {
+                  avatar: memberAvatar,
+                  color: memberColor,
+                  name: memberName,
+                  initials: memberInitial,
+                  isLocked: true,
+                };
+              }
             });
           }
         });
@@ -210,7 +324,7 @@ export default function SeatSelectionPage() {
       }
     }
 
-    // 2. Current user's selected seats get the gold ring avatar
+    // 3. Current user's selected seats get the gold ring avatar
     selectedSeats.forEach((seat) => {
       map[seat.id] = {
         avatar: userAvatar,
@@ -222,7 +336,7 @@ export default function SeatSelectionPage() {
     });
 
     return map;
-  }, [bookingType, selectedSeats, currentUser, activeGroupUuid]);
+  }, [bookingType, selectedSeats, currentUser, activeGroupUuid, groupMembers, memberSeatsMap]);
 
   // Switch Booking Type (Standard vs Group)
   const handleBookingTypeChange = async (newType) => {
@@ -251,7 +365,11 @@ export default function SeatSelectionPage() {
   const handleCreateSquad = async (customName) => {
     if (!showtimeUuid) return;
     try {
-      const groupName = customName || (movie?.title ? `${movie.title} Squad` : "FilmZone Squad");
+      const groupName = customName?.trim()
+        ? customName.trim()
+        : movie?.title
+          ? `${movie.title} Squad`
+          : "FilmZone Squad";
       const res = await createGroupBooking({
         showtimeUuid,
         name: groupName,
@@ -327,6 +445,28 @@ export default function SeatSelectionPage() {
         expiresInSeconds = holdRes.expiresInSeconds ?? 300;
       }
 
+      // In Group Mode: Immediately create booking & attach to squad so friend's avatar appears on seats for all devices
+      let memberBookingUuid = null;
+      if (activeGroupUuid && showtimeUuid && holdId) {
+        try {
+          const bookingRes = await createBooking({ showtimeUuid, holdId }).unwrap();
+          memberBookingUuid =
+            bookingRes?.uuid ??
+            bookingRes?.bookingUuid ??
+            bookingRes?.data?.uuid ??
+            bookingRes?.data?.bookingUuid;
+
+          if (memberBookingUuid) {
+            await attachMemberBooking({
+              groupUuid: activeGroupUuid,
+              bookingUuid: memberBookingUuid,
+            }).unwrap();
+          }
+        } catch (bookingErr) {
+          console.warn("Group booking creation/attachment note:", bookingErr);
+        }
+      }
+
       if (movie) {
         dispatch(setMovie(movie));
       }
@@ -352,18 +492,22 @@ export default function SeatSelectionPage() {
       params.set("type", bookingType);
       params.set("hall", hallType);
       params.set("screenType", screenType);
-            params.set("seats", selectedSeats.map((s) => s.id).join(","));
+      params.set("seats", selectedSeats.map((s) => s.id).join(","));
       params.set("seatUuids", seatUuids.join(","));
       params.set("price", String(ticketPrice));
       if (holdId) {
         params.set("holdId", holdId);
         params.set("expiresIn", String(expiresInSeconds));
       }
+      if (memberBookingUuid) {
+        params.set("bookingUuid", memberBookingUuid);
+      }
       if (activeGroupUuid) {
         params.set("groupUuid", activeGroupUuid);
         try {
           const groupSeatsKey = `group_seats_${activeGroupUuid}`;
-          const currentSquad = JSON.parse(localStorage.getItem(groupSeatsKey) || "{}");
+          const rawSquad = localStorage.getItem(groupSeatsKey);
+          const currentSquad = rawSquad ? JSON.parse(rawSquad) : {};
           const myUserUuid = currentUser?.uuid ?? currentUser?.id ?? "me";
           currentSquad[myUserUuid] = {
             seats: selectedSeats.map((s) => s.id),
