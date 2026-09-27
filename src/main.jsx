@@ -22,6 +22,7 @@ import ConcessionDetailPage from "./pages/concessions/ConcessionDetailPage";
 import SeatSelectionPage from "./pages/booking/SeatSelectionPage";
 import BookingDetailsPage from "./pages/booking/BookingDetailsPage";
 import BookingConfirmedPage from "./pages/booking/BookingConfirmedPage";
+import GroupInviteJoinPage from "./pages/booking/GroupInviteJoinPage";
 import MyTicketsPage from "./pages/MyTicketsPage";
 import ProfilePage from "./pages/ProfilePage";
 
@@ -88,6 +89,10 @@ const router = createBrowserRouter([
       {
         path: "/booking/confirmed",
         element: <BookingConfirmedPage />,
+      },
+      {
+        path: "/group-booking/join/:inviteToken",
+        element: <GroupInviteJoinPage />,
       },
       {
         path: "/deals",

@@ -83,13 +83,13 @@ export default function AboutHero() {
               </Link>
 
 
-              <a
+              {/* <a
                 href="#team-section"
                 className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl bg-white dark:bg-white/10 text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/20 font-semibold text-sm transition-all border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] shadow-sm dark:shadow-none"
               >
                 <Play className="w-4 h-4 fill-current" />
                 <span>Meet Our Team</span>
-              </a>
+              </a> */}
             </div>
 
           </div>

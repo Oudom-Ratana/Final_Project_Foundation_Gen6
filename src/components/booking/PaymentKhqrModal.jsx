@@ -11,7 +11,9 @@ import {
 } from "lucide-react";
 import {
   useGetPaymentQrQuery,
+  useGetGroupPaymentQrQuery,
   useVerifyPaymentMutation,
+  useVerifyGroupPaymentMutation,
   useMarkPaymentSuccessMutation,
 } from "../../services/api/cinemaApi";
 
@@ -26,23 +28,36 @@ export default function PaymentKhqrModal({
   hallName,
   seats,
   onPaymentSuccess,
+  isGroupPayment = false,
 }) {
   const [isPaid, setIsPaid] = useState(false);
 
-  // Fetch real Bakong KHQR image from Teacher API
+  // Fetch real Bakong KHQR image from Teacher API (Standard or Group)
   const {
-    data: qrBlobUrl,
-    isLoading: isQrLoading,
-    isError: isQrError,
-    refetch: refetchQr,
+    data: standardQrBlob,
+    isLoading: isStandardQrLoading,
+    isError: isStandardQrError,
   } = useGetPaymentQrQuery(paymentUuid, {
-    skip: !paymentUuid || !isOpen,
+    skip: !paymentUuid || !isOpen || isGroupPayment,
   });
 
-  // const [verifyPayment, { isLoading: isVerifying }] =
-  //   useVerifyPaymentMutation();
-  const [markSuccess, { isLoading: isSimulating }] =
-    useMarkPaymentSuccessMutation();
+  const {
+    data: groupQrBlob,
+    isLoading: isGroupQrLoading,
+    isError: isGroupQrError,
+  } = useGetGroupPaymentQrQuery(paymentUuid, {
+    skip: !paymentUuid || !isOpen || !isGroupPayment,
+  });
+
+  const qrBlobUrl = isGroupPayment ? groupQrBlob : standardQrBlob;
+  const isQrLoading = isGroupPayment ? isGroupQrLoading : isStandardQrLoading;
+  const isQrError = isGroupPayment ? isGroupQrError : isStandardQrError;
+
+  const [verifyPayment, { isLoading: isVerifyingStandard }] = useVerifyPaymentMutation();
+  const [verifyGroupPayment, { isLoading: isVerifyingGroup }] = useVerifyGroupPaymentMutation();
+  const isVerifying = isGroupPayment ? isVerifyingGroup : isVerifyingStandard;
+
+  const [markSuccess, { isLoading: isSimulating }] = useMarkPaymentSuccessMutation();
 
   // Reset local state when opened
   useEffect(() => {
@@ -53,11 +68,14 @@ export default function PaymentKhqrModal({
 
   if (!isOpen) return null;
 
-  // Real Bakong Verification Check
+  // Real Bakong Verification Check (Standard or Group)
   const handleVerify = async () => {
     if (!paymentUuid) return;
     try {
-      const res = await verifyPayment(paymentUuid).unwrap();
+      const res = isGroupPayment
+        ? await verifyGroupPayment(paymentUuid).unwrap()
+        : await verifyPayment(paymentUuid).unwrap();
+
       if (res?.status === "SUCCESS" || res?.status === "PAID") {
         setIsPaid(true);
         toast.success("Payment verified successfully with Bakong!");
@@ -186,7 +204,7 @@ export default function PaymentKhqrModal({
           {/* Action Buttons */}
           <div className="space-y-2 pt-2">
             {/* 1. Real Bakong Verify Button */}
-            {/* <button
+            <button
               type="button"
               onClick={handleVerify}
               disabled={isVerifying || isPaid}
@@ -197,7 +215,7 @@ export default function PaymentKhqrModal({
               {isVerifying ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Checking Bakong...</span>
+                  <span>Checking Payment Status...</span>
                 </>
               ) : (
                 <>
@@ -205,7 +223,7 @@ export default function PaymentKhqrModal({
                   <span>I Have Paid (Verify)</span>
                 </>
               )}
-            </button> */}
+            </button>
 
             {/* 2. Simulation Shortcut Button for Demo & Testing */}
             <button
