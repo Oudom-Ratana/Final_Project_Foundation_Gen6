@@ -177,7 +177,40 @@ export default function SeatSelectionPage() {
       currentUser?.imageUrl ??
       `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=FFD700&color=000&bold=true`;
 
-    // Current user's selected seats get the gold ring avatar
+    // 1. Map teammates' held seats from active squad
+    if (activeGroupUuid) {
+      try {
+        const groupSeatsKey = `group_seats_${activeGroupUuid}`;
+        const squadData = JSON.parse(localStorage.getItem(groupSeatsKey) || "{}");
+        const currentUserId = currentUser?.uuid ?? currentUser?.id ?? "me";
+        const palette = ["#10B981", "#6366F1", "#EC4899", "#F59E0B", "#3B82F6", "#8B5CF6", "#14B8A6"];
+
+        Object.entries(squadData).forEach(([uId, data], index) => {
+          if (uId !== currentUserId && Array.isArray(data?.seats)) {
+            const memberColor = palette[index % palette.length];
+            const memberName = data.userName ?? `Friend ${index + 1}`;
+            const memberInitial = (memberName[0] ?? "F").toUpperCase();
+            const memberAvatar =
+              data.avatar ??
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(memberName)}&background=${memberColor.replace("#", "")}&color=fff&size=128&bold=true`;
+
+            data.seats.forEach((seatId) => {
+              map[seatId] = {
+                avatar: memberAvatar,
+                color: memberColor,
+                name: memberName,
+                initials: memberInitial,
+                isLocked: true, // Teammates cannot override or click another member's seat
+              };
+            });
+          }
+        });
+      } catch {
+        // Safe fallback
+      }
+    }
+
+    // 2. Current user's selected seats get the gold ring avatar
     selectedSeats.forEach((seat) => {
       map[seat.id] = {
         avatar: userAvatar,
@@ -189,44 +222,22 @@ export default function SeatSelectionPage() {
     });
 
     return map;
-  }, [bookingType, selectedSeats, currentUser]);
+  }, [bookingType, selectedSeats, currentUser, activeGroupUuid]);
 
   // Switch Booking Type (Standard vs Group)
   const handleBookingTypeChange = async (newType) => {
     if (newType === "group") {
-      if (!activeGroupUuid && showtimeUuid) {
-        if (!isAuthenticated) {
-          toast.info("Please log in to start a Group Booking!");
-          navigate(
-            `/login?redirect=${encodeURIComponent(
-              window.location.pathname + window.location.search
-            )}`
-          );
-          return;
-        }
-
-        try {
-          const groupName = movie?.title ? `${movie.title} Squad` : "FilmZone Squad";
-          const res = await createGroupBooking({
-            showtimeUuid: showtimeUuid,
-            name: groupName,
-          }).unwrap();
-
-          setCurrentGroup(res);
-          setIsGroupModalOpen(true);
-
-          const params = new URLSearchParams(searchParams);
-          params.set("type", "group");
-          params.set("groupUuid", res.uuid);
-          params.set("screenType", screenType);
-          navigate(`/booking/seats?${params.toString()}`, { replace: true });
-          return;
-        } catch (err) {
-          toast.error(err?.data?.message || "Failed to create group booking.");
-        }
-      } else {
-        setIsGroupModalOpen(true);
+      if (!isAuthenticated) {
+        toast.info("Please log in to start a Group Booking!");
+        navigate(
+          `/login?redirect=${encodeURIComponent(
+            window.location.pathname + window.location.search
+          )}`
+        );
+        return;
       }
+      setIsGroupModalOpen(true);
+      return;
     }
 
     if (newType === bookingType) return;
@@ -234,6 +245,28 @@ export default function SeatSelectionPage() {
     params.set("type", newType);
     params.set("screenType", screenType);
     navigate(`/booking/seats?${params.toString()}`, { replace: true });
+  };
+
+  // Callback when Host confirms squad name in GroupBookingLinkModal
+  const handleCreateSquad = async (customName) => {
+    if (!showtimeUuid) return;
+    try {
+      const groupName = customName || (movie?.title ? `${movie.title} Squad` : "FilmZone Squad");
+      const res = await createGroupBooking({
+        showtimeUuid,
+        name: groupName,
+      }).unwrap();
+
+      setCurrentGroup(res);
+      const params = new URLSearchParams(searchParams);
+      params.set("type", "group");
+      params.set("groupUuid", res.uuid);
+      params.set("screenType", screenType);
+      navigate(`/booking/seats?${params.toString()}`, { replace: true });
+      toast.success(`Squad "${groupName}" created! Share the link with friends.`);
+    } catch (err) {
+      toast.error(err?.data?.message ?? "Failed to create group booking.");
+    }
   };
 
   // Interactive Click Handler for Dynamic Seat Map
@@ -259,7 +292,7 @@ export default function SeatSelectionPage() {
   // Each user chooses their own seat and pays for their own seat!
   const isGroupDiscount = bookingType === "group" && selectedSeats.length >= 4;
   const rawTotalPrice = useMemo(() => {
-    return selectedSeats.reduce((acc, seat) => acc + (seat.price || 0), 0);
+    return selectedSeats.reduce((acc, seat) => acc + (seat.price ?? 0), 0);
   }, [selectedSeats]);
   const totalPrice = isGroupDiscount ? rawTotalPrice * 0.9 : rawTotalPrice;
 
@@ -291,7 +324,7 @@ export default function SeatSelectionPage() {
         }).unwrap();
 
         holdId = holdRes.holdId;
-        expiresInSeconds = holdRes.expiresInSeconds || 300;
+        expiresInSeconds = holdRes.expiresInSeconds ?? 300;
       }
 
       if (movie) {
@@ -328,6 +361,26 @@ export default function SeatSelectionPage() {
       }
       if (activeGroupUuid) {
         params.set("groupUuid", activeGroupUuid);
+        try {
+          const groupSeatsKey = `group_seats_${activeGroupUuid}`;
+          const currentSquad = JSON.parse(localStorage.getItem(groupSeatsKey) || "{}");
+          const myUserUuid = currentUser?.uuid ?? currentUser?.id ?? "me";
+          currentSquad[myUserUuid] = {
+            seats: selectedSeats.map((s) => s.id),
+            userName: currentUser?.firstName
+              ? `${currentUser.firstName} ${currentUser.lastName ?? ""}`.trim()
+              : (currentUser?.name ?? "Friend"),
+            avatar:
+              currentUser?.avatar ??
+              currentUser?.profileImage ??
+              localStorage.getItem(`user_avatar_${currentUser?.uuid}`) ??
+              null,
+            updatedAt: Date.now(),
+          };
+          localStorage.setItem(groupSeatsKey, JSON.stringify(currentSquad));
+        } catch {
+          // Ignore local storage error
+        }
       }
 
       if (movieUuid) {
@@ -340,8 +393,8 @@ export default function SeatSelectionPage() {
       refetchSeats();
       dispatch(clearSeats());
       const msg =
-        err?.data?.message ||
-        err?.data?.error ||
+        err?.data?.message ??
+        err?.data?.error ??
         "Those seats were just held by another customer. The seat map has been refreshed — please select a new seat.";
       toast.error(msg);
     }
@@ -533,9 +586,11 @@ export default function SeatSelectionPage() {
           isOpen={isGroupModalOpen}
           onClose={() => setIsGroupModalOpen(false)}
           onContinue={() => setIsGroupModalOpen(false)}
+          onCreateGroup={handleCreateSquad}
           groupCode={groupBookingData?.inviteToken ?? currentGroup?.inviteToken ?? ""}
           inviteToken={groupBookingData?.inviteToken ?? currentGroup?.inviteToken ?? ""}
-          groupName={groupBookingData?.name ?? currentGroup?.name ?? "FilmZone Squad"}
+          groupName={groupBookingData?.name ?? currentGroup?.name ?? ""}
+          defaultGroupName={movie?.title ? `${movie.title} Squad` : "FilmZone Squad"}
           isLoading={isCreatingGroup}
         />
       </div>

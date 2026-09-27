@@ -71,7 +71,7 @@ export default function BookingCheckoutBar({
           </>
         ) : (
           <>
-            <span>BOOKING DETAILS</span>
+            <span>{isGroupMode ? "NEXT" : "BOOKING DETAILS"}</span>
             <ChevronRight className="w-4 h-4 stroke-[3]" />
           </>
         )}

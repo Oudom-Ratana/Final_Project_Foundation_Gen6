@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, useLocation } from "react-router";
 
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { Clock, Plus, Minus, ArrowLeft } from "lucide-react";
+import { Clock, Plus, Minus, CheckCircle2, Lock, Users } from "lucide-react";
 import {
   selectSelectedSeats,
   selectBooking,
@@ -59,11 +59,11 @@ export default function BookingDetailsPage() {
 
   // URL & Redux State
   const movieId =
-    searchParams.get("movie") || searchParams.get("movieId") || "558449";
-  const hallType = (searchParams.get("hall") || "standard").toLowerCase();
-  const time = searchParams.get("time") || "06:30 PM";
-  const branch = searchParams.get("branch") || "FilmZone SenSok";
-  const date = searchParams.get("date") || "Sat, 6 Sep";
+    searchParams.get("movie") ?? searchParams.get("movieId") ?? "558449";
+  const hallType = (searchParams.get("hall") ?? "standard").toLowerCase();
+  const time = searchParams.get("time") ?? "06:30 PM";
+  const branch = searchParams.get("branch") ?? "FilmZone SenSok";
+  const date = searchParams.get("date") ?? "Sat, 6 Sep";
 
   const booking = useSelector(selectBooking);
   const reduxMovie = booking?.movie;
@@ -79,11 +79,12 @@ export default function BookingDetailsPage() {
     skip: !movieId || !isUuid,
   });
 
-  const isCurrentReduxMovie =
+  const isCurrentReduxMovie = Boolean(
     reduxMovie &&
-    (reduxMovie.uuid === movieId ||
-      String(reduxMovie.id) === String(movieId) ||
-      (cinemaMovie && reduxMovie.uuid === cinemaMovie.uuid));
+      (reduxMovie.uuid === movieId ||
+        String(reduxMovie.id) === String(movieId) ||
+        (cinemaMovie && reduxMovie.uuid === cinemaMovie.uuid)),
+  );
 
   const { data: movieData } = useGetMovieDetailsQuery(movieId, {
     skip: !movieId || isTV || isUuid || Boolean(isCurrentReduxMovie),
@@ -134,7 +135,7 @@ export default function BookingDetailsPage() {
     }
   }, [reduxSelectedSeats, selectedSeats, dispatch]);
 
-  const concessions = booking.concessions || [];
+  const concessions = booking.concessions ?? [];
 
   // Fetch live concessions menu from Teacher API via RTK Query
   const { data: apiConcessions, isLoading: isConcessionsLoading } =
@@ -151,7 +152,7 @@ export default function BookingDetailsPage() {
         uuid: item.uuid,
         name: item.name,
         price: Number(item.price) || 0,
-        description: item.description || "",
+        description: item.description ?? "",
         category: item.category,
         image:
           item.imageUrl ||
@@ -174,12 +175,12 @@ export default function BookingDetailsPage() {
       }
     : null;
 
-  const movie = (isCurrentReduxMovie ? reduxMovie : null) ||
-    normalizedCinemaMovie ||
-    (isTV ? tvData : movieData || tvData) ||
-    reduxMovie || {
-      title: cinemaMovie?.title || "Movie Booking",
-      poster_path: cinemaMovie?.posterUrl || null,
+  const movie = (isCurrentReduxMovie ? reduxMovie : null) ??
+    normalizedCinemaMovie ??
+    (isTV ? tvData : (movieData ?? tvData)) ??
+    reduxMovie ?? {
+      title: cinemaMovie?.title ?? "Movie Booking",
+      poster_path: cinemaMovie?.posterUrl ?? null,
     };
 
   // Sync current cinema movie to Redux so all downstream pages stay consistent
@@ -192,7 +193,7 @@ export default function BookingDetailsPage() {
   // Dynamic screenType: from query params, or booking slice, or inferred from BRANCH_SHOWTIMES
   const resolvedScreenType = useMemo(() => {
     const fromParam =
-      searchParams.get("screenType") || searchParams.get("format");
+      searchParams.get("screenType") ?? searchParams.get("format");
     if (fromParam) return fromParam;
 
     if (booking.showtime?.screenType) {
@@ -221,7 +222,7 @@ export default function BookingDetailsPage() {
 
   // Seats Total
   const ticketsTotal = selectedSeats.reduce(
-    (acc, s) => acc + (s.price || 4.0),
+    (acc, s) => acc + (s.price ?? 4.0),
     0,
   );
 
@@ -234,10 +235,10 @@ export default function BookingDetailsPage() {
   const location = useLocation();
 
   const showtimeUuid =
-    searchParams.get("showtimeUuid") || booking.showtime?.showtimeUuid;
+    searchParams.get("showtimeUuid") ?? booking.showtime?.showtimeUuid;
   const holdId =
-    searchParams.get("holdId") ||
-    location.state?.holdId ||
+    searchParams.get("holdId") ??
+    location.state?.holdId ??
     booking.showtime?.holdId;
   const initialExpiresIn =
     parseInt(searchParams.get("expiresIn"), 10) ||
@@ -330,18 +331,18 @@ export default function BookingDetailsPage() {
   const isGroupMode = (searchParams.get("type") || "").toLowerCase() === "group" || Boolean(groupUuid);
   const currentUser = useSelector((state) => state.auth?.user);
 
-  const [attachMemberBooking, { isLoading: isAttaching }] = useAttachMemberBookingMutation();
+  const [attachMemberBooking] = useAttachMemberBookingMutation();
   const [markMemberReady, { isLoading: isMarkingReady }] = useMarkMemberReadyMutation();
   const [markMemberSelecting, { isLoading: isMarkingSelecting }] = useMarkMemberSelectingMutation();
   const [lockGroupBooking, { isLoading: isLockingGroup }] = useLockGroupBookingMutation();
   const [createGroupPayment, { isLoading: isCreatingGroupPayment }] = useCreateGroupPaymentMutation();
 
-  const { data: groupBooking, refetch: refetchGroup } = useGetGroupBookingByUuidQuery(groupUuid, {
+  const { data: groupBooking } = useGetGroupBookingByUuidQuery(groupUuid, {
     skip: !groupUuid,
     pollingInterval: 2500,
   });
 
-  const { data: groupMembers = [], refetch: refetchMembers } = useGetGroupMembersQuery(groupUuid, {
+  const { data: groupMembers = [] } = useGetGroupMembersQuery(groupUuid, {
     skip: !groupUuid,
     pollingInterval: 2500,
   });
@@ -349,15 +350,57 @@ export default function BookingDetailsPage() {
   const isHost = Boolean(
     groupBooking &&
     currentUser &&
-    (groupBooking.hostUuid === currentUser.uuid || groupBooking.hostUuid === currentUser.id)
+    [currentUser.uuid, currentUser.id].filter(Boolean).includes(groupBooking.hostUuid)
   );
 
   const [isMyBookingAttached, setIsMyBookingAttached] = useState(false);
+  const [squadPaymentAmount, setSquadPaymentAmount] = useState(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isGroupPaymentActive, setIsGroupPaymentActive] = useState(false);
   const [activePaymentUuid, setActivePaymentUuid] = useState(null);
   const [activeBookingUuid, setActiveBookingUuid] = useState(null);
   const [activeBookingRef, setActiveBookingRef] = useState(null);
+
+  const myMember = useMemo(() => {
+    if (!Array.isArray(groupMembers) || !currentUser) return null;
+    const userIds = [currentUser.uuid, currentUser.id].filter(Boolean);
+    return groupMembers.find(
+      (m) => userIds.includes(m.userUuid) || userIds.includes(m.uuid)
+    );
+  }, [groupMembers, currentUser]);
+
+  const isMyReady = myMember?.status === "READY" || isMyBookingAttached;
+  const readyCount = groupBooking?.readyCount ?? groupMembers.filter((m) => m.status === "READY").length;
+  const totalMemberCount = Math.max(groupBooking?.memberCount ?? 0, groupMembers.length, 1);
+  const isSquadReady = totalMemberCount <= 1 || readyCount >= (totalMemberCount - 1);
+
+  // Combined Squad Total for Host (includes all tickets from squad)
+  const squadTicketsTotal = isGroupMode && isHost
+    ? (totalMemberCount * (selectedSeats[0]?.price ?? 4.0))
+    : ticketsTotal;
+  const displayTotal = isGroupMode && isHost
+    ? (squadPaymentAmount ?? (squadTicketsTotal + concessionsTotal))
+    : totalPaid;
+
+  const isSubmitting = [
+    isCreatingBooking,
+    isCreatingPayment,
+    isMarkingReady,
+    isLockingGroup,
+    isCreatingGroupPayment,
+  ].some(Boolean);
+
+  const handleEditSelection = async () => {
+    if (isGroupMode && groupUuid) {
+      try {
+        await markMemberSelecting(groupUuid).unwrap();
+        setIsMyBookingAttached(false);
+        toast.info("Status changed to SELECTING. You can adjust your snacks.");
+      } catch (err) {
+        console.warn("Change selecting note:", err);
+      }
+    }
+  };
 
   const navigateToConfirmed = (bookingRef, bookingUuid) => {
     dispatch(setBookingConfirmation(bookingRef));
@@ -405,23 +448,24 @@ export default function BookingDetailsPage() {
         const res = await createBooking({ showtimeUuid, holdId }).unwrap();
         console.log("createBooking API response:", res);
         bookingUuid =
-          res?.uuid ||
-          res?.bookingUuid ||
-          res?.data?.uuid ||
+          res?.uuid ??
+          res?.bookingUuid ??
+          res?.data?.uuid ??
           res?.data?.bookingUuid;
         bookingRef =
-          res?.bookingReference ||
-          res?.reference ||
-          res?.ticketQrToken?.slice(0, 8)?.toUpperCase() ||
-          `FZ-${(bookingUuid || "").slice(0, 8).toUpperCase()}`;
+          res?.bookingReference ??
+          res?.reference ??
+          res?.ticketQrToken?.slice(0, 8)?.toUpperCase() ??
+          `FZ-${(bookingUuid ?? "").slice(0, 8).toUpperCase()}`;
 
         // Sync selected concessions to booking in Teacher API before payment
         const validConcessionItems = concessions
-          .filter(
-            (c) => (c.uuid || c.id) && String(c.uuid || c.id).includes("-"),
-          )
+          .filter((c) => {
+            const cid = String(c.uuid ?? c.id ?? "");
+            return cid.includes("-");
+          })
           .map((c) => ({
-            concessionItemUuid: c.uuid || c.id,
+            concessionItemUuid: c.uuid ?? c.id,
             quantity: c.quantity,
           }));
 
@@ -459,7 +503,7 @@ export default function BookingDetailsPage() {
               await markMemberReady(groupUuid).unwrap();
               toast.success("You are marked as READY! Waiting for the host to complete squad payment.");
             } catch (readyErr) {
-              toast.info(readyErr?.data?.message || "Status updated to ready.");
+              toast.info(readyErr?.data?.message ?? "Status updated to ready.");
             }
             return;
           }
@@ -471,6 +515,9 @@ export default function BookingDetailsPage() {
 
             const groupPayRes = await createGroupPayment(groupUuid).unwrap();
             const paymentUuid = groupPayRes?.uuid || groupPayRes?.paymentUuid;
+            if (groupPayRes?.amount) {
+              setSquadPaymentAmount(groupPayRes.amount);
+            }
 
             setActivePaymentUuid(paymentUuid);
             setActiveBookingUuid(bookingUuid);
@@ -479,7 +526,7 @@ export default function BookingDetailsPage() {
             setIsPaymentModalOpen(true);
             return;
           } catch (groupPayErr) {
-            toast.error(groupPayErr?.data?.message || "Failed to initiate group payment.");
+            toast.error(groupPayErr?.data?.message ?? "Failed to initiate group payment.");
             return;
           }
         }
@@ -490,9 +537,9 @@ export default function BookingDetailsPage() {
             const payRes = await createPayment(bookingUuid).unwrap();
             console.log("createPayment API response:", payRes);
             const paymentUuid =
-              payRes?.uuid ||
-              payRes?.paymentUuid ||
-              payRes?.data?.uuid ||
+              payRes?.uuid ??
+              payRes?.paymentUuid ??
+              payRes?.data?.uuid ??
               payRes?.data?.paymentUuid;
             if (paymentUuid && paymentUuid !== "undefined") {
               setActivePaymentUuid(paymentUuid);
@@ -520,8 +567,8 @@ export default function BookingDetailsPage() {
     } catch (err) {
       console.error("Failed to create booking:", err);
       const msg =
-        err?.data?.message ||
-        err?.data?.error ||
+        err?.data?.message ??
+        err?.data?.error ??
         "Failed to confirm booking. Your seat hold may have expired.";
       toast.error(msg);
     }
@@ -765,20 +812,75 @@ export default function BookingDetailsPage() {
               </div>
             </div>
 
+            {/* Squad Lobby Status Card for Group Booking */}
+            {isGroupMode && (
+              <div
+                className="w-full rounded-2xl sm:rounded-3xl border p-4 shadow-sm backdrop-blur-md space-y-2.5"
+                style={glassCardStyle}
+              >
+                <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-[#B90101]">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Squad Lobby ({groupBooking?.name ?? "FilmZone Squad"})</span>
+                  </div>
+                  <span>{readyCount} / {totalMemberCount} Ready</span>
+                </div>
+
+                {!isHost && isMyReady ? (
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+                    <div className="flex items-center gap-2 text-xs font-bold">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>You are READY! Waiting for Host to pay...</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleEditSelection}
+                      disabled={isMarkingSelecting}
+                      className="text-[11px] font-extrabold underline hover:opacity-80 cursor-pointer"
+                    >
+                      Edit Snacks
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {groupMembers.map((m, idx) => {
+                      const isReady = m.status === "READY";
+                      const mName = m.firstName
+                        ? `${m.firstName} ${m.lastName ?? ""}`.trim()
+                        : `Friend ${idx + 1}`;
+                      return (
+                        <span
+                          key={m.uuid ?? idx}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                            isReady
+                              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                              : "bg-neutral-200 dark:bg-white/10 text-neutral-600 dark:text-neutral-400"
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${isReady ? "bg-emerald-500" : "bg-amber-400 animate-pulse"}`} />
+                          <span>{mName}: {isReady ? "READY" : "SELECTING"}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* 2. Total Paid Card */}
             <div
               className="w-full rounded-2xl sm:rounded-3xl border px-5 py-3 flex items-center justify-between shadow-sm backdrop-blur-md"
               style={glassCardStyle}
             >
               <span className="text-sm sm:text-base font-bold text-[#B90101]">
-                Total paid
+                {isGroupMode && isHost ? `Squad Total (${totalMemberCount} Members)` : "Total paid"}
               </span>
               <span className="text-lg sm:text-xl font-black text-[#B90101]">
-                ${totalPaid.toFixed(2)}
+                ${displayTotal.toFixed(2)}
               </span>
             </div>
 
-            {/* 3. Action Buttons: Back & Continue */}
+            {/* 3. Action Buttons: Back & Continue / I'm Ready / Lock & Pay */}
             <div className="flex items-center gap-3.5 pt-0.5">
               <button
                 type="button"
@@ -792,18 +894,41 @@ export default function BookingDetailsPage() {
               <button
                 type="button"
                 onClick={handleContinue}
-                disabled={isCreatingBooking || isCreatingPayment}
+                disabled={isSubmitting || (!isHost && isGroupMode && isMyReady)}
                 className={`flex-1 py-2.5 px-5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 ${
-                  isCreatingBooking || isCreatingPayment
+                  isSubmitting
                     ? "opacity-75 cursor-wait"
-                    : "cursor-pointer"
+                    : !isHost && isGroupMode && isMyReady
+                      ? "opacity-90 cursor-default bg-emerald-600 hover:bg-emerald-600"
+                      : "cursor-pointer"
                 }`}
               >
-                {isCreatingBooking || isCreatingPayment ? (
+                {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>CONFIRMING...</span>
+                    <span>PROCESSING...</span>
                   </>
+                ) : isGroupMode && !isHost ? (
+                  isMyReady ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>I'M READY (WAITING)</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>I'M READY</span>
+                    </>
+                  )
+                ) : isGroupMode && isHost ? (
+                  !isSquadReady ? (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      <span>WAITING SQUAD ({readyCount}/{totalMemberCount})</span>
+                    </>
+                  ) : (
+                    <span>LOCK SQUAD & PAY (${displayTotal.toFixed(2)})</span>
+                  )
                 ) : (
                   <span>Continue</span>
                 )}
@@ -820,8 +945,8 @@ export default function BookingDetailsPage() {
         bookingUuid={activeBookingUuid}
         paymentUuid={activePaymentUuid}
         bookingRef={activeBookingRef}
-        amount={totalPaid}
-        movieTitle={movie?.title || movie?.name}
+        amount={displayTotal}
+        movieTitle={movie?.title ?? movie?.name}
         hallName={hallName}
         seats={selectedSeats.map((s) => s.id)}
         isGroupPayment={isGroupPaymentActive}
