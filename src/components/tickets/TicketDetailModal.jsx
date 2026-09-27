@@ -115,7 +115,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
                     src={
                       movie.poster ||
                       movie.poster_path ||
-                      "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg"
+                      "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80"
                     }
                     alt={movie.title}
                     className="w-12 h-16 sm:w-14 sm:h-18 rounded-xl object-cover shadow-xs shrink-0 border border-neutral-200 dark:border-white/10"

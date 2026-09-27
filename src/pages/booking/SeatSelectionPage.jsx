@@ -6,6 +6,7 @@ import { Clock, ArrowLeft, User, Users } from "lucide-react";
 import {
   toggleSeat,
   clearSeats,
+  setSelectedSeats,
   clearConcessions,
   selectSelectedSeats,
   setShowtime,
@@ -13,8 +14,6 @@ import {
   selectBooking,
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
-import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
-import { useGetTVDetailsQuery } from "../../services/api/tvApi";
 import {
   useGetShowtimeSeatsQuery,
   useHoldSeatsMutation,
@@ -22,6 +21,7 @@ import {
   useGetGroupBookingByUuidQuery,
   useGetGroupMembersQuery,
   useGetCinemaMovieByUuidQuery,
+  useGetShowtimeByUuidQuery,
 } from "../../services/api/cinemaApi";
 import { selectIsAuthenticated } from "../../redux/slices/authSlice";
 
@@ -42,90 +42,44 @@ export default function SeatSelectionPage() {
   const dispatch = useDispatch();
 
   // Query Parameters
-  const movieId =
-    searchParams.get("movie") || searchParams.get("movieId") || "558449";
-  const time = searchParams.get("time") || "03:00 PM";
-  const branch = searchParams.get("branch") || "FilmZone SenSok";
-  const date = searchParams.get("date") || "Aug 26 Tue";
+  const movieId = searchParams.get("movie") ?? searchParams.get("movieId") ?? "558449";
+  const time = searchParams.get("time") ?? "03:00 PM";
+  const branch = searchParams.get("branch") ?? "FilmZone SenSok";
+  const date = searchParams.get("date") ?? "Aug 26 Tue";
+  const showtimeUuid = searchParams.get("showtimeUuid");
 
   // Hall Mode: 'gold' (VIP hall) vs 'standard' (Standard hall)
-  const hallParam =
-    searchParams.get("hall") ||
-    searchParams.get("hallType") ||
-    searchParams.get("screenType") ||
-    "standard";
-  const hallType =
-    hallParam.toLowerCase().includes("gold") ||
-    hallParam.toLowerCase().includes("vip")
-      ? "gold"
-      : "standard";
+  const hallParam = (
+    searchParams.get("hall") ??
+    searchParams.get("hallType") ??
+    searchParams.get("screenType") ??
+    "standard"
+  ).toLowerCase();
+  const isGoldHall = hallParam.includes("gold") || hallParam.includes("vip");
+  const hallType = isGoldHall ? "gold" : "standard";
 
   // Booking Mode: 'standard' vs 'group'
-  const bookingType =
-    (searchParams.get("type") || "standard").toLowerCase() === "group"
-      ? "group"
-      : "standard";
+  const bookingType = (searchParams.get("type") ?? "standard").toLowerCase() === "group" ? "group" : "standard";
+  const rawScreenType = searchParams.get("screenType") ?? searchParams.get("format");
+  const screenType = rawScreenType ?? (hallType === "gold" ? "GOLD" : "2D");
 
-  // Dynamic Screen Type (e.g., '2D', 'SCREEN X', 'GOLD', '3D')
-  const rawScreenType =
-    searchParams.get("screenType") || searchParams.get("format");
-  const screenType = rawScreenType || (hallType === "gold" ? "GOLD" : "2D");
-
-  // Check if title is a TV series or if Redux already contains the movie/show
   const booking = useSelector(selectBooking);
   const reduxMovie = booking?.movie;
-  const mediaTypeParam = searchParams.get("mediaType");
-  const isTV =
-    mediaTypeParam === "tv" ||
-    Boolean(
-      reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
-    );
-
-  // Check if movieId is a Teacher API UUID
-  const isUuid = Boolean(movieId && movieId.includes("-"));
-  const { data: cinemaMovie } = useGetCinemaMovieByUuidQuery(movieId, {
-    skip: !movieId || !isUuid,
+  
+  // Fetch showtime to resolve movie UUID from Teacher API
+  const { data: showtimeDetails } = useGetShowtimeByUuidQuery(showtimeUuid, {
+    skip: !showtimeUuid,
   });
 
-  const isCurrentReduxMovie =
-    reduxMovie &&
-    (reduxMovie.uuid === movieId ||
-      String(reduxMovie.id) === String(movieId) ||
-      (cinemaMovie && reduxMovie.uuid === cinemaMovie.uuid));
+  const movieUuid = showtimeDetails?.movieUuid ?? (movieId?.includes("-") ? movieId : null) ?? reduxMovie?.uuid;
+  const { data: cinemaMovie } = useGetCinemaMovieByUuidQuery(movieUuid, { skip: !movieUuid });
+  const movie = cinemaMovie ?? reduxMovie;
 
-  // Fetch movie or TV details from TMDB if numeric ID
-  const { data: movieData } = useGetMovieDetailsQuery(movieId, {
-    skip: !movieId || isTV || isUuid || Boolean(isCurrentReduxMovie),
-  });
-  const { data: tvData } = useGetTVDetailsQuery(movieId, {
-    skip: !movieId || !isTV || isUuid || Boolean(isCurrentReduxMovie),
-  });
-
-  const normalizedCinemaMovie = cinemaMovie
-    ? {
-        id: cinemaMovie.uuid,
-        uuid: cinemaMovie.uuid,
-        title: cinemaMovie.title,
-        poster_path: cinemaMovie.posterUrl,
-        backdrop_path: cinemaMovie.backdropUrl,
-        overview: cinemaMovie.overview,
-        runtime: cinemaMovie.runtimeMinutes,
-        release_date: cinemaMovie.releaseDate,
-      }
-    : null;
-
-  const movie =
-    (isCurrentReduxMovie ? reduxMovie : null) ||
-    normalizedCinemaMovie ||
-    (isTV ? tvData : movieData || tvData) ||
-    reduxMovie;
-
-  // Sync current cinema movie to Redux so all pages stay consistent
   useEffect(() => {
-    if (normalizedCinemaMovie && !isCurrentReduxMovie) {
-      dispatch(setMovie(normalizedCinemaMovie));
+    if (cinemaMovie) {
+      dispatch(setMovie(cinemaMovie));
     }
-  }, [normalizedCinemaMovie, isCurrentReduxMovie, dispatch]);
+  }, [cinemaMovie, dispatch]);
 
   // Redux Selected Seats & Theme
   const selectedSeats = useSelector(selectSelectedSeats);
@@ -134,8 +88,7 @@ export default function SeatSelectionPage() {
 
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
-  const showtimeUuid = searchParams.get("showtimeUuid");
-  const rawPrice = searchParams.get("price");
+    const rawPrice = searchParams.get("price");
   const ticketPrice = rawPrice
     ? parseFloat(rawPrice)
     : hallType === "gold"
@@ -150,7 +103,7 @@ export default function SeatSelectionPage() {
   const [createGroupBooking, { isLoading: isCreatingGroup }] = useCreateGroupBookingMutation();
   const [currentGroup, setCurrentGroup] = useState(null);
 
-  const activeGroupUuid = groupUuidParam || currentGroup?.uuid;
+  const activeGroupUuid = groupUuidParam ?? currentGroup?.uuid;
 
   // Poll live group details & members every 3 seconds if activeGroupUuid exists
   const { data: groupBookingData } = useGetGroupBookingByUuidQuery(activeGroupUuid, {
@@ -169,7 +122,35 @@ export default function SeatSelectionPage() {
     isLoading: isSeatsLoading,
     isError: isSeatsError,
     refetch: refetchSeats,
-  } = useGetShowtimeSeatsQuery(showtimeUuid, { skip: !showtimeUuid });
+  } = useGetShowtimeSeatsQuery(showtimeUuid, {
+    skip: !showtimeUuid,
+    pollingInterval: 3000,
+  });
+
+  // Auto-detect if any locally selected seat was taken by another customer and remove it cleanly
+  useEffect(() => {
+    if (apiSeats.length > 0 && selectedSeats.length > 0) {
+      const conflicting = selectedSeats.filter((s) => {
+        const serverSeat = apiSeats.find(
+          (as) =>
+            (s.seatUuid && as.uuid === s.seatUuid) ||
+            (as.seatNumber === s.number && as.rowLabel === s.row)
+        );
+        return (
+          serverSeat &&
+          (["HELD", "RESERVED"].includes(serverSeat.status) || Boolean(serverSeat.isHeld) || Boolean(serverSeat.isReserved))
+        );
+      });
+
+      if (conflicting.length > 0) {
+        const validSeats = selectedSeats.filter((s) => !conflicting.includes(s));
+        dispatch(setSelectedSeats(validSeats));
+        toast.warn(
+          "A seat you selected was just taken by another customer. The seat map has updated."
+        );
+      }
+    }
+  }, [apiSeats, selectedSeats, dispatch]);
 
   // Clear selected seats whenever showtime or hall changes
   useEffect(() => {
@@ -182,18 +163,18 @@ export default function SeatSelectionPage() {
 
     const map = {};
 
-    const userInitials = (currentUser?.firstName?.[0] || currentUser?.name?.[0] || "U").toUpperCase();
     const userName = currentUser?.firstName
-      ? `${currentUser.firstName} ${currentUser.lastName || ""}`.trim()
-      : currentUser?.name || "You";
+      ? `${currentUser.firstName} ${currentUser.lastName ?? ""}`.trim()
+      : (currentUser?.name ?? "You");
+    const userInitials = (userName[0] ?? "U").toUpperCase();
     const storedUserAvatar = currentUser?.uuid
       ? localStorage.getItem(`user_avatar_${currentUser.uuid}`)
       : null;
     const userAvatar =
-      currentUser?.avatar ||
-      storedUserAvatar ||
-      currentUser?.profileImage ||
-      currentUser?.imageUrl ||
+      currentUser?.avatar ??
+      storedUserAvatar ??
+      currentUser?.profileImage ??
+      currentUser?.imageUrl ??
       `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=FFD700&color=000&bold=true`;
 
     // Current user's selected seats get the gold ring avatar
@@ -256,7 +237,7 @@ export default function SeatSelectionPage() {
   };
 
   // Interactive Click Handler for Dynamic Seat Map
-  const handleSeatClick = (seatsToToggle, isCouple, willSelect) => {
+  const handleSeatClick = (seatsToToggle, isCouple) => {
     seatsToToggle.forEach((seat) => {
       const seatId = seat.seatLabel;
 
@@ -338,8 +319,7 @@ export default function SeatSelectionPage() {
       params.set("type", bookingType);
       params.set("hall", hallType);
       params.set("screenType", screenType);
-      params.set("mediaType", isTV ? "tv" : "movie");
-      params.set("seats", selectedSeats.map((s) => s.id).join(","));
+            params.set("seats", selectedSeats.map((s) => s.id).join(","));
       params.set("seatUuids", seatUuids.join(","));
       params.set("price", String(ticketPrice));
       if (holdId) {
@@ -350,13 +330,19 @@ export default function SeatSelectionPage() {
         params.set("groupUuid", activeGroupUuid);
       }
 
+      if (movieUuid) {
+        params.set("movie", movieUuid);
+      }
       navigate(`/booking/details?${params.toString()}`);
     } catch (err) {
       console.error("Seat hold error:", err);
+      // Immediately refetch latest seats from server and clear conflicting local seats
+      refetchSeats();
+      dispatch(clearSeats());
       const msg =
         err?.data?.message ||
         err?.data?.error ||
-        "Failed to hold seats. Some seats may already have been taken by another customer.";
+        "Those seats were just held by another customer. The seat map has been refreshed — please select a new seat.";
       toast.error(msg);
     }
   };
@@ -364,7 +350,7 @@ export default function SeatSelectionPage() {
   const handleBackToMovie = () => {
     dispatch(clearSeats());
     if (movieId) {
-      navigate(isTV ? `/stream/${movieId}` : `/movies/${movieId}`);
+      navigate(movieUuid ? `/movies/${movieUuid}` : -1);
     } else {
       navigate(-1);
     }
@@ -423,9 +409,9 @@ export default function SeatSelectionPage() {
             <h1 className="text-base sm:text-lg font-black text-[#B90101] tracking-tight">
               Select Seat(s)
             </h1>
-            {(movie?.title || movie?.name) && (
+            {movie?.title && (
               <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
-                {movie.title || movie.name} • {branch} • {time}
+                {movie.title} • {branch} • {time}
               </p>
             )}
           </div>
@@ -547,9 +533,9 @@ export default function SeatSelectionPage() {
           isOpen={isGroupModalOpen}
           onClose={() => setIsGroupModalOpen(false)}
           onContinue={() => setIsGroupModalOpen(false)}
-          groupCode={groupBookingData?.inviteToken || currentGroup?.inviteToken || ""}
-          inviteToken={groupBookingData?.inviteToken || currentGroup?.inviteToken || ""}
-          groupName={groupBookingData?.name || currentGroup?.name || "FilmZone Squad"}
+          groupCode={groupBookingData?.inviteToken ?? currentGroup?.inviteToken ?? ""}
+          inviteToken={groupBookingData?.inviteToken ?? currentGroup?.inviteToken ?? ""}
+          groupName={groupBookingData?.name ?? currentGroup?.name ?? "FilmZone Squad"}
           isLoading={isCreatingGroup}
         />
       </div>

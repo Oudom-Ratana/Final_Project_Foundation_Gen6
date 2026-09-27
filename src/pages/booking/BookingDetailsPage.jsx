@@ -22,6 +22,7 @@ import {
   useCreateBookingMutation,
   useCreatePaymentMutation,
   useGetCinemaMovieByUuidQuery,
+  useReleaseHoldMutation,
   useGetAllConcessionsQuery,
   useUpsertBookingConcessionOrderMutation,
   useAttachMemberBookingMutation,
@@ -245,6 +246,7 @@ export default function BookingDetailsPage() {
 
   const [createBooking, { isLoading: isCreatingBooking }] =
     useCreateBookingMutation();
+  const [releaseHold] = useReleaseHoldMutation();
 
   // Combined Total
   const totalPaid = ticketsTotal + concessionsTotal;
@@ -254,6 +256,7 @@ export default function BookingDetailsPage() {
   const [hasExpired, setHasExpired] = useState(false);
 
   const handleExpiry = () => {
+    if (showtimeUuid && holdId) releaseHold({ showtimeUuid, holdId }).unwrap().catch(() => {});
     dispatch(clearSeats());
     dispatch(clearConcessions());
     toast.warn(
@@ -290,6 +293,7 @@ export default function BookingDetailsPage() {
   }, [timeLeft, hasExpired]);
 
   const handleBack = () => {
+    if (showtimeUuid && holdId) releaseHold({ showtimeUuid, holdId }).unwrap().catch(() => {});
     // Reset seats and concessions in state and return to seat map
     dispatch(clearSeats());
     dispatch(clearConcessions());
@@ -653,11 +657,7 @@ export default function BookingDetailsPage() {
               {/* Movie Header */}
               <div className="flex items-center gap-3.5">
                 <img
-                  src={
-                    movie.poster_path
-                      ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
-                      : "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg"
-                  }
+                  src={movie.posterUrl || movie.poster_path}
                   alt={movie.title}
                   className="w-13 h-18 sm:w-14 sm:h-20 rounded-xl object-cover shadow-sm shrink-0"
                 />
