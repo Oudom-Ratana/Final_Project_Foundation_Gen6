@@ -182,15 +182,27 @@ export default function SeatSelectionPage() {
 
     const map = {};
 
+    const userInitials = (currentUser?.firstName?.[0] || currentUser?.name?.[0] || "U").toUpperCase();
+    const userName = currentUser?.firstName
+      ? `${currentUser.firstName} ${currentUser.lastName || ""}`.trim()
+      : currentUser?.name || "You";
+    const storedUserAvatar = currentUser?.uuid
+      ? localStorage.getItem(`user_avatar_${currentUser.uuid}`)
+      : null;
+    const userAvatar =
+      currentUser?.avatar ||
+      storedUserAvatar ||
+      currentUser?.profileImage ||
+      currentUser?.imageUrl ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=FFD700&color=000&bold=true`;
+
     // Current user's selected seats get the gold ring avatar
     selectedSeats.forEach((seat) => {
       map[seat.id] = {
-        avatar:
-          currentUser?.avatar ||
-          "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+        avatar: userAvatar,
         color: "#FFD700",
-        name: currentUser?.firstName || "You",
-        initials: (currentUser?.firstName?.[0] || "U").toUpperCase(),
+        name: userName,
+        initials: userInitials,
         isLocked: false,
       };
     });

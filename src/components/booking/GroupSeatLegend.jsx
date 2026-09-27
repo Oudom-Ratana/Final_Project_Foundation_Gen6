@@ -7,6 +7,39 @@ const getFallbackSvg = (initials, bg = "#EAB308") =>
     bg
   )}"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="38" fill="%23ffffff">${initials}</text></svg>`;
 
+const MEMBER_COLORS = [
+  "10B981", // emerald
+  "6366F1", // indigo
+  "EC4899", // pink
+  "F59E0B", // amber
+  "3B82F6", // blue
+  "8B5CF6", // purple
+  "14B8A6", // teal
+];
+
+const getMemberColor = (str = "") => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % MEMBER_COLORS.length;
+  return MEMBER_COLORS[index];
+};
+
+const getMemberAvatar = (member) => {
+  if (member?.avatar) return member.avatar;
+  const userUuid = member?.userUuid || member?.uuid;
+  if (userUuid) {
+    const cached = localStorage.getItem(`user_avatar_${userUuid}`);
+    if (cached) return cached;
+  }
+  const fullName = member?.firstName
+    ? `${member.firstName} ${member.lastName || ""}`.trim()
+    : "Friend";
+  const bg = getMemberColor(member?.userUuid || member?.firstName || "Friend");
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=${bg}&color=fff&size=128&bold=true`;
+};
+
 export default function GroupSeatLegend({
   mySeats = [],
   members = [],
@@ -22,7 +55,15 @@ export default function GroupSeatLegend({
   const userName = currentUser?.firstName
     ? `${currentUser.firstName} ${currentUser.lastName || ""}`.trim()
     : currentUser?.name || "You";
-  const userAvatar = currentUser?.avatar || currentUser?.profileImage || currentUser?.imageUrl;
+  const storedUserAvatar = currentUser?.uuid
+    ? localStorage.getItem(`user_avatar_${currentUser.uuid}`)
+    : null;
+  const userAvatar =
+    currentUser?.avatar ||
+    storedUserAvatar ||
+    currentUser?.profileImage ||
+    currentUser?.imageUrl ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=EAB308&color=fff&size=128&bold=true`;
 
   // Filter out the current user to get friends
   const otherMembers = Array.isArray(members)
@@ -107,20 +148,26 @@ export default function GroupSeatLegend({
                 <div className="flex items-center -space-x-2.5">
                   {otherMembers.slice(0, 3).map((friend, idx) => {
                     const fInitial = (friend.firstName?.[0] || "F").toUpperCase();
+                    const fName = friend.firstName
+                      ? `${friend.firstName} ${friend.lastName || ""}`.trim()
+                      : "Friend";
+                    const fAvatar = getMemberAvatar(friend);
+                    const fColor = `#${getMemberColor(friend.userUuid || friend.firstName || "Friend")}`;
+
                     return (
                       <div
                         key={friend.uuid || idx}
                         className="w-12 h-12 rounded-full overflow-hidden border-[3px] border-emerald-500 shadow-md relative z-10 transition-transform hover:scale-105 bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-black"
+                        title={fName}
                       >
-                        {friend.avatar ? (
-                          <img
-                            src={friend.avatar}
-                            alt={friend.firstName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span>{fInitial}</span>
-                        )}
+                        <img
+                          src={fAvatar}
+                          alt={fName}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = getFallbackSvg(fInitial, fColor);
+                          }}
+                        />
                       </div>
                     );
                   })}
@@ -199,16 +246,21 @@ export default function GroupSeatLegend({
                     ? `${member.firstName} ${member.lastName || ""}`.trim()
                     : `Squad Member ${idx + 1}`;
                   const mInit = (member.firstName?.[0] || "M").toUpperCase();
+                  const mAvatar = getMemberAvatar(member);
+                  const mColor = `#${getMemberColor(member.userUuid || member.firstName || "Member")}`;
                   const isReady = member.status === "READY" || member.status === "CONFIRMED";
 
                   return (
                     <div key={member.uuid || idx} className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full overflow-hidden border-[2.5px] border-emerald-500 shadow-sm shrink-0 flex items-center justify-center bg-emerald-500/10 text-emerald-600 font-bold">
-                        {member.avatar ? (
-                          <img src={member.avatar} alt={mName} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-xs font-black">{mInit}</span>
-                        )}
+                        <img
+                          src={mAvatar}
+                          alt={mName}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = getFallbackSvg(mInit, mColor);
+                          }}
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white truncate">
