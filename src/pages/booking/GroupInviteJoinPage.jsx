@@ -21,7 +21,9 @@ export default function GroupInviteJoinPage() {
     isLoading: isInviteLoading,
     isError: isInviteError,
     error: inviteError,
-  } = useGetGroupInvitationQuery(inviteToken, { skip: !inviteToken });
+  } = useGetGroupInvitationQuery(inviteToken, {
+    skip: !inviteToken || !isAuthenticated,
+  });
 
   const [joinGroup, { isLoading: isJoining }] = useJoinGroupBookingMutation();
 
@@ -63,6 +65,50 @@ export default function GroupInviteJoinPage() {
     }
   };
 
+  // If user is not logged in, prompt them to login to view and join the group
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 shadow-2xl p-6 sm:p-8 space-y-6 text-center">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="w-16 h-16 rounded-2xl bg-[#B90101]/10 dark:bg-[#FFD700]/10 text-[#B90101] dark:text-[#FFD700] flex items-center justify-center shadow-inner">
+              <Users className="w-8 h-8" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              Group Booking Invitation
+            </span>
+            <h1 className="text-2xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">
+              Join Cinema Squad
+            </h1>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm">
+              You&apos;ve been invited to join a cinema group booking! Please log in to your FilmZone account to view the movie session, pick your seat with your friends, and join the booking.
+            </p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <Link
+              to={`/login?redirect=${encodeURIComponent(window.location.pathname)}`}
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#B90101] to-[#800000] text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-[#B90101]/25 hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-2"
+            >
+              <span>Log In to Accept Invitation</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              Don&apos;t have an account?{" "}
+              <Link
+                to={`/signup?redirect=${encodeURIComponent(window.location.pathname)}`}
+                className="font-bold text-[#B90101] dark:text-[#FFD700] hover:underline"
+              >
+                Create one now
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isInviteLoading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4 text-center px-4">
@@ -75,24 +121,36 @@ export default function GroupInviteJoinPage() {
   }
 
   if (isInviteError || !invite) {
+    const isAuthError = inviteError?.status === 401;
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4 text-center px-4">
         <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center">
           <AlertCircle className="w-8 h-8" />
         </div>
         <h2 className="text-2xl font-black text-neutral-900 dark:text-white uppercase">
-          Invalid or Expired Invitation
+          {isAuthError ? "Session Expired" : "Invalid or Expired Invitation"}
         </h2>
         <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md">
-          {inviteError?.data?.message ||
-            "This group booking link may have expired or is no longer open for new members."}
+          {isAuthError
+            ? "Your session has expired. Please log in again to view and join this group booking."
+            : inviteError?.data?.message ||
+              "This group booking link may have expired or is no longer open for new members."}
         </p>
-        <Link
-          to="/"
-          className="mt-4 px-6 py-2.5 rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-bold text-sm hover:opacity-90 transition"
-        >
-          Back to Homepage
-        </Link>
+        {isAuthError ? (
+          <Link
+            to={`/login?redirect=${encodeURIComponent(window.location.pathname)}`}
+            className="mt-4 px-6 py-2.5 rounded-xl bg-[#B90101] text-white font-bold text-sm hover:opacity-90 transition"
+          >
+            Log In Again
+          </Link>
+        ) : (
+          <Link
+            to="/"
+            className="mt-4 px-6 py-2.5 rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-bold text-sm hover:opacity-90 transition"
+          >
+            Back to Homepage
+          </Link>
+        )}
       </div>
     );
   }

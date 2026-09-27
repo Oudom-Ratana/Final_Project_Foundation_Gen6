@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
@@ -17,6 +17,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 const LoginComponent = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || "/";
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
@@ -87,7 +89,7 @@ const LoginComponent = () => {
       );
 
       toast.success(`Welcome back, ${userProfile.name}!`);
-      navigate("/");
+      navigate(redirectUrl);
     } catch (err) {
       console.error("Login error:", err);
       const message =
@@ -125,7 +127,7 @@ const LoginComponent = () => {
 
       dispatch(setCredentials(authData));
       toast.success(`Welcome back, ${authData.user.name}!`);
-      navigate("/");
+      navigate(redirectUrl);
     } catch (err) {
       if (err.code !== "auth/popup-closed-by-user") {
         toast.error(err.message || "Google sign in failed");
@@ -299,7 +301,11 @@ const LoginComponent = () => {
           <p className="mt-4 sm:mt-5 text-center text-xs text-neutral-500 dark:text-neutral-400">
             Don&apos;t have an account?{" "}
             <Link
-              to="/signup"
+              to={
+                redirectUrl !== "/"
+                  ? `/signup?redirect=${encodeURIComponent(redirectUrl)}`
+                  : "/signup"
+              }
               className="font-bold text-primary-red underline hover:opacity-90"
             >
               Sign up
