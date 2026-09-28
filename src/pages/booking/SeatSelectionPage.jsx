@@ -192,7 +192,7 @@ export default function SeatSelectionPage() {
     };
   }, [activeGroupUuid, groupMembers, dispatch]);
 
-  // Real-time seat availability from Teacher API
+  // Real-time seat availability from Teacher API (Live WebSocket stream)
   const {
     data: apiSeats = [],
     isLoading: isSeatsLoading,
@@ -200,7 +200,6 @@ export default function SeatSelectionPage() {
     refetch: refetchSeats,
   } = useGetShowtimeSeatsQuery(showtimeUuid, {
     skip: !showtimeUuid,
-    pollingInterval: 3000,
   });
 
   // Auto-detect if any locally selected seat was taken by another customer and remove it cleanly

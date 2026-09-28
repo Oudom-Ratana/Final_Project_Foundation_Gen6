@@ -577,3 +577,8 @@ body {
   animation: timeline-core-glow 2s ease-in-out infinite;
   will-change: transform, box-shadow;
 }
+
+/* Hide navbar when KHQR payment modal popup is open */
+body.payment-modal-open header {
+  display: none !important;
+}
