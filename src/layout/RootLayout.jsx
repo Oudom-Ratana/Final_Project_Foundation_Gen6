@@ -18,6 +18,10 @@ export default function RootLayout() {
     "/ForgotPassword",
   ].includes(location.pathname);
 
+  const isConcessionDetail =
+    location.pathname.startsWith("/deals/") ||
+    location.pathname.startsWith("/promo/");
+
   return (
     <div
       className={`min-h-screen flex flex-col font-sans antialiased transition-colors duration-300 selection:bg-[#B90101] selection:text-white ${
@@ -42,7 +46,7 @@ export default function RootLayout() {
         </div>
       )}
 
-      {!isAuthPage && <Navbar />}
+      {!isAuthPage && !isConcessionDetail && <Navbar />}
       <main
         className={`flex-1 w-full relative z-10 ${
           isHomePage
@@ -55,7 +59,13 @@ export default function RootLayout() {
         <Outlet />
       </main>
       {!isAuthPage && <Footer />}
-      <ScrollRestoration />
+      <ScrollRestoration
+        getKey={(loc) => {
+          if (loc.pathname.startsWith("/deals")) return "/deals";
+          if (loc.pathname.startsWith("/promo")) return "/promo";
+          return loc.key;
+        }}
+      />
     </div>
   );
 }

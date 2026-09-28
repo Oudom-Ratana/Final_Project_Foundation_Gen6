@@ -35,6 +35,11 @@ export default function Navbar() {
   const favoriteCount = favouriteMovies.length;
   const isAdmin = user?.role === "admin" || user?.role === "ADMIN";
 
+  const storedAvatar = user?.uuid
+    ? localStorage.getItem(`user_avatar_${user.uuid}`)
+    : null;
+  const userAvatar = user?.avatar || storedAvatar;
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef(null);
@@ -204,20 +209,20 @@ export default function Navbar() {
           <img
             src={theme === "dark" ? FilmZoneDarkLogo : filmZoneLogo}
             alt="FilmZone Logo"
-            className="h-6 sm:h-7.5 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-sm"
+            className="h-8 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-sm"
           />
         </Link>
 
         {/* 2. Center: Navigation Links (Home, Promo, Stream, About) */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          <NavLink to="/" className={navLinkClass}>
+          {/* <NavLink to="/" className={navLinkClass}>
             Home
-          </NavLink>
-          {/* <NavLink to="/promo" className={navLinkClass}>
-            Promo
           </NavLink> */}
           <NavLink to="/stream" className={navLinkClass}>
             Movies
+          </NavLink>
+          <NavLink to="/deals" className={navLinkClass}>
+            Deals
           </NavLink>
           <NavLink to="/about" className={navLinkClass}>
             About
@@ -270,9 +275,9 @@ export default function Navbar() {
                 aria-label="User profile menu"
                 title={user.name}
               >
-                {user.avatar ? (
+                {userAvatar ? (
                   <img
-                    src={user.avatar}
+                    src={userAvatar}
                     alt={user.name}
                     className="w-full h-full object-cover"
                   />
@@ -411,6 +416,14 @@ export default function Navbar() {
           </NavLink>
 
           <NavLink
+            to="/deals"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={navLinkClass}
+          >
+            Deals
+          </NavLink>
+
+          <NavLink
             to="/stream"
             onClick={() => setIsMobileMenuOpen(false)}
             className={navLinkClass}
@@ -460,9 +473,9 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-2.5 truncate hover:opacity-90 transition cursor-pointer flex-1"
                 >
-                  {user.avatar ? (
+                  {userAvatar ? (
                     <img
-                      src={user.avatar}
+                      src={userAvatar}
                       alt={user.name}
                       className="w-9 h-9 rounded-full object-cover bg-white/20 border border-white/40 shrink-0"
                     />

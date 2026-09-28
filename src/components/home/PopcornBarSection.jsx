@@ -1,55 +1,22 @@
-import { Star, Flame, Coffee } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router";
 import popcornImg from "../../assets/loader/popcorn-bucket1.png";
 import ScrollReveal from "../common/ScrollReveal";
+import { useGetAllConcessionsQuery } from "../../services/api/cinemaApi";
 
-const SNACK_COMBOS = [
-  {
-    id: "combo-1",
-    name: "Caramel Supreme Duo",
-    tag: "BESTSELLER",
-    tagColor: "bg-red-500 text-white",
-    description:
-      "1 Large Warm Golden Caramel Popcorn + 2 Soft Drinks (Coca-Cola / Sprite)",
-    price: "$4.50",
-    rating: 4.9,
-    kcal: "780 kcal",
-  },
-  {
-    id: "combo-2",
-    name: "Ultimate Nacho Feast",
-    tag: "SAVORY CRUNCH",
-    tagColor: "bg-amber-500 text-white",
-    description:
-      "Crispy Tortilla Chips with warm melted Cheddar Cheese dip & Jalapeños + 1 Large Drink",
-    price: "$5.00",
-    rating: 4.8,
-    kcal: "620 kcal",
-  },
-  {
-    id: "combo-3",
-    name: "Blockbuster VIP Bucket",
-    tag: "FAMILY SIZE",
-    tagColor: "bg-purple-600 text-white",
-    description:
-      "XXL Dual-Flavor Popcorn (Sweet & Salty) + 3 Soft Drinks + 1 Milk Chocolate Treat",
-    price: "$7.50",
-    rating: 5.0,
-    kcal: "1,150 kcal",
-  },
-  {
-    id: "combo-4",
-    name: "Classic Butter & Hot Dog",
-    tag: "QUICK BITE",
-    tagColor: "bg-blue-600 text-white",
-    description:
-      "Medium Movie-Style Butter Popcorn + 1 Grilled Beef Hot Dog + 1 Iced Tea",
-    price: "$6.00",
-    rating: 4.7,
-    kcal: "840 kcal",
-  },
-];
+const CATEGORY_COLORS = {
+  FOOD: "bg-amber-500 text-white",
+  DRINK: "bg-blue-600 text-white",
+  SNACK: "bg-red-500 text-white",
+  COMBO: "bg-purple-600 text-white",
+};
 
 export default function PopcornBarSection() {
+  const { data: concessions = [], isLoading } = useGetAllConcessionsQuery();
+
+  // Take the first 4 items from the teacher's API
+  const items =concessions.slice(0, 4) ;
+
   return (
     <section className="space-y-8 font-sans">
       {/* Header */}
@@ -62,66 +29,112 @@ export default function PopcornBarSection() {
             </p>
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
-            FilmZone Popcorn & Snack Bar
+            FilmZone Drinks & Snack Bar
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-xl">
             Freshly popped kernels, melted cheeses, and ice-cold refreshments
             delivered right to your cinema seat.
           </p>
         </div>
+
+        <Link
+          to="/deals"
+          className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#B90101] dark:text-[#FFD700] hover:underline"
+        >
+          <span>View All Snacks & Drinks</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
-      {/* 4 Combos Grid */}
+      {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {SNACK_COMBOS.map((combo, idx) => {
-          return (
-            <ScrollReveal
-              key={combo.id}
-              delay={idx * 100}
-              duration={650}
-              distance="translate-y-8"
+        {isLoading ? (
+          // Skeleton loading state
+          Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="rounded-3xl bg-neutral-100 dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 p-5 min-h-[360px] animate-pulse flex flex-col justify-between"
             >
-              <div className="group relative rounded-3xl bg-white dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 hover:border-[#B90101]/60 p-5 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between min-h-[360px] overflow-hidden">
-                {/* Popcorn Graphic Background Glow */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500 pointer-events-none" />
+              <div className="h-5 w-20 bg-neutral-200 dark:bg-white/10 rounded-full" />
+              <div className="w-full h-32 flex items-center justify-center py-2">
+                <div className="w-24 h-24 bg-neutral-200 dark:bg-white/10 rounded-2xl" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-5 w-3/4 bg-neutral-200 dark:bg-white/10 rounded" />
+                <div className="h-3 w-full bg-neutral-200 dark:bg-white/10 rounded" />
+                <div className="h-3 w-2/3 bg-neutral-200 dark:bg-white/10 rounded" />
+              </div>
+            </div>
+          ))
+        ) : items.length > 0 ? (
+          items.map((item, idx) => {
+            const tagColor =
+              CATEGORY_COLORS[item.category?.toUpperCase()] ||
+              "bg-red-500 text-white";
 
-                {/* Top: Image & Badge */}
-                <div className="relative z-10 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${combo.tagColor}`}
-                    >
-                      {combo.tag}
-                    </span>
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-xs font-black">
-                      <Star className="w-3.5 h-3.5 fill-current" />
-                      <span>{combo.rating}</span>
+            return (
+              <ScrollReveal
+                key={item.uuid || idx}
+                delay={idx * 100}
+                duration={650}
+                distance="translate-y-8"
+              >
+                <Link
+                  to={`/deals/${item.uuid}`}
+                  className="group relative rounded-3xl bg-white dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 hover:border-[#B90101]/60 p-5 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between min-h-[360px] overflow-hidden block"
+                >
+                  {/* Background Glow */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500 pointer-events-none" />
+
+                  {/* Content */}
+                  <div className="relative z-10 space-y-4">
+                    {item.category && (
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${tagColor}`}
+                        >
+                          {item.category}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Concession Image */}
+                    <div className="w-full h-32 flex items-center justify-center py-2">
+                      <img
+                        src={item.imageUrl || popcornImg}
+                        alt={item.name}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = popcornImg;
+                        }}
+                        className="h-28 w-auto max-h-28 max-w-[85%] object-contain drop-shadow-xl group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300"
+                      />
+                    </div>
+
+                    {/* Title, Price & Description */}
+                    <div>
+                      <div className="flex items-baseline justify-between gap-2 mb-1">
+                        <h3 className="text-lg font-black text-neutral-900 dark:text-white leading-snug group-hover:text-[#B90101] dark:group-hover:text-[#FFD700] transition-colors line-clamp-1">
+                          {item.name}
+                        </h3>
+                        {item.price !== undefined && (
+                          <span className="text-sm font-black text-[#B90101] dark:text-[#FFD700] shrink-0">
+                            ${typeof item.price === "number" ? item.price.toFixed(2) : item.price}
+                          </span>
+                        )}
+                      </div>
+                      {item.description && (
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
+                          {item.description}
+                        </p>
+                      )}
                     </div>
                   </div>
-
-                  {/* Popcorn Visual Center */}
-                  <div className="w-full h-32 flex items-center justify-center py-2">
-                    <img
-                      src={popcornImg}
-                      alt={combo.name}
-                      className="h-28 w-auto object-contain drop-shadow-xl group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300"
-                    />
-                  </div>
-
-                  {/* Title & Description */}
-                  <div>
-                    <h3 className="text-lg font-black text-neutral-900 dark:text-white leading-snug">
-                      {combo.name}
-                    </h3>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
-                      {combo.description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </ScrollReveal>
-          );
-        })}
+                </Link>
+              </ScrollReveal>
+            );
+          })
+        ) : null}
       </div>
     </section>
   );

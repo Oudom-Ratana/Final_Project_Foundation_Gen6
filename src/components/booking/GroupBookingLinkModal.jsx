@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
-import { X, Copy, Check } from "lucide-react";
+import { X, Copy, Check, Users } from "lucide-react";
 import { selectTheme } from "../../redux/slices/uiSlice";
 
 /**
@@ -19,13 +19,29 @@ export default function GroupBookingLinkModal({
   isOpen,
   onClose,
   onContinue,
-  groupCode = "ABCD1234",
+  onCreateGroup,
+  groupCode = "",
+  inviteToken = "",
+  groupName = "",
+  defaultGroupName = "",
+  isLoading = false,
 }) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
   const [copied, setCopied] = useState(false);
+  const [nameInput, setNameInput] = useState("");
 
-  const shareUrl = `https://filmzone.com/group/${groupCode}`;
+  useEffect(() => {
+    if (isOpen) {
+      setNameInput(groupName || defaultGroupName || "FilmZone Squad");
+    }
+  }, [isOpen, groupName, defaultGroupName]);
+
+  const token = inviteToken || groupCode;
+  const hasToken = Boolean(token);
+  const shareUrl = token
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/group-booking/join/${token}`
+    : "";
 
   // Close modal on Escape key & Hide Navbar completely while modal is open
   useEffect(() => {
@@ -62,6 +78,15 @@ export default function GroupBookingLinkModal({
     } catch {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleSubmitName = (e) => {
+    e.preventDefault();
+    const trimmed = nameInput.trim();
+    if (!trimmed) return;
+    if (onCreateGroup) {
+      onCreateGroup(trimmed);
     }
   };
 
@@ -106,7 +131,7 @@ export default function GroupBookingLinkModal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/25 dark:bg-black/75 backdrop-blur-md animate-fadeIn select-none font-sans"
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-white dark:bg-[var(--primary-color-30)] backdrop-blur-md animate-fadeIn select-none font-sans"
       onClick={onClose}
     >
       {/* Modal Card with exact Glassmorphism specification:
@@ -133,34 +158,85 @@ export default function GroupBookingLinkModal({
           <X className="w-5 h-5 stroke-[2.5]" />
         </button>
 
-        {/* 1. Large Circular Red/Pink Badge with Checkmark */}
-        <div className="flex justify-center pt-2">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#B90101]/15 dark:bg-[#B90101]/25 border border-[#B90101]/30 flex items-center justify-center shadow-inner backdrop-blur-md">
-            <svg
-              className="w-12 h-12 sm:w-14 sm:h-14 text-[#B90101]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={3.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-        </div>
+        {!hasToken ? (
+          /* Step 1: Input Squad Name */
+          <div className="space-y-5 pt-2">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#B90101]/15 dark:bg-[#B90101]/25 border border-[#B90101]/30 flex items-center justify-center shadow-inner backdrop-blur-md text-[#B90101]">
+                <Users className="w-10 h-10 sm:w-12 sm:h-12 stroke-[2.2]" />
+              </div>
+            </div>
 
-        {/* 2. Heading: "Link created !" */}
-        <div className="space-y-1.5">
-          <h3 className="text-2xl sm:text-3xl font-black text-[#B90101] tracking-tight">
-            Link created !
-          </h3>
-          <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 font-medium leading-relaxed">
-            Share link with your friends
-            <br />
-            so they can choose their seats.
-          </p>
-        </div>
+            <div className="space-y-1.5">
+              <h3 className="text-2xl sm:text-3xl font-black text-[#B90101] tracking-tight">
+                Name Your Squad
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 font-medium leading-relaxed">
+                Give your squad a custom name before sharing the invite link.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmitName} className="space-y-4 max-w-sm mx-auto pt-1">
+              <div className="text-left space-y-1.5">
+                <label className="text-[11px] font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 pl-1">
+                  Squad Name
+                </label>
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="e.g. Movie Gang, Dara & Friends..."
+                  maxLength={40}
+                  className="w-full px-5 py-3 rounded-full border border-neutral-300 dark:border-(--border-dark-mode) bg-neutral-100/80 dark:bg-white/5 text-neutral-900 dark:text-white text-sm font-bold focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                  autoFocus
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !nameInput.trim()}
+                className="w-full py-3 px-8 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 shadow-md border border-white/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>Creating Squad...</span>
+                  </>
+                ) : (
+                  <span>Create Squad & Get Link</span>
+                )}
+              </button>
+            </form>
+          </div>
+        ) : (
+          /* Step 2: Link Created */
+          <>
+            <div className="flex justify-center pt-2">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#B90101]/15 dark:bg-[#B90101]/25 border border-[#B90101]/30 flex items-center justify-center shadow-inner backdrop-blur-md">
+                <svg
+                  className="w-12 h-12 sm:w-14 sm:h-14 text-[#B90101]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={3.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="text-2xl sm:text-3xl font-black text-[#B90101] tracking-tight">
+                Link created !
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 font-medium leading-relaxed">
+                Share link for <strong className="text-[#B90101] font-bold">{groupName || "your squad"}</strong>
+                <br />
+                so your friends can choose their seats.
+              </p>
+            </div>
 
         {/* 3. Rounded Pill Link Input with Copy Icon (Uses Glassmorphism tokens) */}
         <div
@@ -437,6 +513,8 @@ export default function GroupBookingLinkModal({
             Continue
           </button>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

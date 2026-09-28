@@ -14,7 +14,7 @@ export default function TeamSection() {
         </div>
       </ScrollReveal>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 justify-items-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-5   justify-items-center">
         {TEAM_MEMBERS.map((member, index) => (
           <ScrollReveal
             key={member.id}

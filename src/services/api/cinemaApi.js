@@ -87,6 +87,54 @@ export const cinemaApi = baseApi.injectEndpoints({
       providesTags: (result, error, showtimeUuid) => [
         { type: "Seat", id: showtimeUuid },
       ],
+      async onCacheEntryAdded(
+        showtimeUuid,
+        { cacheDataLoaded, cacheEntryRemoved, getState, dispatch }
+      ) {
+        try {
+          await cacheDataLoaded;
+        } catch {
+          return;
+        }
+
+        const token =
+          getState()?.auth?.accessToken ?? sessionStorage.getItem("accessToken");
+        if (!token) return;
+
+        let ws;
+        try {
+          ws = new WebSocket("wss://cinema-booking-api.eunglyzhia.com/ws");
+
+          ws.onopen = () => {
+            ws.send(
+              `CONNECT\naccept-version:1.2,1.1,1.0\nAuthorization:Bearer ${token}\n\n\0`
+            );
+          };
+
+          ws.onmessage = (event) => {
+            const msg = typeof event.data === "string" ? event.data : "";
+            if (msg.startsWith("CONNECTED")) {
+              ws.send(
+                `SUBSCRIBE\nid:sub-seats-${showtimeUuid}\ndestination:/topic/showtimes/${showtimeUuid}/seats\n\n\0`
+              );
+              return;
+            }
+            dispatch(
+              baseApi.util.invalidateTags([{ type: "Seat", id: showtimeUuid }])
+            );
+          };
+        } catch (err) {
+          console.warn("Seat WebSocket error:", err);
+        }
+
+        await cacheEntryRemoved;
+        if (ws && ws.readyState === 1) {
+          try {
+            ws.send(`UNSUBSCRIBE\nid:sub-seats-${showtimeUuid}\n\n\0`);
+            ws.close();
+          } catch {}
+        }
+      },
     }),
 
     // Admin: Create a new showtime
@@ -248,22 +296,12 @@ export const cinemaApi = baseApi.injectEndpoints({
 
     // Create payment order for a booking (path param bookingUuid)
     createPayment: builder.mutation({
-      query: (arg) => {
-        const bookingUuid = typeof arg === "string" ? arg : arg?.bookingUuid;
-        if (
-          !bookingUuid ||
-          bookingUuid === "undefined" ||
-          bookingUuid === "null"
-        ) {
-          throw new Error("Invalid bookingUuid provided to createPayment");
-        }
-        return {
-          url: `/bookings/${bookingUuid}/payments`,
-          method: "POST",
-        };
-      },
-      invalidatesTags: ["Payment", "Booking"],
-    }),
+  query: (bookingUuid) => ({
+    url: `/bookings/${bookingUuid}/payments`,
+    method: "POST",
+  }),
+  invalidatesTags: ["Payment", "Booking"],
+}),
 
     // Get payment details by payment UUID
     getPaymentByUuid: builder.query({
@@ -483,6 +521,148 @@ export const cinemaApi = baseApi.injectEndpoints({
         body: formData,
       }),
     }),
+
+    // ==========================================
+    // 11. GROUP BOOKINGS (group-booking-controller)
+    // ==========================================
+
+    // 1. Create a group booking: POST /group-bookings
+    createGroupBooking: builder.mutation({
+      query: (data) => ({
+        url: "/group-bookings",
+        method: "POST",
+        body: data, // { showtimeUuid, name }
+      }),
+      invalidatesTags: ["GroupBooking"],
+    }),
+
+    // 2. Open invitation information: GET /group-bookings/invitations/{inviteToken}
+    getGroupInvitation: builder.query({
+      query: (inviteToken) => `/group-bookings/invitations/${inviteToken}`,
+      providesTags: (result, error, inviteToken) => [
+        { type: "GroupBooking", id: `INVITE_${inviteToken}` },
+      ],
+    }),
+
+    // 3. Join the group: POST /group-bookings/join/{inviteToken}
+    joinGroupBooking: builder.mutation({
+      query: (inviteToken) => ({
+        url: `/group-bookings/join/${inviteToken}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["GroupBooking"],
+    }),
+
+    // 4. Get group information: GET /group-bookings/{groupUuid}
+    getGroupBookingByUuid: builder.query({
+      query: (groupUuid) => `/group-bookings/${groupUuid}`,
+      providesTags: (result, error, groupUuid) => [
+        { type: "GroupBooking", id: groupUuid },
+      ],
+    }),
+
+    // 5. Get group members: GET /group-bookings/{groupUuid}/members
+    getGroupMembers: builder.query({
+      query: (groupUuid) => `/group-bookings/${groupUuid}/members`,
+      providesTags: (result, error, groupUuid) => [
+        { type: "GroupBooking", id: `${groupUuid}_MEMBERS` },
+      ],
+    }),
+
+    // 8. Attach the created booking to the current group member: PUT /group-bookings/{groupUuid}/members/me/booking/{bookingUuid}
+    attachMemberBooking: builder.mutation({
+      query: ({ groupUuid, bookingUuid }) => ({
+        url: `/group-bookings/${groupUuid}/members/me/booking/${bookingUuid}`,
+        method: "PUT",
+      }),
+      invalidatesTags: (result, error, { groupUuid }) => [
+        { type: "GroupBooking", id: groupUuid },
+        { type: "GroupBooking", id: `${groupUuid}_MEMBERS` },
+      ],
+    }),
+
+    // 10. Non-host members mark themselves as ready: PATCH /group-bookings/{groupUuid}/members/me/ready
+    markMemberReady: builder.mutation({
+      query: (groupUuid) => ({
+        url: `/group-bookings/${groupUuid}/members/me/ready`,
+        method: "PATCH",
+      }),
+      invalidatesTags: (result, error, groupUuid) => [
+        { type: "GroupBooking", id: groupUuid },
+        { type: "GroupBooking", id: `${groupUuid}_MEMBERS` },
+      ],
+    }),
+
+    // 11. If a member wants to edit before the group is locked: PATCH /group-bookings/{groupUuid}/members/me/selecting
+    markMemberSelecting: builder.mutation({
+      query: (groupUuid) => ({
+        url: `/group-bookings/${groupUuid}/members/me/selecting`,
+        method: "PATCH",
+      }),
+      invalidatesTags: (result, error, groupUuid) => [
+        { type: "GroupBooking", id: groupUuid },
+        { type: "GroupBooking", id: `${groupUuid}_MEMBERS` },
+      ],
+    }),
+
+    // 12. The host checks that all members are ready, then locks the group: POST /group-bookings/{groupUuid}/lock
+    lockGroupBooking: builder.mutation({
+      query: (groupUuid) => ({
+        url: `/group-bookings/${groupUuid}/lock`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, groupUuid) => [
+        { type: "GroupBooking", id: groupUuid },
+        { type: "GroupBooking", id: `${groupUuid}_MEMBERS` },
+      ],
+    }),
+
+    // ==========================================
+    // 12. GROUP PAYMENTS (group-payment-controller)
+    // ==========================================
+
+    // 13. Host creates the group payment: POST /group-bookings/{groupUuid}/payments
+    createGroupPayment: builder.mutation({
+      query: (groupUuid) => ({
+        url: `/group-bookings/${groupUuid}/payments`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, groupUuid) => [
+        { type: "GroupBooking", id: groupUuid },
+        "GroupPayment",
+      ],
+    }),
+
+    // Get group payment by UUID: GET /group-payments/{paymentUuid}
+    getGroupPaymentByUuid: builder.query({
+      query: (paymentUuid) => `/group-payments/${paymentUuid}`,
+      providesTags: (result, error, paymentUuid) => [
+        { type: "GroupPayment", id: paymentUuid },
+      ],
+    }),
+
+    // 14. Get the KHQR image using the returned groupPaymentUuid: GET /group-payments/{paymentUuid}/qr
+    getGroupPaymentQr: builder.query({
+      query: (paymentUuid) => ({
+        url: `/group-payments/${paymentUuid}/qr`,
+        responseHandler: async (response) => {
+          const blob = await response.blob();
+          return URL.createObjectURL(blob);
+        },
+      }),
+      providesTags: (result, error, paymentUuid) => [
+        { type: "GroupPayment", id: `${paymentUuid}_QR` },
+      ],
+    }),
+
+    // 15. After payment, verify the transaction: POST /group-payments/{paymentUuid}/verify
+    verifyGroupPayment: builder.mutation({
+      query: (paymentUuid) => ({
+        url: `/group-payments/${paymentUuid}/verify`,
+        method: "POST",
+      }),
+      invalidatesTags: ["GroupBooking", "GroupPayment", "Booking", "Ticket"],
+    }),
   }),
   overrideExisting: false,
 });
@@ -575,4 +755,26 @@ export const {
 
   // 10. Files
   useUploadImageMutation,
+
+  // 11. Group Bookings
+  useCreateGroupBookingMutation,
+  useGetGroupInvitationQuery,
+  useLazyGetGroupInvitationQuery,
+  useJoinGroupBookingMutation,
+  useGetGroupBookingByUuidQuery,
+  useLazyGetGroupBookingByUuidQuery,
+  useGetGroupMembersQuery,
+  useLazyGetGroupMembersQuery,
+  useAttachMemberBookingMutation,
+  useMarkMemberReadyMutation,
+  useMarkMemberSelectingMutation,
+  useLockGroupBookingMutation,
+
+  // 12. Group Payments
+  useCreateGroupPaymentMutation,
+  useGetGroupPaymentByUuidQuery,
+  useLazyGetGroupPaymentByUuidQuery,
+  useGetGroupPaymentQrQuery,
+  useLazyGetGroupPaymentQrQuery,
+  useVerifyGroupPaymentMutation,
 } = cinemaApi;

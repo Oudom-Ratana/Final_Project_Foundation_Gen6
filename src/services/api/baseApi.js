@@ -8,6 +8,7 @@ const CINEMA_API_BASE =
   import.meta.env.VITE_CINEMA_API_BASE_URL ||
   "https://cinema-booking-api.eunglyzhia.com/api/v1";
 
+
 // Checks if the endpoint belongs to the Teacher's Cinema Booking API
 const isCinemaApiEndpoint = (url) => {
   if (typeof url !== "string") return false;
@@ -23,6 +24,9 @@ const isCinemaApiEndpoint = (url) => {
     url.startsWith("/tickets") ||
     url.startsWith("/payments") ||
     url.startsWith("/files") ||
+    url.startsWith("/group-bookings") ||
+    url.startsWith("/group-payments") ||
+    url.startsWith("/cinema-api") ||
     url.startsWith("/api/v1")
   );
 };
@@ -39,28 +43,20 @@ const tmdbBaseQuery = fetchBaseQuery({
   },
 });
 
-// Teacher's Base Query: prepareHeaders reading accessToken from Redux State or Storage
+// Teacher's Base Query: prepareHeaders reading accessToken from Redux State or sessionStorage
 const cinemaBaseQuery = fetchBaseQuery({
   baseUrl: CINEMA_API_BASE,
   prepareHeaders: (header, { getState }) => {
-    const rawToken =
-      getState()?.auth?.accessToken ||
-      getState()?.auth?.token ||
-      sessionStorage.getItem("accessToken") ||
-      localStorage.getItem("accessToken");
-    const token = typeof rawToken === "string" ? rawToken.trim() : "";
-
-    if (token && token !== "Bearer" && token.length > 5) {
-      header.set(
-        "Authorization",
-        token.startsWith("Bearer ") ? token : `Bearer ${token}`,
-      );
+    const accessToken =
+      getState()?.auth?.accessToken || sessionStorage.getItem("accessToken");
+    if (accessToken) {
+      header.set("Authorization", `Bearer ${accessToken}`);
     }
     return header;
   },
 });
 
-// Teacher's baseQueryWithReAuth pattern with sessionStorage
+// Teacher's exact baseQueryWithReAuth
 const baseQueryWithReAuth = async (args, api, extraOptions) => {
   const url = typeof args === "string" ? args : args?.url || "";
 
@@ -72,47 +68,39 @@ const baseQueryWithReAuth = async (args, api, extraOptions) => {
   // 2. Execute request with Teacher's cinema baseQuery
   let result = await cinemaBaseQuery(args, api, extraOptions);
 
-  // 3. If 401 Unauthorized, use Teacher's refresh token flow
+  // 3. If 401 Unauthorized, use Teacher's exact fetch refresh logic
   if (result?.error?.status === 401) {
     const refreshToken = sessionStorage.getItem("refreshToken");
 
-    if (
-      refreshToken &&
-      !url.includes("/auth/refresh") &&
-      !url.includes("/auth/login")
-    ) {
-      // Use RTK Query's cinemaBaseQuery instead of native fetch
-      const refreshResult = await cinemaBaseQuery(
-        {
-          url: "/auth/refresh",
-          method: "POST",
-          body: {
-            refreshToken: refreshToken,
-          },
+    if (refreshToken && !url.includes("/auth/")) {
+      const res = await fetch(`${CINEMA_API_BASE}/auth/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        api,
-        extraOptions,
-      );
+        body: JSON.stringify({
+          refreshToken: refreshToken,
+        }),
+      });
 
-      if (refreshResult?.data?.accessToken) {
-        const newAccessToken = refreshResult.data.accessToken;
-        console.log("==> new accessToken:", newAccessToken);
-        api.dispatch(setAccessToken(newAccessToken));
+      if (res.ok) {
+        const data = await res.json();
+        console.log("==> new accessToken:", data?.accessToken);
 
-        if (refreshResult.data.refreshToken) {
-          sessionStorage.setItem(
-            "refreshToken",
-            refreshResult.data.refreshToken,
-          );
+        // Store new accessToken in Redux and sessionStorage
+        api.dispatch(setAccessToken(data?.accessToken));
+        sessionStorage.setItem("accessToken", data?.accessToken);
+
+        if (data?.refreshToken) {
+          sessionStorage.setItem("refreshToken", data.refreshToken);
         }
 
-        // Retry the original query with the new token via RTK Query
+        // Automatically retry original query with the new token
         result = await cinemaBaseQuery(args, api, extraOptions);
       } else {
+        // Only log out if refresh token is genuinely invalid or expired on server
         api.dispatch(logout());
       }
-    } else if (result?.error?.status === 401 && !url.includes("/auth/login")) {
-      api.dispatch(logout());
     }
   }
 
@@ -138,6 +126,8 @@ export const baseApi = createApi({
     "Auth",
     "User",
     "Favorite",
+    "GroupBooking",
+    "GroupPayment",
   ],
   endpoints: () => ({}),
 });
