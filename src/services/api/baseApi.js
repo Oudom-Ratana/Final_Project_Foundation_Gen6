@@ -20,7 +20,7 @@ const isCinemaApiEndpoint = (url) => {
     url.startsWith("/halls") ||
     url.startsWith("/seats") ||
     url.startsWith("/bookings") ||
-    url.startsWith("/concessions") ||
+    url.startsWith("/concession") ||
     url.startsWith("/tickets") ||
     url.startsWith("/payments") ||
     url.startsWith("/files") ||

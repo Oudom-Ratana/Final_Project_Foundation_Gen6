@@ -233,6 +233,12 @@ export default function BookingConfirmedPage() {
     0,
   );
   const totalPaid = ticketsTotal + concessionsTotal;
+  const displayTotal =
+    bookingData?.totalPrice ??
+    bookingData?.totalAmount ??
+    (searchParams.get('total') ? Number(searchParams.get('total')) : null) ??
+    (searchParams.get('amount') ? Number(searchParams.get('amount')) : null) ??
+    totalPaid;
 
   const dispatch = useDispatch();
 
@@ -601,19 +607,14 @@ export default function BookingConfirmedPage() {
                 </div>
               </div>
 
-              {/* Bottom Red Footer */}
-              <div className="bg-[#B90101] text-white py-3 px-6 flex items-center justify-center gap-2.5 shrink-0">
-                <div className="w-6 h-6 rounded-full bg-white text-[#B90101] flex items-center justify-center shrink-0 shadow-xs">
-                  <Ticket className="w-3.5 h-3.5 text-[#B90101]" />
-                </div>
-                <div className="flex flex-col leading-none text-left">
-                  <span className="font-black text-xs tracking-wider uppercase">
-                    FilmZone
-                  </span>
-                  <span className="text-[9px] font-bold tracking-widest uppercase opacity-90">
-                    Cinema
-                  </span>
-                </div>
+              {/* Bottom Red Footer: Total Money */}
+              <div className="bg-[#B90101] text-white py-3 px-6 flex items-center justify-between shrink-0">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-white/90">
+                  Total Amount
+                </span>
+                <span className="text-base sm:text-lg font-black tracking-wide text-white">
+                  ${(Number(displayTotal) || 0).toFixed(2)}
+                </span>
               </div>
             </div>
 

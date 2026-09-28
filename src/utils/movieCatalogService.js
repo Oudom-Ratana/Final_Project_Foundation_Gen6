@@ -4,9 +4,7 @@ import { TMDB_100_MOVIES } from "./tmdbCatalog";
 const STORAGE_KEY = "admin_movies_catalog";
 const CATALOG_EVENT = "filmzone_catalog_updated";
 
-/**
- * Get all active movies set by Admin (or fallback safely to full 100 TMDB movies)
- */
+
 export function getStoredMovies() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);

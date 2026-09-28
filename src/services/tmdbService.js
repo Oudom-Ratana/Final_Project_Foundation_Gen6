@@ -1,9 +1,5 @@
-/**
- * Live TMDB Cloud API Service
- * Handles live searching, details, and fetching directly from TMDB's cloud servers.
- */
 
-// Reads from .env (Vite) or user-saved key in localStorage
+
 export const getTmdbApiKey = () => {
   return (
     import.meta.env.VITE_TMDB_API_READ_ACCESS_TOKEN ||
@@ -22,11 +18,7 @@ export const setTmdbApiKey = (key) => {
   }
 };
 
-/**
- * Live Dynamic Search on TMDB Cloud Database
- * @param {string} query Search keyword (e.g. "Avatar", "Deadpool", "Inception")
- * @param {number} page Page number (default 1)
- */
+
 export async function searchLiveTmdb(query, page = 1) {
   if (!query || !query.trim()) return { results: [], total_results: 0 };
 

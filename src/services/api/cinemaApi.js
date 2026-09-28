@@ -190,6 +190,62 @@ export const cinemaApi = baseApi.injectEndpoints({
     }),
 
     // ==========================================
+    // STANDALONE CONCESSION PRE-ORDERS (/deals flow)
+    // ==========================================
+
+    // Get customer's upcoming confirmed bookings eligible for snack pre-orders
+    getEligibleBookings: builder.query({
+      query: () => "/concession-orders/eligible-bookings",
+      providesTags: ["Booking", "ConcessionOrder"],
+    }),
+
+    // Create standalone concession pre-order linked to a confirmed booking
+    createPostBookingConcessionOrder: builder.mutation({
+      query: ({ bookingUuid, items }) => ({
+        url: "/concession-orders",
+        method: "POST",
+        body: { bookingUuid, items },
+      }),
+      invalidatesTags: ["ConcessionOrder"],
+    }),
+
+    // Generate Bakong KHQR for standalone concession order
+    createConcessionPayment: builder.mutation({
+      query: (concessionOrderUuid) => ({
+        url: `/concession-payments/orders/${concessionOrderUuid}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["ConcessionPayment"],
+    }),
+
+    // Verify Bakong KHQR payment for concession order
+    verifyConcessionPayment: builder.mutation({
+      query: (paymentUuid) => ({
+        url: `/concession-payments/${paymentUuid}/verify`,
+        method: "POST",
+      }),
+      invalidatesTags: ["ConcessionPayment", "ConcessionInvoice"],
+    }),
+
+    // Get snack pickup pass invoice for an order
+    getConcessionInvoice: builder.query({
+      query: (orderUuid) => `/concession-invoices/orders/${orderUuid}`,
+      providesTags: (result, error, orderUuid) => [
+        { type: "ConcessionInvoice", id: orderUuid },
+      ],
+    }),
+
+    // Counter staff: pickup scan by qrToken
+    pickupConcession: builder.mutation({
+      query: ({ qrToken }) => ({
+        url: "/concession-invoices/pickup",
+        method: "POST",
+        body: { qrToken },
+      }),
+      invalidatesTags: ["ConcessionInvoice"],
+    }),
+
+    // ==========================================
     // 5. CONCESSIONS CATALOG (concession-controller)
     // ==========================================
 
@@ -570,9 +626,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // ==========================================
-    // 12. GROUP PAYMENTS (group-payment-controller)
-    // ==========================================
 
     // 13. Host creates the group payment: POST /group-bookings/{groupUuid}/payments
     createGroupPayment: builder.mutation({
@@ -655,6 +708,16 @@ export const {
   useLazyGetBookingConcessionOrderQuery,
   useUpsertBookingConcessionOrderMutation,
   useRemoveBookingConcessionOrderMutation,
+
+  // Standalone Concession Pre-Orders (/deals flow)
+  useGetEligibleBookingsQuery,
+  useLazyGetEligibleBookingsQuery,
+  useCreatePostBookingConcessionOrderMutation,
+  useCreateConcessionPaymentMutation,
+  useVerifyConcessionPaymentMutation,
+  useGetConcessionInvoiceQuery,
+  useLazyGetConcessionInvoiceQuery,
+  usePickupConcessionMutation,
 
   // 5. Concessions Catalog
   useGetAllConcessionsQuery,

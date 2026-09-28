@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { Clock, ArrowLeft, User, Users } from "lucide-react";
+import { Clock } from "lucide-react";
 import {
   toggleSeat,
   clearSeats,
@@ -14,6 +14,7 @@ import {
   selectBooking,
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
+import { selectIsAuthenticated } from "../../redux/slices/authSlice";
 import {
   cinemaApi,
   useGetShowtimeSeatsQuery,
@@ -27,36 +28,9 @@ import {
   useGetShowtimeByUuidQuery,
 } from "../../services/api/cinemaApi";
 
-// Clean extraction of seat labels from member or booking payload
-const extractSeatLabels = (target) => {
-  if (!target) return [];
-  if (Array.isArray(target)) {
-    return target.flatMap(extractSeatLabels);
-  }
-  if (typeof target === "string") {
-    return target.includes(",") ? target.split(",").map((s) => s.trim()) : [target];
-  }
-  if (Array.isArray(target.seats)) {
-    return target.seats.flatMap(extractSeatLabels);
-  }
-  if (Array.isArray(target.seatLabels)) {
-    return target.seatLabels.flatMap(extractSeatLabels);
-  }
-  if (Array.isArray(target.tickets)) {
-    return target.tickets.flatMap((t) => extractSeatLabels(t.seatLabel ?? t.seat ?? t));
-  }
-  if (target.seatLabel) {
-    return [target.seatLabel];
-  }
-  if (target.rowLabel && target.seatNumber) {
-    return [`${target.rowLabel}${target.seatNumber}`];
-  }
-  return [];
-};
-import { selectIsAuthenticated } from "../../redux/slices/authSlice";
-
-// Modular Subcomponents & Data
-import BookingStepper from "../../components/booking/BookingStepper";
+// Modular Utilities & Subcomponents
+import { extractSeatLabels, buildGroupSeatAvatars } from "../../utils/seatUtils";
+import SeatSelectionHeader from "../../components/booking/SeatSelectionHeader";
 import ScreenCurve from "../../components/booking/ScreenCurve";
 import SeatLegend from "../../components/booking/SeatLegend";
 import SeatPricingCards from "../../components/booking/SeatPricingCards";
@@ -95,7 +69,7 @@ export default function SeatSelectionPage() {
 
   const booking = useSelector(selectBooking);
   const reduxMovie = booking?.movie;
-  
+
   // Fetch showtime to resolve movie UUID from Teacher API
   const { data: showtimeDetails } = useGetShowtimeByUuidQuery(showtimeUuid, {
     skip: !showtimeUuid,
@@ -111,14 +85,13 @@ export default function SeatSelectionPage() {
     }
   }, [cinemaMovie, dispatch]);
 
-  // Redux Selected Seats & Theme
   const selectedSeats = useSelector(selectSelectedSeats);
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
-    const rawPrice = searchParams.get("price");
+  const rawPrice = searchParams.get("price");
   const ticketPrice = rawPrice
     ? parseFloat(rawPrice)
     : hallType === "gold"
@@ -203,7 +176,7 @@ export default function SeatSelectionPage() {
     pollingInterval: 3000,
   });
 
-  // Auto-detect if any locally selected seat was taken by another customer and remove it cleanly
+  // Auto-detect if any locally selected seat was taken by another customer
   useEffect(() => {
     if (apiSeats.length > 0 && selectedSeats.length > 0) {
       const conflicting = selectedSeats.filter((s) => {
@@ -233,109 +206,16 @@ export default function SeatSelectionPage() {
     dispatch(clearSeats());
   }, [movieId, time, date, hallType, bookingType, showtimeUuid, dispatch]);
 
-  // Group seat avatars: displays avatars for squad members across devices
+  // Group seat visualizer mapping
   const groupSeatAvatars = useMemo(() => {
-    if (bookingType !== "group") return {};
-
-    const map = {};
-
-    const userName = currentUser?.firstName
-      ? `${currentUser.firstName} ${currentUser.lastName ?? ""}`.trim()
-      : (currentUser?.name ?? "You");
-    const userInitials = (userName[0] ?? "U").toUpperCase();
-    const storedUserAvatar = currentUser?.uuid
-      ? localStorage.getItem(`user_avatar_${currentUser.uuid}`)
-      : null;
-    const userAvatar =
-      currentUser?.avatar ??
-      storedUserAvatar ??
-      currentUser?.profileImage ??
-      currentUser?.imageUrl ??
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=FFD700&color=000&bold=true`;
-
-    const currentUserId = currentUser?.uuid ?? currentUser?.id ?? "me";
-    const palette = ["#10B981", "#6366F1", "#EC4899", "#F59E0B", "#3B82F6", "#8B5CF6", "#14B8A6"];
-
-    // 1. Map squad members from server (Teacher API groupMembers + resolved memberSeatsMap)
-    if (activeGroupUuid && Array.isArray(groupMembers) && groupMembers.length > 0) {
-      groupMembers.forEach((member, index) => {
-        const mUserUuid = member.userUuid ?? member.uuid;
-        if (mUserUuid === currentUserId || member.uuid === currentUserId) return;
-
-        const memberKey = member.uuid ?? member.userUuid;
-        const memberSeats = memberSeatsMap[memberKey] ?? extractSeatLabels(member.seats ?? member.booking);
-
-        if (Array.isArray(memberSeats) && memberSeats.length > 0) {
-          const memberColor = palette[index % palette.length];
-          const memberName = member.firstName
-            ? `${member.firstName} ${member.lastName ?? ""}`.trim()
-            : (member.name ?? `Friend ${index + 1}`);
-          const memberInitial = (memberName[0] ?? "F").toUpperCase();
-          const memberAvatar =
-            member.avatarUrl ??
-            member.avatar ??
-            member.profileImage ??
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(memberName)}&background=${memberColor.replace("#", "")}&color=fff&size=128&bold=true`;
-
-          memberSeats.forEach((seatId) => {
-            map[seatId] = {
-              avatar: memberAvatar,
-              color: memberColor,
-              name: memberName,
-              initials: memberInitial,
-              isLocked: true, // Teammates cannot override or click another member's seat
-            };
-          });
-        }
-      });
-    }
-
-    // 2. Also map localStorage squad data for instant multi-tab sync
-    if (activeGroupUuid) {
-      try {
-        const groupSeatsKey = `group_seats_${activeGroupUuid}`;
-        const rawSquad = localStorage.getItem(groupSeatsKey);
-        const squadData = rawSquad ? JSON.parse(rawSquad) : {};
-
-        Object.entries(squadData).forEach(([uId, data], index) => {
-          if (uId !== currentUserId && Array.isArray(data?.seats)) {
-            const memberColor = palette[index % palette.length];
-            const memberName = data.userName ?? `Friend ${index + 1}`;
-            const memberInitial = (memberName[0] ?? "F").toUpperCase();
-            const memberAvatar =
-              data.avatar ??
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(memberName)}&background=${memberColor.replace("#", "")}&color=fff&size=128&bold=true`;
-
-            data.seats.forEach((seatId) => {
-              if (!map[seatId]) {
-                map[seatId] = {
-                  avatar: memberAvatar,
-                  color: memberColor,
-                  name: memberName,
-                  initials: memberInitial,
-                  isLocked: true,
-                };
-              }
-            });
-          }
-        });
-      } catch {
-        // Safe fallback
-      }
-    }
-
-    // 3. Current user's selected seats get the gold ring avatar
-    selectedSeats.forEach((seat) => {
-      map[seat.id] = {
-        avatar: userAvatar,
-        color: "#FFD700",
-        name: userName,
-        initials: userInitials,
-        isLocked: false,
-      };
+    return buildGroupSeatAvatars({
+      bookingType,
+      selectedSeats,
+      currentUser,
+      activeGroupUuid,
+      groupMembers,
+      memberSeatsMap,
     });
-
-    return map;
   }, [bookingType, selectedSeats, currentUser, activeGroupUuid, groupMembers, memberSeatsMap]);
 
   // Switch Booking Type (Standard vs Group)
@@ -361,7 +241,7 @@ export default function SeatSelectionPage() {
     navigate(`/booking/seats?${params.toString()}`, { replace: true });
   };
 
-  // Callback when Host confirms squad name in GroupBookingLinkModal
+  // Callback when Host confirms squad name
   const handleCreateSquad = async (customName) => {
     if (!showtimeUuid) return;
     try {
@@ -392,8 +272,6 @@ export default function SeatSelectionPage() {
     seatsToToggle.forEach((seat) => {
       const seatId = seat.seatLabel;
 
-      // Seat selection in group mode
-
       dispatch(
         toggleSeat({
           id: seatId,
@@ -407,7 +285,6 @@ export default function SeatSelectionPage() {
     });
   };
 
-  // Each user chooses their own seat and pays for their own seat!
   const isGroupDiscount = bookingType === "group" && selectedSeats.length >= 4;
   const rawTotalPrice = useMemo(() => {
     return selectedSeats.reduce((acc, seat) => acc + (seat.price ?? 0), 0);
@@ -445,7 +322,6 @@ export default function SeatSelectionPage() {
         expiresInSeconds = holdRes.expiresInSeconds ?? 300;
       }
 
-      // In Group Mode: immediately create booking & attach to squad for multi-device sync
       let bookingUuid = null;
       let bookingRef = null;
 
@@ -548,7 +424,6 @@ export default function SeatSelectionPage() {
       navigate(`/booking/details?${params.toString()}`);
     } catch (err) {
       console.error("Seat hold error:", err);
-      // Immediately refetch latest seats from server and clear conflicting local seats
       refetchSeats();
       dispatch(clearSeats());
       const msg =
@@ -600,93 +475,27 @@ export default function SeatSelectionPage() {
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 space-y-8 pt-2">
-        {/* Top Navigation */}
-        <div className="flex items-center">
-          <button
-            type="button"
-            onClick={handleBackToMovie}
-            className="flex items-center gap-2 text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-[#B90101] dark:hover:text-[#B90101] transition cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-        </div>
+        {/* Modular Header */}
+        <SeatSelectionHeader
+          onBack={handleBackToMovie}
+          movieTitle={movie?.title}
+          branch={branch}
+          time={time}
+          hallType={hallType}
+          screenType={screenType}
+          bookingType={bookingType}
+          onBookingTypeChange={handleBookingTypeChange}
+        />
 
-        {/* 1. Top 4-Step Stepper */}
-        <BookingStepper currentStep={2} />
-
-        {/* 2. Sub-header: "Select Seat(s)" + Live Countdown Timer */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="space-y-0.5">
-            <h1 className="text-base sm:text-lg font-black text-[#B90101] tracking-tight">
-              Select Seat(s)
-            </h1>
-            {movie?.title && (
-              <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
-                {movie.title} • {branch} • {time}
-              </p>
-            )}
-          </div>
-
-          {/* Hall & Format Pill */}
-          <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-neutral-300/80 dark:border-white/10 text-neutral-700 dark:text-neutral-300 font-bold text-xs bg-neutral-100 dark:bg-white/5 shadow-xs">
-            <span className="tracking-wide">
-              {hallType === "gold"
-                ? "Gold Class VIP"
-                : `${screenType} Standard`}
-            </span>
-          </div>
-        </div>
-
-        {/* Booking Type Switcher Bar (Standard Booking vs Group Booking) */}
-        <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-200/80  shadow-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-xs sm:text-sm font-bold text-neutral-600 dark:text-neutral-400">
-              Booking Type:
-            </span>
-          </div>
-
-          <div className="inline-flex p-1 rounded-full bg-neutral-100/50 border border-neutral-300 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => handleBookingTypeChange("standard")}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-                bookingType === "standard"
-                  ? "bg-[#B90101] text-white shadow-sm"
-                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-              }`}
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>Standard Booking</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleBookingTypeChange("group")}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-                bookingType === "group"
-                  ? "bg-[#B90101] text-white shadow-sm"
-                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              <span>Group Booking</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 3. Curved "Screen" Arc */}
+        {/* Curved Screen Arc */}
         <ScreenCurve />
 
-        {/* 4. Main Seating Pod */}
+        {/* Main Seating Pod */}
         <div
           className="w-full rounded-2xl sm:rounded-3xl border p-6 sm:p-10 shadow-sm overflow-x-auto backdrop-blur-md min-h-[350px] flex items-center justify-center"
           style={{
-            backgroundColor: isDark
-              ? "var(--primary-color-30)"
-              : "white",
-            borderColor: isDark
-              ? "var(--border-dark-mode)"
-              : "var(--border-light-mode)",
+            backgroundColor: isDark ? "var(--primary-color-30)" : "white",
+            borderColor: isDark ? "var(--border-dark-mode)" : "var(--border-light-mode)",
           }}
         >
           {isSeatsLoading ? (
@@ -720,17 +529,21 @@ export default function SeatSelectionPage() {
           )}
         </div>
 
-        {/* 5. Pricing Cards (Always shown in both Standard and Group Booking modes) */}
+        {/* Pricing Cards */}
         <SeatPricingCards hallType={hallType} price={ticketPrice} />
 
-        {/* 6. Legend: Standard or Group Legend with Live Presence */}
+        {/* Legend */}
         {bookingType === "group" ? (
-          <GroupSeatLegend mySeats={selectedSeats.map((s) => s.id)} members={groupMembers} onOpenInviteModal={() => setIsGroupModalOpen(true)} />
+          <GroupSeatLegend
+            mySeats={selectedSeats.map((s) => s.id)}
+            members={groupMembers}
+            onOpenInviteModal={() => setIsGroupModalOpen(true)}
+          />
         ) : (
           <SeatLegend />
         )}
 
-        {/* 7. Floating Checkout Bar (Charges only for current user's chosen seats) */}
+        {/* Floating Checkout Bar */}
         <BookingCheckoutBar
           selectedSeats={selectedSeats}
           totalPrice={totalPrice}
@@ -740,7 +553,7 @@ export default function SeatSelectionPage() {
           onProceed={handleProceed}
         />
 
-        {/* 8. Group Booking Link Modal Popup */}
+        {/* Group Booking Link Modal */}
         <GroupBookingLinkModal
           isOpen={isGroupModalOpen}
           onClose={() => setIsGroupModalOpen(false)}

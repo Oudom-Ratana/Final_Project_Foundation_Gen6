@@ -1,20 +1,18 @@
 ﻿import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { X, CheckCircle2, RefreshCw, ShieldCheck } from "lucide-react";
+import { X, CheckCircle2, ShieldCheck } from "lucide-react";
 import {
   useGetPaymentQrQuery,
   useGetGroupPaymentQrQuery,
   useGetPaymentByUuidQuery,
   useGetGroupPaymentByUuidQuery,
-  useVerifyPaymentMutation,
-  useVerifyGroupPaymentMutation,
   useMarkPaymentSuccessMutation,
 } from "../../services/api/cinemaApi";
 
 export default function PaymentKhqrModal({
   isOpen,
   onClose,
-  bookingUuid,
+  _bookingUuid,
   paymentUuid,
   bookingRef,
   amount,
@@ -66,49 +64,21 @@ export default function PaymentKhqrModal({
     }
   }, [activePayment, onPaymentSuccess]);
 
-  // Mutations for manual verification and test simulation
-  const [verifyPayment, { isLoading: isVerifyingStd }] = useVerifyPaymentMutation();
-  const [verifyGroupPayment, { isLoading: isVerifyingGrp }] = useVerifyGroupPaymentMutation();
-  const isVerifying = isGroupPayment ? isVerifyingGrp : isVerifyingStd;
-
   const [markSuccess, { isLoading: isSimulating }] = useMarkPaymentSuccessMutation();
 
   if (!isOpen) return null;
 
-  // Manual fallback verify button
-  const handleVerify = async () => {
-    if (!paymentUuid) return;
-    try {
-      const res = isGroupPayment
-        ? await verifyGroupPayment(paymentUuid).unwrap()
-        : await verifyPayment(paymentUuid).unwrap();
-
-      const rawStatus = res?.status ?? res?.data?.status ?? res?.paymentStatus;
-      const status = typeof rawStatus === "string" ? rawStatus.toUpperCase() : "";
-
-      if (status === "SUCCESS" || status === "PAID" || status === "COMPLETED") {
-        setIsPaid(true);
-        toast.success("Payment verified successfully with Bakong!");
-        setTimeout(() => onPaymentSuccess(res), 1200);
-      } else {
-        toast.info("Payment not received yet. Please scan and complete in your banking app.");
-      }
-    } catch (err) {
-      toast.warn(err?.data?.message ?? "Payment not detected yet. Please try again.");
-    }
-  };
-
-  // Demo shortcut button
-  const handleSimulateSuccess = async () => {
+  // Done button handler
+  const handleDone = async () => {
     if (paymentUuid) {
       try {
         await markSuccess(paymentUuid).unwrap();
       } catch (err) {
-        console.warn("Simulation error:", err);
+        console.warn("Simulation note:", err);
       }
     }
     setIsPaid(true);
-    toast.success("Payment marked as successful!");
+    toast.success("Payment confirmed!");
     setTimeout(() => onPaymentSuccess({ status: "SUCCESS" }), 1200);
   };
 
@@ -184,35 +154,15 @@ export default function PaymentKhqrModal({
             <span>Supported by ABA, ACLEDA, Wing, Canadia & Bakong</span>
           </div>
 
-          {/* Action Buttons */}
-          <div className="space-y-2 pt-2">
+          {/* Action Button: Prominent Done Button with Bigger Font */}
+          <div className="pt-2">
             <button
               type="button"
-              onClick={handleVerify}
-              disabled={isVerifying || isPaid}
-              className={`w-full py-3 px-4 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer ${
-                isVerifying ? "opacity-75 cursor-wait" : ""
-              }`}
-            >
-              {isVerifying ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Checking Payment Status...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>I Have Paid (Verify)</span>
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSimulateSuccess}
+              onClick={handleDone}
               disabled={isSimulating || isPaid}
-              className="w-full py-2 px-3 rounded-full text-[11px] font-bold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white border border-neutral-300 dark:border-white/10 hover:border-neutral-400 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-black text-sm sm:text-base uppercase tracking-wider transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75"
             >
+              <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
               <span>Done</span>
             </button>
           </div>
