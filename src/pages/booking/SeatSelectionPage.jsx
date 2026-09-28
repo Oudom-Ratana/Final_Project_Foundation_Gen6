@@ -192,7 +192,7 @@ export default function SeatSelectionPage() {
     };
   }, [activeGroupUuid, groupMembers, dispatch]);
 
-  // Real-time seat availability from Teacher API (Live WebSocket stream)
+  // Real-time seat availability from Teacher API
   const {
     data: apiSeats = [],
     isLoading: isSeatsLoading,
@@ -200,6 +200,7 @@ export default function SeatSelectionPage() {
     refetch: refetchSeats,
   } = useGetShowtimeSeatsQuery(showtimeUuid, {
     skip: !showtimeUuid,
+    pollingInterval: 3000,
   });
 
   // Auto-detect if any locally selected seat was taken by another customer and remove it cleanly
@@ -444,25 +445,36 @@ export default function SeatSelectionPage() {
         expiresInSeconds = holdRes.expiresInSeconds ?? 300;
       }
 
-      // In Group Mode: Immediately create booking & attach to squad so friend's avatar appears on seats for all devices
-      let memberBookingUuid = null;
+      // In Group Mode: immediately create booking & attach to squad for multi-device sync
+      let bookingUuid = null;
+      let bookingRef = null;
+
       if (activeGroupUuid && showtimeUuid && holdId) {
         try {
           const bookingRes = await createBooking({ showtimeUuid, holdId }).unwrap();
-          memberBookingUuid =
+          bookingUuid =
             bookingRes?.uuid ??
             bookingRes?.bookingUuid ??
             bookingRes?.data?.uuid ??
             bookingRes?.data?.bookingUuid;
+          bookingRef =
+            bookingRes?.bookingReference ??
+            bookingRes?.reference ??
+            bookingRes?.ticketQrToken?.slice(0, 8)?.toUpperCase() ??
+            (bookingUuid ? `FZ-${bookingUuid.slice(0, 8).toUpperCase()}` : null);
 
-          if (memberBookingUuid) {
-            await attachMemberBooking({
-              groupUuid: activeGroupUuid,
-              bookingUuid: memberBookingUuid,
-            }).unwrap();
+          if (bookingUuid) {
+            try {
+              await attachMemberBooking({
+                groupUuid: activeGroupUuid,
+                bookingUuid,
+              }).unwrap();
+            } catch (bookingErr) {
+              console.warn("Group booking creation/attachment note:", bookingErr);
+            }
           }
         } catch (bookingErr) {
-          console.warn("Group booking creation/attachment note:", bookingErr);
+          console.warn("Booking creation note:", bookingErr);
         }
       }
 
@@ -484,6 +496,7 @@ export default function SeatSelectionPage() {
           bookingType,
           showtimeUuid,
           holdId,
+          bookingUuid,
         }),
       );
 
@@ -498,8 +511,11 @@ export default function SeatSelectionPage() {
         params.set("holdId", holdId);
         params.set("expiresIn", String(expiresInSeconds));
       }
-      if (memberBookingUuid) {
-        params.set("bookingUuid", memberBookingUuid);
+      if (bookingUuid) {
+        params.set("bookingUuid", bookingUuid);
+      }
+      if (bookingRef) {
+        params.set("ref", bookingRef);
       }
       if (activeGroupUuid) {
         params.set("groupUuid", activeGroupUuid);

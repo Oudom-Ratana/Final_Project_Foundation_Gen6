@@ -25,6 +25,7 @@ import {
   useReleaseHoldMutation,
   useGetAllConcessionsQuery,
   useUpsertBookingConcessionOrderMutation,
+  useRemoveBookingConcessionOrderMutation,
   useAttachMemberBookingMutation,
   useMarkMemberReadyMutation,
   useMarkMemberSelectingMutation,
@@ -139,7 +140,7 @@ export default function BookingDetailsPage() {
 
   // Fetch live concessions menu from Teacher API via RTK Query
   const { data: apiConcessions, isLoading: isConcessionsLoading } =
-    useGetAllConcessionsQuery();
+    useGetAllConcessionsQuery(undefined, { refetchOnMountOrArgChange: true });
 
   const concessionsList = useMemo(() => {
     if (
@@ -258,7 +259,10 @@ export default function BookingDetailsPage() {
   const [hasExpired, setHasExpired] = useState(false);
 
   const handleExpiry = () => {
-    if (showtimeUuid && holdId) releaseHold({ showtimeUuid, holdId }).unwrap().catch(() => {});
+    const paramBookingUuid = searchParams.get("bookingUuid");
+    if (showtimeUuid && holdId && !paramBookingUuid) {
+      releaseHold({ showtimeUuid, holdId }).unwrap().catch(() => {});
+    }
     dispatch(clearSeats());
     dispatch(clearConcessions());
     toast.warn(
@@ -269,6 +273,8 @@ export default function BookingDetailsPage() {
     params.delete("expiresIn");
     params.delete("seats");
     params.delete("seatUuids");
+    params.delete("bookingUuid");
+    params.delete("ref");
     navigate(`/booking/seats?${params.toString()}`, { replace: true });
   };
 
@@ -295,7 +301,11 @@ export default function BookingDetailsPage() {
   }, [timeLeft, hasExpired]);
 
   const handleBack = () => {
-    if (showtimeUuid && holdId) releaseHold({ showtimeUuid, holdId }).unwrap().catch(() => {});
+    const paramBookingUuid = searchParams.get("bookingUuid");
+    // Release hold cleanly if booking was not created yet
+    if (showtimeUuid && holdId && !paramBookingUuid) {
+      releaseHold({ showtimeUuid, holdId }).unwrap().catch(() => {});
+    }
     // Reset seats and concessions in state and return to seat map
     dispatch(clearSeats());
     dispatch(clearConcessions());
@@ -304,6 +314,8 @@ export default function BookingDetailsPage() {
     params.delete("expiresIn");
     params.delete("seats");
     params.delete("seatUuids");
+    params.delete("bookingUuid");
+    params.delete("ref");
     navigate(`/booking/seats?${params.toString()}`, { replace: true });
   };
 
@@ -323,6 +335,8 @@ export default function BookingDetailsPage() {
 
   const [upsertBookingConcessionOrder] =
     useUpsertBookingConcessionOrderMutation();
+  const [removeBookingConcessionOrder] =
+    useRemoveBookingConcessionOrderMutation();
 
   const [createPayment, { isLoading: isCreatingPayment }] =
     useCreatePaymentMutation();
@@ -490,6 +504,12 @@ export default function BookingDetailsPage() {
             );
           } catch (concessionErr) {
             console.warn("Concession order sync note:", concessionErr);
+          }
+        } else {
+          try {
+            await removeBookingConcessionOrder(bookingUuid).unwrap();
+          } catch {
+            // Safe fallback if no concession order existed
           }
         }
 

@@ -86,55 +86,8 @@ export const cinemaApi = baseApi.injectEndpoints({
       query: (showtimeUuid) => `/showtimes/${showtimeUuid}/seats`,
       providesTags: (result, error, showtimeUuid) => [
         { type: "Seat", id: showtimeUuid },
+        "Seat",
       ],
-      async onCacheEntryAdded(
-        showtimeUuid,
-        { cacheDataLoaded, cacheEntryRemoved, getState, dispatch }
-      ) {
-        try {
-          await cacheDataLoaded;
-        } catch {
-          return;
-        }
-
-        const token =
-          getState()?.auth?.accessToken ?? sessionStorage.getItem("accessToken");
-        if (!token) return;
-
-        let ws;
-        try {
-          ws = new WebSocket("wss://cinema-booking-api.eunglyzhia.com/ws");
-
-          ws.onopen = () => {
-            ws.send(
-              `CONNECT\naccept-version:1.2,1.1,1.0\nAuthorization:Bearer ${token}\n\n\0`
-            );
-          };
-
-          ws.onmessage = (event) => {
-            const msg = typeof event.data === "string" ? event.data : "";
-            if (msg.startsWith("CONNECTED")) {
-              ws.send(
-                `SUBSCRIBE\nid:sub-seats-${showtimeUuid}\ndestination:/topic/showtimes/${showtimeUuid}/seats\n\n\0`
-              );
-              return;
-            }
-            dispatch(
-              baseApi.util.invalidateTags([{ type: "Seat", id: showtimeUuid }])
-            );
-          };
-        } catch (err) {
-          console.warn("Seat WebSocket error:", err);
-        }
-
-        await cacheEntryRemoved;
-        if (ws && ws.readyState === 1) {
-          try {
-            ws.send(`UNSUBSCRIBE\nid:sub-seats-${showtimeUuid}\n\n\0`);
-            ws.close();
-          } catch {}
-        }
-      },
     }),
 
     // Admin: Create a new showtime
