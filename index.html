@@ -3,43 +3,68 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=filmzone" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="/favicon-32.png?v=filmzone"
-    />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=filmzone" />
-    <link rel="shortcut icon" href="/favicon.ico?v=filmzone" />
-    <link rel="apple-touch-icon" href="/favicon-512.png?v=filmzone" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=filmzone-v3" />
-    <link rel="icon" type="image/png" sizes="any" href="/favicon-512.png?v=filmzone-v3" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=filmzone-v3" />
-    <link rel="apple-touch-icon" href="/favicon-512.png?v=filmzone-v3" />
+
+    <!-- Primary SEO -->
     <title>FilmZone - Cinema & Free Stream</title>
-    <!-- Google Sans Local Web Fonts (Zero external CDN dependency for 100% Vercel reliability) -->
-    <link
-      rel="preload"
-      href="/fonts/ProductSans-Regular.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
+    <meta
+      name="description"
+      content="FilmZone is your destination for cinema and free streaming. Discover trending movies and TV series, browse by genre, and watch anytime."
     />
-    <link
-      rel="preload"
-      href="/fonts/ProductSans-Bold.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
+    <meta
+      name="keywords"
+      content="FilmZone, movies, TV series, free stream, cinema, watch online, trending movies"
     />
-    <link
-      rel="preload"
-      href="/fonts/ProductSans-Medium.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
+    <meta name="author" content="FilmZone" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://filmzone-foundation-gen6.vercel.app" />
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <!-- Open Graph (Facebook, Telegram, LinkedIn, Discord, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FilmZone" />
+    <meta property="og:title" content="FilmZone - Cinema & Free Stream" />
+    <meta
+      property="og:description"
+      content="Discover trending movies and TV series, and stream for free on FilmZone."
     />
+    <meta property="og:url" content="https://filmzone-foundation-gen6.vercel.app" />
+    <meta property="og:image" content="https://filmzone-foundation-gen6.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="FilmZone - Cinema & Free Stream" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FilmZone - Cinema & Free Stream" />
+    <meta
+      name="twitter:description"
+      content="Discover trending movies and TV series, and stream for free on FilmZone."
+    />
+    <meta name="twitter:image" content="https://filmzone-foundation-gen6.vercel.app/og-image.png" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=filmzone-v3" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=filmzone-v3" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=filmzone-v3" />
+    <link rel="shortcut icon" href="/favicon.ico?v=filmzone-v3" />
+    <link rel="apple-touch-icon" href="/favicon-512.png?v=filmzone-v3" />
+
+    <!-- Structured data (helps Google understand the site) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "FilmZone",
+        "url": "https://filmzone-foundation-gen6.vercel.app",
+        "description": "Cinema and free streaming: discover trending movies and TV series."
+      }
+    </script>
+
+    <!-- Local fonts -->
+    <link rel="preload" href="/fonts/ProductSans-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ProductSans-Bold.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ProductSans-Medium.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body>
     <div id="root"></div>

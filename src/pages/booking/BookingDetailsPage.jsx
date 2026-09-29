@@ -1,61 +1,96 @@
-import { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+﻿import { useState, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams, useNavigate, useLocation } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { Clock, Plus, Minus, ArrowLeft } from "lucide-react";
+import { toast } from "react-toastify";
+import { Clock, CheckCircle2, Lock } from "lucide-react";
 import {
   selectSelectedSeats,
   selectBooking,
-  updateConcessionQuantity,
   setSelectedSeats,
   setBookingConfirmation,
+  setMovie,
+  clearSeats,
+  clearConcessions,
 } from "../../redux/slices/bookingSlice";
 import { selectTheme } from "../../redux/slices/uiSlice";
-import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
-import { useGetTVDetailsQuery } from "../../services/api/tvApi";
+import {
+  useCreateBookingMutation,
+  useCreatePaymentMutation,
+  useGetCinemaMovieByUuidQuery,
+  useReleaseHoldMutation,
+  useUpsertBookingConcessionOrderMutation,
+  useRemoveBookingConcessionOrderMutation,
+  useAttachMemberBookingMutation,
+  useMarkMemberReadyMutation,
+  useMarkMemberSelectingMutation,
+  useLockGroupBookingMutation,
+  useCreateGroupPaymentMutation,
+  useGetGroupBookingByUuidQuery,
+  useGetGroupMembersQuery,
+} from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
-import { CONCESSIONS } from "../../data/concessionsData";
-import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
+import PaymentKhqrModal from "../../components/booking/PaymentKhqrModal";
+import BookingFoodDrinksSelector from "../../components/booking/BookingFoodDrinksSelector";
+import BookingSummaryCard from "../../components/booking/BookingSummaryCard";
+import BookingSquadLobbyCard from "../../components/booking/BookingSquadLobbyCard";
 
 export default function BookingDetailsPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
 
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
   // Glassmorphic tokens
   const glassCardStyle = {
-    backgroundColor: isDark
-      ? "var(--primary-color-30)"
-      : "var(--primary-color-5)",
-    borderColor: isDark
-      ? "var(--border-dark-mode)"
-      : "var(--border-light-mode)",
+    backgroundColor: isDark ? "var(--primary-color-30)" : "white",
+    borderColor: isDark ? "var(--border-dark-mode)" : "var(--border-light-mode)",
   };
 
   // URL & Redux State
-  const movieId =
-    searchParams.get("movie") || searchParams.get("movieId") || "558449";
-  const hallType = (searchParams.get("hall") || "standard").toLowerCase();
-  const time = searchParams.get("time") || "06:30 PM";
-  const branch = searchParams.get("branch") || "FilmZone SenSok";
-  const date = searchParams.get("date") || "Sat, 6 Sep";
+  const movieId = searchParams.get("movie") ?? searchParams.get("movieId");
+  const hallType = (searchParams.get("hall") ?? "standard").toLowerCase();
+  const time = searchParams.get("time") ?? "06:30 PM";
+  const branch = searchParams.get("branch") ?? "FilmZone SenSok";
+  const date = searchParams.get("date") ?? "Sat, 6 Sep";
 
   const booking = useSelector(selectBooking);
   const reduxMovie = booking?.movie;
-  const isTV =
-    searchParams.get("mediaType") === "tv" ||
-    Boolean(
-      reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
-    );
 
-  const { data: movieData } = useGetMovieDetailsQuery(movieId, {
-    skip: !movieId || isTV || Boolean(reduxMovie?.id),
+  // Real Cinema Movie Query from Teacher API
+  const isUuid = Boolean(movieId && movieId.includes("-"));
+  const { data: cinemaMovie } = useGetCinemaMovieByUuidQuery(movieId, {
+    skip: !movieId || !isUuid,
   });
-  const { data: tvData } = useGetTVDetailsQuery(movieId, {
-    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
-  });
+
+  const normalizedCinemaMovie = useMemo(() => {
+    if (!cinemaMovie) return null;
+    return {
+      id: cinemaMovie.uuid,
+      uuid: cinemaMovie.uuid,
+      title: cinemaMovie.title,
+      posterUrl: cinemaMovie.posterUrl,
+      poster_path: cinemaMovie.posterUrl,
+      backdropUrl: cinemaMovie.backdropUrl,
+      backdrop_path: cinemaMovie.backdropUrl,
+      overview: cinemaMovie.overview,
+      runtime: cinemaMovie.runtimeMinutes,
+      releaseDate: cinemaMovie.releaseDate,
+    };
+  }, [cinemaMovie]);
+
+  const movie = normalizedCinemaMovie ?? reduxMovie ?? {
+    title: cinemaMovie?.title ?? "Movie Booking",
+    posterUrl: cinemaMovie?.posterUrl ?? null,
+  };
+
+  useEffect(() => {
+    if (normalizedCinemaMovie && reduxMovie?.uuid !== normalizedCinemaMovie.uuid) {
+      dispatch(setMovie(normalizedCinemaMovie));
+    }
+  }, [normalizedCinemaMovie, reduxMovie, dispatch]);
 
   const reduxSelectedSeats = useSelector(selectSelectedSeats);
   const seatsParam = searchParams.get("seats");
@@ -89,77 +124,86 @@ export default function BookingDetailsPage() {
     ];
   }, [reduxSelectedSeats, seatsParam, hallType]);
 
-  // Sync back to Redux if Redux was empty
   useEffect(() => {
-    if (
-      (!reduxSelectedSeats || reduxSelectedSeats.length === 0) &&
-      selectedSeats.length > 0
-    ) {
+    if ((!reduxSelectedSeats || reduxSelectedSeats.length === 0) && selectedSeats.length > 0) {
       dispatch(setSelectedSeats(selectedSeats));
     }
   }, [reduxSelectedSeats, selectedSeats, dispatch]);
 
-  const concessions = booking.concessions || [];
-
-  const movie = reduxMovie ||
-    (isTV ? tvData : movieData || tvData) || {
-      title: "Spider-Man: Brand New Day",
-      poster_path: null,
-    };
-
-  // Dynamic screenType: from query params, or booking slice, or inferred from BRANCH_SHOWTIMES
-  const resolvedScreenType = useMemo(() => {
-    const fromParam =
-      searchParams.get("screenType") || searchParams.get("format");
-    if (fromParam) return fromParam;
-
-    if (booking.showtime?.screenType) {
-      return booking.showtime.screenType;
-    }
-
-    // Look up in BRANCH_SHOWTIMES
-    const branchData = BRANCH_SHOWTIMES.find(
-      (b) =>
-        b.branchName.toLowerCase() === branch.toLowerCase() ||
-        b.location.toLowerCase() === branch.toLowerCase(),
-    );
-    if (branchData) {
-      for (const hall of branchData.halls) {
-        if (hall.times.includes(time)) {
-          return hall.screenType;
-        }
-      }
-    }
-
-    return hallType.includes("gold") ? "GOLD" : "2D";
-  }, [searchParams, booking.showtime, branch, time, hallType]);
-
+  const concessions = useMemo(() => booking.concessions ?? [], [booking.concessions]);
+  const resolvedScreenType = searchParams.get("screenType") ?? searchParams.get("format") ?? (hallType.includes("gold") ? "GOLD" : "2D");
   const hallNumber = hallType.includes("gold") ? "Hall 4" : "Hall 3";
   const hallName = `${resolvedScreenType} ${hallNumber}`;
 
-  // Seats Total
-  const ticketsTotal = selectedSeats.reduce(
-    (acc, s) => acc + (s.price || 4.0),
-    0,
-  );
-
-  // Concessions Total
-  const concessionsTotal = concessions.reduce(
-    (acc, c) => acc + c.price * c.quantity,
-    0,
-  );
-
-  // Combined Total
+  // Totals
+  const ticketsTotal = selectedSeats.reduce((acc, s) => acc + (s.price ?? 4.0), 0);
+  const concessionsTotal = concessions.reduce((acc, c) => acc + c.price * c.quantity, 0);
   const totalPaid = ticketsTotal + concessionsTotal;
 
-  // 3-Minute Live Countdown Timer
-  const [timeLeft, setTimeLeft] = useState(180);
+  // Countdown timer for 5-minute seat hold
+  const showtimeUuid = searchParams.get("showtimeUuid") ?? booking.showtime?.showtimeUuid;
+  const holdId = searchParams.get("holdId") ?? location.state?.holdId ?? booking.showtime?.holdId;
+  const initialExpiresIn = parseInt(searchParams.get("expiresIn"), 10) || location.state?.expiresInSeconds || 300;
+
+  const [createBooking, { isLoading: isCreatingBooking }] = useCreateBookingMutation();
+  const [releaseHold] = useReleaseHoldMutation();
+  const [timeLeft, setTimeLeft] = useState(initialExpiresIn);
+  const [hasExpired, setHasExpired] = useState(false);
+
+  const handleExpiry = useCallback(() => {
+    const paramBookingUuid = searchParams.get("bookingUuid");
+    if (showtimeUuid && holdId && !paramBookingUuid) {
+      releaseHold({ showtimeUuid, holdId }).unwrap().catch(() => {});
+    }
+    dispatch(clearSeats());
+    dispatch(clearConcessions());
+    toast.warn("Your 5-minute seat hold has expired. Please select your seats again.");
+    const params = new URLSearchParams(searchParams);
+    params.delete("holdId");
+    params.delete("expiresIn");
+    params.delete("seats");
+    params.delete("seatUuids");
+    params.delete("bookingUuid");
+    params.delete("ref");
+    navigate(`/booking/seats?${params.toString()}`, { replace: true });
+  }, [searchParams, showtimeUuid, holdId, releaseHold, dispatch, navigate]);
+
   useEffect(() => {
+    if (timeLeft <= 0) {
+      if (!hasExpired) {
+        setHasExpired(true);
+        handleExpiry();
+      }
+      return;
+    }
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [timeLeft, hasExpired, handleExpiry]);
+
+  const handleBack = () => {
+    const paramBookingUuid = searchParams.get("bookingUuid");
+    if (showtimeUuid && holdId && !paramBookingUuid) {
+      releaseHold({ showtimeUuid, holdId }).unwrap().catch(() => {});
+    }
+    dispatch(clearSeats());
+    dispatch(clearConcessions());
+    const params = new URLSearchParams(searchParams);
+    params.delete("holdId");
+    params.delete("expiresIn");
+    params.delete("seats");
+    params.delete("seatUuids");
+    params.delete("bookingUuid");
+    params.delete("ref");
+    navigate(`/booking/seats?${params.toString()}`, { replace: true });
+  };
 
   const formatTimer = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -167,306 +211,404 @@ export default function BookingDetailsPage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleAddConcession = (item) => {
-    dispatch(updateConcessionQuantity({ item, delta: 1 }));
+  // Group Booking State & Hooks
+  const groupUuid = searchParams.get("groupUuid");
+  const isGroupMode = (searchParams.get("type") || "").toLowerCase() === "group" || Boolean(groupUuid);
+  const currentUser = useSelector((state) => state.auth?.user);
+
+  const [upsertBookingConcessionOrder] = useUpsertBookingConcessionOrderMutation();
+  const [removeBookingConcessionOrder] = useRemoveBookingConcessionOrderMutation();
+  const [createPayment, { isLoading: isCreatingPayment }] = useCreatePaymentMutation();
+  const [attachMemberBooking] = useAttachMemberBookingMutation();
+  const [markMemberReady, { isLoading: isMarkingReady }] = useMarkMemberReadyMutation();
+  const [markMemberSelecting, { isLoading: isMarkingSelecting }] = useMarkMemberSelectingMutation();
+  const [lockGroupBooking, { isLoading: isLockingGroup }] = useLockGroupBookingMutation();
+  const [createGroupPayment, { isLoading: isCreatingGroupPayment }] = useCreateGroupPaymentMutation();
+
+  const { data: groupBooking } = useGetGroupBookingByUuidQuery(groupUuid, {
+    skip: !groupUuid,
+    pollingInterval: 2500,
+  });
+
+  const { data: groupMembers = [] } = useGetGroupMembersQuery(groupUuid, {
+    skip: !groupUuid,
+    pollingInterval: 2500,
+  });
+
+  const isHost = Boolean(
+    groupBooking &&
+    currentUser &&
+    [currentUser.uuid, currentUser.id].filter(Boolean).includes(groupBooking.hostUuid)
+  );
+
+  const [isMyBookingAttached, setIsMyBookingAttached] = useState(false);
+  const [squadPaymentAmount, setSquadPaymentAmount] = useState(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isGroupPaymentActive, setIsGroupPaymentActive] = useState(false);
+  const [activePaymentUuid, setActivePaymentUuid] = useState(null);
+  const [activeBookingUuid, setActiveBookingUuid] = useState(null);
+  const [activeBookingRef, setActiveBookingRef] = useState(null);
+
+  const myMember = useMemo(() => {
+    if (!Array.isArray(groupMembers) || !currentUser) return null;
+    const userIds = [currentUser.uuid, currentUser.id].filter(Boolean);
+    return groupMembers.find(
+      (m) => userIds.includes(m.userUuid) || userIds.includes(m.uuid)
+    );
+  }, [groupMembers, currentUser]);
+
+  const isMyReady = myMember?.status === "READY" || isMyBookingAttached;
+  const readyCount = groupBooking?.readyCount ?? groupMembers.filter((m) => m.status === "READY").length;
+  const totalMemberCount = Math.max(groupBooking?.memberCount ?? 0, groupMembers.length, 1);
+  const isSquadReady = totalMemberCount <= 1 || readyCount >= (totalMemberCount - 1);
+
+  const squadTicketsTotal = isGroupMode && isHost
+    ? (totalMemberCount * (selectedSeats[0]?.price ?? 4.0))
+    : ticketsTotal;
+  const displayTotal = isGroupMode && isHost
+    ? (squadPaymentAmount ?? (squadTicketsTotal + concessionsTotal))
+    : totalPaid;
+
+  const isSubmitting = [
+    isCreatingBooking,
+    isCreatingPayment,
+    isMarkingReady,
+    isLockingGroup,
+    isCreatingGroupPayment,
+  ].some(Boolean);
+
+  const handleEditSelection = async () => {
+    if (isGroupMode && groupUuid) {
+      try {
+        await markMemberSelecting(groupUuid).unwrap();
+        setIsMyBookingAttached(false);
+        toast.info("Status changed to SELECTING. You can adjust your snacks.");
+      } catch (err) {
+        console.warn("Change selecting note:", err);
+      }
+    }
   };
 
-  const handleRemoveConcession = (item) => {
-    dispatch(updateConcessionQuantity({ item, delta: -1 }));
-  };
-
-  const handleContinue = () => {
-    const bookingRef = `FZ-${Math.floor(100000 + Math.random() * 900000)}`;
+  const navigateToConfirmed = useCallback((bookingRef, bUuid) => {
     dispatch(setBookingConfirmation(bookingRef));
     const params = new URLSearchParams(searchParams);
     params.set("ref", bookingRef);
+    if (bUuid && bUuid !== "undefined" && bUuid !== "null") {
+      params.set("bookingUuid", bUuid);
+    } else {
+      params.delete("bookingUuid");
+    }
     params.set("screenType", resolvedScreenType);
     params.set("seats", selectedSeats.map((s) => s.id).join(","));
     if (concessions.length > 0) {
-      params.set(
-        "concessions",
-        encodeURIComponent(JSON.stringify(concessions)),
-      );
+      params.set("concessions", encodeURIComponent(JSON.stringify(concessions)));
     }
     navigate(`/booking/confirmed?${params.toString()}`);
+  }, [dispatch, searchParams, resolvedScreenType, selectedSeats, concessions, navigate]);
+
+  useEffect(() => {
+    if (isGroupMode && !isHost && groupBooking?.status === "CONFIRMED") {
+      toast.success("Host has completed group payment! Your booking is confirmed.");
+      const resolvedRef =
+        activeBookingRef ??
+        `FZ-${(groupBooking?.uuid ?? "").slice(0, 8).toUpperCase()}`;
+      navigateToConfirmed(resolvedRef, activeBookingUuid);
+    }
+  }, [
+    groupBooking?.status,
+    groupBooking?.uuid,
+    isGroupMode,
+    isHost,
+    activeBookingRef,
+    activeBookingUuid,
+    navigateToConfirmed,
+  ]);
+
+  const handleContinue = async () => {
+    try {
+      const paramBookingUuid = searchParams.get("bookingUuid");
+      let bookingUuid = paramBookingUuid && paramBookingUuid.length > 10 ? paramBookingUuid : null;
+      let bookingRef = searchParams.get("ref");
+
+      if (!bookingUuid && showtimeUuid && holdId) {
+        const res = await createBooking({ showtimeUuid, holdId }).unwrap();
+        bookingUuid =
+          res?.uuid ??
+          res?.bookingUuid ??
+          res?.data?.uuid ??
+          res?.data?.bookingUuid;
+        bookingRef =
+          res?.bookingReference ??
+          res?.reference ??
+          res?.ticketQrToken?.slice(0, 8)?.toUpperCase() ??
+          `FZ-${(bookingUuid ?? "").slice(0, 8).toUpperCase()}`;
+      }
+
+      if (!bookingRef && bookingUuid) {
+        bookingRef = `FZ-${bookingUuid.slice(0, 8).toUpperCase()}`;
+      }
+
+      if (bookingUuid) {
+        const validConcessionItems = concessions
+          .filter((c) => {
+            const cid = String(c.uuid ?? c.id ?? "");
+            return cid.includes("-");
+          })
+          .map((c) => ({
+            concessionItemUuid: c.uuid ?? c.id,
+            quantity: c.quantity,
+          }));
+
+        if (validConcessionItems.length > 0) {
+          try {
+            await upsertBookingConcessionOrder({
+              bookingUuid,
+              items: validConcessionItems,
+            }).unwrap();
+          } catch (concessionErr) {
+            console.warn("Concession order sync note:", concessionErr);
+          }
+        } else {
+          try {
+            await removeBookingConcessionOrder(bookingUuid).unwrap();
+          } catch {
+            // Safe fallback
+          }
+        }
+
+        if (isGroupMode && groupUuid) {
+          if (!isMyBookingAttached) {
+            try {
+              await attachMemberBooking({ groupUuid, bookingUuid }).unwrap();
+              setIsMyBookingAttached(true);
+              toast.success("Booking attached to squad!");
+            } catch (attachErr) {
+              console.warn("Attach booking note:", attachErr);
+            }
+          }
+
+          if (!isHost) {
+            try {
+              await markMemberReady(groupUuid).unwrap();
+              toast.success("You are marked as READY! Waiting for the host to complete squad payment.");
+            } catch (readyErr) {
+              toast.info(readyErr?.data?.message ?? "Status updated to ready.");
+            }
+            return;
+          }
+
+          try {
+            await lockGroupBooking(groupUuid).unwrap();
+            toast.info("Group locked for payment.");
+
+            const groupPayRes = await createGroupPayment(groupUuid).unwrap();
+            const paymentUuid = groupPayRes?.uuid ?? groupPayRes?.paymentUuid;
+            if (groupPayRes?.amount) {
+              setSquadPaymentAmount(groupPayRes.amount);
+            }
+
+            setActivePaymentUuid(paymentUuid);
+            setActiveBookingUuid(bookingUuid);
+            setActiveBookingRef(bookingRef);
+            setIsGroupPaymentActive(true);
+            setIsPaymentModalOpen(true);
+            return;
+          } catch (groupPayErr) {
+            toast.error(groupPayErr?.data?.message ?? "Failed to initiate group payment.");
+            return;
+          }
+        }
+
+        if (bookingUuid && bookingUuid !== "undefined") {
+          try {
+            const payRes = await createPayment(bookingUuid).unwrap();
+            const paymentUuid =
+              payRes?.uuid ??
+              payRes?.paymentUuid ??
+              payRes?.data?.uuid ??
+              payRes?.data?.paymentUuid;
+            if (paymentUuid && paymentUuid !== "undefined") {
+              setActivePaymentUuid(paymentUuid);
+              setActiveBookingUuid(bookingUuid);
+              setActiveBookingRef(bookingRef);
+              setIsGroupPaymentActive(false);
+              setIsPaymentModalOpen(true);
+              return;
+            }
+          } catch (payErr) {
+            console.warn("Payment initiation note:", payErr);
+            setActivePaymentUuid(null);
+            setActiveBookingUuid(bookingUuid);
+            setActiveBookingRef(bookingRef);
+            setIsGroupPaymentActive(false);
+            setIsPaymentModalOpen(true);
+            return;
+          }
+        }
+      } else {
+        bookingRef = `FZ-${Math.floor(100000 + Math.random() * 900000)}`;
+      }
+
+      navigateToConfirmed(bookingRef, bookingUuid);
+    } catch (err) {
+      console.error("Failed to create booking:", err);
+      const msg =
+        err?.data?.message ??
+        err?.data?.error ??
+        "Failed to confirm booking. Your seat hold may have expired.";
+      toast.error(msg);
+    }
   };
 
   return (
-    <div className="relative min-h-screen w-full pb-24 font-sans select-none overflow-x-hidden">
+    <div className="relative min-h-[calc(100vh-70px)] w-full font-sans select-none overflow-x-hidden py-1 sm:py-2 pb-3">
       {/* Deep Red Radial Glow Background for Dark Mode */}
       <div className="pointer-events-none absolute inset-0 -top-10 z-0 overflow-hidden">
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
-        {/* Top Navigation & Back Button */}
-        <div className="flex items-center">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-[#B90101] dark:hover:text-[#B90101] transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-        </div>
-
-        {/* 1. Stepper Bar (Active at Step 3: Booking Details) */}
+      <div className="relative z-10 max-w-6xl mx-auto px-3 sm:px-6 space-y-2 sm:space-y-3">
+        {/* Stepper Bar */}
         <BookingStepper currentStep={3} />
 
-        {/* 2. Sub-header: "Food & Drinks" on left + Timer on far right under Confirmed */}
-        <div className="flex items-center justify-between pt-1">
-          <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+        {/* Sub-header: Food & Drinks + Live Timer */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-black text-neutral-900 dark:text-white tracking-tight">
             Food & Drinks
           </h2>
 
-          {/* Timer Pill - aligned under Confirmed on far right */}
-          <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#B90101] text-[#B90101] font-bold text-xs sm:text-sm bg-[#B90101]/5 shadow-xs">
-            <Clock className="w-4 h-4 text-[#B90101]" />
+          <div className="flex items-center gap-1.5 px-3 py-1 sm:px-4 sm:py-1 rounded-full border border-[#B90101] text-[#B90101] font-bold text-xs sm:text-sm bg-[#B90101]/5 shadow-xs">
+            <Clock className="w-3.5 h-3.5 text-[#B90101]" />
             <span className="tracking-wider">{formatTimer(timeLeft)}</span>
           </div>
         </div>
 
-        {/* 3. Main Content: 2-Column Responsive Layout (Top Aligned) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT: Food & Drinks Section (7 Cols) */}
-          <div className="lg:col-span-7">
-            {/* Food & Drinks Grid Card */}
+        {/* Main 2-Column Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* LEFT: Food & Drinks Grid */}
+          <BookingFoodDrinksSelector
+            concessions={concessions}
+            glassCardStyle={glassCardStyle}
+          />
+
+          {/* RIGHT: Booking Detail Summary Card */}
+          <div className="lg:col-span-6 flex flex-col justify-between space-y-3 sm:space-y-3.5">
+            <BookingSummaryCard
+              movie={movie}
+              hallName={hallName}
+              branch={branch}
+              hallType={hallType}
+              date={date}
+              time={time}
+              selectedSeats={selectedSeats}
+              ticketsTotal={ticketsTotal}
+              concessions={concessions}
+              glassCardStyle={glassCardStyle}
+            />
+
+            {/* Squad Lobby for Group Booking */}
+            {isGroupMode && (
+              <BookingSquadLobbyCard
+                groupBooking={groupBooking}
+                groupMembers={groupMembers}
+                isHost={isHost}
+                isMyReady={isMyReady}
+                readyCount={readyCount}
+                totalMemberCount={totalMemberCount}
+                handleEditSelection={handleEditSelection}
+                isMarkingSelecting={isMarkingSelecting}
+                glassCardStyle={glassCardStyle}
+              />
+            )}
+
+            {/* Total Paid Card */}
             <div
-              className="w-full rounded-2xl sm:rounded-3xl border p-5 sm:p-7 shadow-sm backdrop-blur-md"
+              className="w-full rounded-2xl sm:rounded-3xl border px-5 py-3 flex items-center justify-between shadow-sm backdrop-blur-md"
               style={glassCardStyle}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                {CONCESSIONS.map((item) => {
-                  const existing = concessions.find((c) => c.id === item.id);
-                  const qty = existing ? existing.quantity : 0;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex flex-col justify-between space-y-3 p-2 rounded-2xl transition hover:scale-[1.01]"
-                    >
-                      {/* Image */}
-                      <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-neutral-800">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-
-                      {/* Info Row: Name & Price */}
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-white">
-                          {item.name}
-                        </h3>
-                        <span className="font-black text-sm sm:text-base text-neutral-900 dark:text-white">
-                          ${item.price.toFixed(2)}
-                        </span>
-                      </div>
-
-                      {/* Description & Add/Quantity Row */}
-                      <div className="flex items-end justify-between gap-2">
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 whitespace-pre-line leading-relaxed">
-                          {item.description}
-                        </p>
-
-                        {/* + Add or Quantity Buttons */}
-                        {qty === 0 ? (
-                          <button
-                            type="button"
-                            onClick={() => handleAddConcession(item)}
-                            className="px-4 py-1.5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs tracking-wide uppercase transition active:scale-95 flex items-center gap-1 shrink-0 shadow-sm"
-                          >
-                            <Plus className="w-3 h-3 stroke-[3]" />
-                            <span>Add</span>
-                          </button>
-                        ) : (
-                          <div className="flex items-center gap-1.5 bg-[#B90101] text-white px-2.5 py-1 rounded-full text-xs font-black shadow-sm">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveConcession(item)}
-                              className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition"
-                            >
-                              <Minus className="w-3 h-3 stroke-[3]" />
-                            </button>
-                            <span className="min-w-[16px] text-center font-black">
-                              {qty}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleAddConcession(item)}
-                              className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 active:scale-90 transition"
-                            >
-                              <Plus className="w-3 h-3 stroke-[3]" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT: Booking Detail Summary Card (5 Cols) */}
-          <div className="lg:col-span-5 space-y-4">
-            {/* 1. Summary Card */}
-            <div
-              className="w-full rounded-2xl sm:rounded-3xl border p-5 sm:p-6 shadow-sm backdrop-blur-md space-y-5"
-              style={glassCardStyle}
-            >
-              {/* Movie Header */}
-              <div className="flex items-center gap-4">
-                <img
-                  src={
-                    movie.poster_path
-                      ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
-                      : "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg"
-                  }
-                  alt={movie.title}
-                  className="w-14 h-20 sm:w-16 sm:h-22 rounded-xl object-cover shadow-sm shrink-0"
-                />
-                <div className="min-w-0">
-                  <h3 className="font-extrabold text-base sm:text-lg text-neutral-900 dark:text-white leading-tight">
-                    {movie.title}
-                  </h3>
-                  <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 mt-1">
-                    {hallName}
-                  </p>
-                </div>
-              </div>
-
-              {/* Dashed Divider */}
-              <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
-
-              {/* Booking Details Grid */}
-              <div className="space-y-3.5 text-xs sm:text-sm">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
-                      Cinema
-                    </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
-                      {branch}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
-                      Hall
-                    </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
-                      {hallType.includes("gold") ? "Hall 4" : "Hall 3"}
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
-                      Date
-                    </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
-                      {date}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
-                      Time
-                    </span>
-                    <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
-                      {time}
-                    </strong>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="font-bold text-neutral-400 dark:text-neutral-500 block text-xs">
-                    Seats
-                  </span>
-                  <strong className="font-black text-neutral-900 dark:text-white text-sm sm:text-base">
-                    {selectedSeats.map((s) => s.id).join(", ")}
-                  </strong>
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <span className="font-extrabold text-neutral-800 dark:text-neutral-200">
-                    Tickets x{selectedSeats.length}
-                  </span>
-                  <span className="font-black text-base text-neutral-900 dark:text-white">
-                    ${ticketsTotal.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Dashed Divider */}
-              <div className="border-b border-dashed border-neutral-300 dark:border-white/20" />
-
-              {/* Food & Drinks Line Items */}
-              <div className="space-y-2">
-                <h4 className="font-bold text-xs sm:text-sm text-[#B90101] uppercase tracking-wider">
-                  Food & Drinks
-                </h4>
-                {concessions.length === 0 ? (
-                  <p className="text-xs text-neutral-400 italic">
-                    No food & drinks added yet
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {concessions.map((c) => (
-                      <div
-                        key={c.id}
-                        className="flex items-center justify-between text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-200"
-                      >
-                        <span>
-                          {c.name} x{c.quantity}
-                        </span>
-                        <span className="font-black text-neutral-900 dark:text-white">
-                          ${(c.price * c.quantity).toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 2. Total Paid Card */}
-            <div
-              className="w-full rounded-2xl sm:rounded-3xl border px-6 py-4 flex items-center justify-between shadow-sm backdrop-blur-md"
-              style={glassCardStyle}
-            >
-              <span className="text-base sm:text-lg font-bold text-[#B90101]">
-                Total paid
+              <span className="text-sm sm:text-base font-bold text-[#B90101]">
+                {isGroupMode && isHost ? `Squad Total (${totalMemberCount} Members)` : "Total paid"}
               </span>
-              <span className="text-xl sm:text-2xl font-black text-[#B90101]">
-                ${totalPaid.toFixed(2)}
+              <span className="text-lg sm:text-xl font-black text-[#B90101]">
+                ${displayTotal.toFixed(2)}
               </span>
             </div>
 
-            {/* 3. Action Buttons: Back & Continue */}
-            <div className="flex items-center gap-4 pt-1">
+            {/* Action Buttons: Back & Continue / Ready / Lock */}
+            <div className="flex items-center gap-3.5 pt-0.5">
               <button
                 type="button"
-                onClick={() => navigate(-1)}
-                className="flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20"
+                onClick={handleBack}
+                disabled={isCreatingBooking}
+                className="flex-1 py-2.5 px-5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
               >
-                Back
+                <span>Back</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleContinue}
-                className="flex-1 py-3 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20"
+                disabled={isSubmitting || (!isHost && isGroupMode && isMyReady)}
+                className={`flex-1 py-2.5 px-5 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition active:scale-95 text-center shadow-md border border-white/20 flex items-center justify-center gap-2 ${
+                  isSubmitting
+                    ? "opacity-75 cursor-wait"
+                    : !isHost && isGroupMode && isMyReady
+                      ? "opacity-90 cursor-default bg-emerald-600 hover:bg-emerald-600"
+                      : "cursor-pointer"
+                }`}
               >
-                Continue
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>PROCESSING...</span>
+                  </>
+                ) : isGroupMode && !isHost ? (
+                  isMyReady ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>I'M READY (WAITING)</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>I'M READY</span>
+                    </>
+                  )
+                ) : isGroupMode && isHost ? (
+                  !isSquadReady ? (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      <span>WAITING SQUAD ({readyCount}/{totalMemberCount})</span>
+                    </>
+                  ) : (
+                    <span>LOCK SQUAD & PAY (${displayTotal.toFixed(2)})</span>
+                  )
+                ) : (
+                  <span>Continue</span>
+                )}
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Bakong KHQR Payment Modal */}
+      <PaymentKhqrModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        bookingUuid={activeBookingUuid}
+        paymentUuid={activePaymentUuid}
+        bookingRef={activeBookingRef}
+        amount={displayTotal}
+        movieTitle={movie?.title ?? movie?.name}
+        hallName={hallName}
+        seats={selectedSeats.map((s) => s.id)}
+        isGroupPayment={isGroupPaymentActive}
+        onPaymentSuccess={() => {
+          setIsPaymentModalOpen(false);
+          navigateToConfirmed(activeBookingRef, activeBookingUuid);
+        }}
+      />
     </div>
   );
 }

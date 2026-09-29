@@ -82,7 +82,7 @@ export default function PromoOffersSection() {
         </div>
 
         <Link
-          to="/promo"
+          to="/deals"
           className="inline-flex items-center gap-2 text-sm font-black text-[#B90101] hover:text-[#900000] dark:text-[#EAB308] dark:hover:text-yellow-400 transition"
         >
           <span>View All Promotions</span>
@@ -139,7 +139,7 @@ export default function PromoOffersSection() {
                 {/* Bottom CTA */}
                 <div className="relative z-10 pt-4 border-t border-white/15 mt-4">
                   <Link
-                    to="/promo"
+                    to="/deals"
                     className="inline-flex items-center gap-1.5 text-xs font-black text-white hover:text-[#FFD700] transition"
                   >
                     <span>{deal.linkText}</span>

@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import heroImage from "../../assets/others/cinema.png";
 import { setCredentials } from "../../redux/slices/authSlice";
-import { loginUser } from "../../services/mockAuthService";
+import {
+  useLoginMutation,
+  useLazyGetCurrentUserQuery,
+} from "../../services/api/authApi";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase/config";
 import { loginSchema } from "../../schemas/authSchema";
@@ -14,10 +17,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 const LoginComponent = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || "/";
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const [loginMutation, { isLoading: isApiSubmitting }] = useLoginMutation();
+  const [getCurrentUser] = useLazyGetCurrentUserQuery();
 
   const {
     register,
@@ -31,19 +39,65 @@ const LoginComponent = () => {
     },
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     setErrorMsg("");
 
     try {
-      const result = loginUser({
-        email: data.email,
+      // 1. Authenticate with Teacher's Cinema API
+      const authResponse = await loginMutation({
+        identifier: data.email.trim(),
         password: data.password,
-      });
-      dispatch(setCredentials(result));
-      toast.success(`Welcome back, ${result.user.name}!`);
-      navigate("/");
+      }).unwrap();
+
+      const accessToken = authResponse.accessToken;
+      const refreshToken = authResponse.refreshToken;
+
+      // Store refreshToken in sessionStorage (Teacher's pattern)
+      if (refreshToken) {
+        sessionStorage.setItem("refreshToken", refreshToken);
+      }
+
+      // 2. Fetch user profile from Teacher's API (/api/v1/users/me)
+      let userProfile = {
+        email: data.email,
+        username: data.email.split("@")[0],
+        name: data.email.split("@")[0],
+      };
+
+      try {
+        const userRes = await getCurrentUser().unwrap();
+        if (userRes) {
+          userProfile = {
+            ...userRes,
+            name:
+              `${userRes.firstName || ""} ${userRes.lastName || ""}`.trim() ||
+              userRes.username ||
+              data.email,
+          };
+        }
+      } catch (profileErr) {
+        console.warn("User profile fetch:", profileErr);
+      }
+
+      dispatch(
+        setCredentials({
+          accessToken: accessToken,
+          token: accessToken,
+          refreshToken: refreshToken,
+          user: userProfile,
+        }),
+      );
+
+      toast.success(`Welcome back, ${userProfile.name}!`);
+      navigate(redirectUrl);
     } catch (err) {
-      const message = err.message || "Invalid credentials. Please try again.";
+      console.error("Login error:", err);
+      const message =
+        err?.data?.message ||
+        err?.data?.error ||
+        (err?.status === 401
+          ? "Invalid email/username or password."
+          : "Login failed. Please check your credentials.");
       setErrorMsg(message);
       toast.error(message);
     }
@@ -73,7 +127,7 @@ const LoginComponent = () => {
 
       dispatch(setCredentials(authData));
       toast.success(`Welcome back, ${authData.user.name}!`);
-      navigate("/");
+      navigate(redirectUrl);
     } catch (err) {
       if (err.code !== "auth/popup-closed-by-user") {
         toast.error(err.message || "Google sign in failed");
@@ -222,10 +276,10 @@ const LoginComponent = () => {
 
             <button
               type="submit"
-              disabled={isSubmitting || isSocialSubmitting}
+              disabled={isSubmitting || isSocialSubmitting || isApiSubmitting}
               className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-1 disabled:opacity-60"
             >
-              {isSubmitting ? "Logging In..." : "Login"}
+              {isSubmitting || isApiSubmitting ? "Logging In..." : "Login"}
             </button>
           </form>
 
@@ -247,7 +301,11 @@ const LoginComponent = () => {
           <p className="mt-4 sm:mt-5 text-center text-xs text-neutral-500 dark:text-neutral-400">
             Don&apos;t have an account?{" "}
             <Link
-              to="/signup"
+              to={
+                redirectUrl !== "/"
+                  ? `/signup?redirect=${encodeURIComponent(redirectUrl)}`
+                  : "/signup"
+              }
               className="font-bold text-primary-red underline hover:opacity-90"
             >
               Sign up

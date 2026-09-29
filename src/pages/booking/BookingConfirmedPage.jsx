@@ -9,6 +9,12 @@ import {
 import { addTicket } from "../../redux/slices/ticketSlice";
 import { useGetMovieDetailsQuery } from "../../services/api/movieApi";
 import { useGetTVDetailsQuery } from "../../services/api/tvApi";
+import {
+  useGetBookingQrCodeQuery,
+  useGetBookingByUuidQuery,
+  useGetCinemaMovieByUuidQuery,
+  useGetShowtimeByUuidQuery,
+} from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 
@@ -22,6 +28,28 @@ export default function BookingConfirmedPage() {
   const time = searchParams.get("time") || "6:30 PM";
   const branch = searchParams.get("branch") || "FilmZone SenSok";
   const date = searchParams.get("date") || "26 Aug 2026";
+  const rawBookingUuid = searchParams.get("bookingUuid");
+  const bookingUuid =
+    rawBookingUuid &&
+    rawBookingUuid !== "undefined" &&
+    rawBookingUuid !== "null" &&
+    rawBookingUuid.length > 10
+      ? rawBookingUuid
+      : null;
+
+  // Check booking confirmation status first so we don't trigger 400 "QR code is only available for confirmed bookings"
+  const { data: bookingData } = useGetBookingByUuidQuery(bookingUuid, {
+    skip: !bookingUuid,
+  });
+  const isConfirmed = bookingData?.status === "CONFIRMED";
+
+  const {
+    data: ticketQrBlob,
+    isLoading: isTicketQrLoading,
+    isError: isTicketQrError,
+  } = useGetBookingQrCodeQuery(bookingUuid, {
+    skip: !bookingUuid || !isConfirmed,
+  });
   const bookingRef =
     searchParams.get("ref") ||
     `125273HJ${Math.floor(1000 + Math.random() * 9000)}`;
@@ -34,11 +62,23 @@ export default function BookingConfirmedPage() {
       reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
     );
 
+  // Check if movieId is a Teacher API UUID
+  const isUuid = Boolean(movieId && movieId.includes("-"));
+  const { data: cinemaMovie } = useGetCinemaMovieByUuidQuery(movieId, {
+    skip: !movieId || !isUuid,
+  });
+
+  const isCurrentReduxMovie =
+    reduxMovie &&
+    (reduxMovie.uuid === movieId ||
+      String(reduxMovie.id) === String(movieId) ||
+      (cinemaMovie && reduxMovie.uuid === cinemaMovie.uuid));
+
   const { data: movieData } = useGetMovieDetailsQuery(movieId, {
-    skip: !movieId || isTV || Boolean(reduxMovie?.id),
+    skip: !movieId || isTV || isUuid || Boolean(isCurrentReduxMovie),
   });
   const { data: tvData } = useGetTVDetailsQuery(movieId, {
-    skip: !movieId || !isTV || Boolean(reduxMovie?.id),
+    skip: !movieId || !isTV || isUuid || Boolean(isCurrentReduxMovie),
   });
 
   const reduxSelectedSeats = useSelector(selectSelectedSeats);
@@ -93,11 +133,37 @@ export default function BookingConfirmedPage() {
     return [];
   }, [booking.concessions, concessionsParam]);
 
-  const movie = reduxMovie ||
-    (isTV ? tvData : movieData || tvData) || {
-      title: "Spider-Man: Brand New Day",
-      poster_path: null,
+  const normalizedCinemaMovie = cinemaMovie
+    ? {
+        id: cinemaMovie.uuid,
+        uuid: cinemaMovie.uuid,
+        title: cinemaMovie.title,
+        poster_path: cinemaMovie.posterUrl,
+        backdrop_path: cinemaMovie.backdropUrl,
+        overview: cinemaMovie.overview,
+        runtime: cinemaMovie.runtimeMinutes,
+        release_date: cinemaMovie.releaseDate,
+      }
+    : null;
+
+  const movie = (isCurrentReduxMovie ? reduxMovie : null) ||
+    normalizedCinemaMovie ||
+    (isTV ? tvData : movieData || tvData) ||
+    reduxMovie || {
+      title: cinemaMovie?.title || "Movie Booking",
+      poster_path: cinemaMovie?.posterUrl || null,
     };
+
+  const displayPoster =
+    cinemaMovie?.posterUrl ||
+    movie?.posterUrl ||
+    (movie?.poster_path
+      ? movie.poster_path.startsWith("http")
+        ? movie.poster_path
+        : `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+      : null) ||
+    movie?.backdropUrl ||
+    "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80";
 
   const rawScreenType =
     searchParams.get("screenType") || searchParams.get("format");
@@ -121,6 +187,40 @@ export default function BookingConfirmedPage() {
     return isGold ? "GOLD" : "2D";
   }, [rawScreenType, booking.showtime, branch, time, isGold]);
 
+    const showtimeUuidForMovie =
+    searchParams.get("showtimeUuid") || booking.showtime?.showtimeUuid;
+  const { data: showtimeForMovie } = useGetShowtimeByUuidQuery(showtimeUuidForMovie, {
+    skip: !showtimeUuidForMovie,
+  });
+
+  const effectiveMovieUuid =
+    (movieId && movieId.includes("-") ? movieId : null) ||
+    showtimeForMovie?.movieUuid ||
+    cinemaMovie?.uuid ||
+    (reduxMovie?.uuid || (reduxMovie?.id && String(reduxMovie.id).includes("-") ? reduxMovie.id : null));
+
+  const { data: directCinemaMovie } = useGetCinemaMovieByUuidQuery(effectiveMovieUuid, {
+    skip: !effectiveMovieUuid,
+  });
+
+  const resolvedMovie = directCinemaMovie || cinemaMovie || movie;
+  const movieTitle = resolvedMovie?.title || movie?.title || "Movie Booking";
+
+  const rawPoster =
+    resolvedMovie?.posterUrl ||
+    resolvedMovie?.poster_path ||
+    movie?.posterUrl ||
+    movie?.poster_path ||
+    reduxMovie?.posterUrl ||
+    reduxMovie?.poster_path;
+
+  const posterSrc = rawPoster
+    ? rawPoster.startsWith("http")
+      ? rawPoster
+      : `https://image.tmdb.org/t/p/w500${rawPoster}`
+    : resolvedMovie?.backdropUrl ||
+      "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80";
+
   const seatIds = selectedSeats.map((s) => s.id).join(", ");
   const pricePerSeat = selectedSeats[0]?.price || (isGold ? 10.0 : 5.0);
 
@@ -133,6 +233,12 @@ export default function BookingConfirmedPage() {
     0,
   );
   const totalPaid = ticketsTotal + concessionsTotal;
+  const displayTotal =
+    bookingData?.totalPrice ??
+    bookingData?.totalAmount ??
+    (searchParams.get('total') ? Number(searchParams.get('total')) : null) ??
+    (searchParams.get('amount') ? Number(searchParams.get('amount')) : null) ??
+    totalPaid;
 
   const dispatch = useDispatch();
 
@@ -149,10 +255,7 @@ export default function BookingConfirmedPage() {
         : movie.genres
       : ["Action", "Adventure"];
 
-    const posterUrl = movie?.poster_path
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-      : movie?.poster ||
-        "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg";
+    const posterUrl = posterSrc;
 
     const viewUrl = `/booking/confirmed?movie=${movieId}&hall=${hallType}&screenType=${encodeURIComponent(formatBadge)}&time=${encodeURIComponent(time)}&date=${encodeURIComponent(date)}&branch=${encodeURIComponent(branch)}&ref=${bookingRef}`;
 
@@ -231,7 +334,7 @@ export default function BookingConfirmedPage() {
             </h2>
 
             {/* Ticket Card */}
-            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#161A20] shadow-xl overflow-hidden flex flex-col justify-between flex-1">
+            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white shadow-xl overflow-hidden flex flex-col justify-between flex-1">
               {/* Top Red Header */}
               <div className="bg-[#B90101] text-white py-3.5 text-center font-extrabold text-base sm:text-lg tracking-wider shrink-0">
                 Movie Ticket
@@ -243,17 +346,13 @@ export default function BookingConfirmedPage() {
                   {/* Movie Poster & Title & Date/Time */}
                   <div className="flex items-start gap-4">
                     <img
-                      src={
-                        movie.poster_path
-                          ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
-                          : "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg"
-                      }
-                      alt={movie.title}
-                      className="w-18 h-24 rounded-2xl object-cover shadow-md shrink-0 border border-neutral-200 dark:border-white/10"
+                      src={posterSrc}
+                      alt={movieTitle}
+                      className="w-18 h-24 rounded-2xl object-cover shadow-md shrink-0 border border-neutral-200 dark:border-(--border-dark-mode)"
                     />
                     <div className="min-w-0 space-y-1">
                       <h3 className="font-extrabold text-base text-neutral-900 dark:text-white leading-snug">
-                        {movie.title}
+                        {movieTitle}
                       </h3>
                       <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
                         Date:{" "}
@@ -268,9 +367,9 @@ export default function BookingConfirmedPage() {
 
                   {/* Perforated Ticket Tear Line with Notches */}
                   <div className="relative flex items-center justify-center my-4">
-                    <div className="absolute -left-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:bg-[#0E1217] border-r border-neutral-200 dark:border-white/10" />
+                    <div className="absolute -left-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-r border-neutral-200 " />
                     <div className="w-full border-b-2 border-dashed border-neutral-300 dark:border-neutral-700" />
-                    <div className="absolute -right-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:bg-[#0E1217] border-l border-neutral-200 dark:border-white/10" />
+                    <div className="absolute -right-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-l border-neutral-200 " />
                   </div>
 
                   {/* 2-Column Metadata Grid */}
@@ -329,7 +428,7 @@ export default function BookingConfirmedPage() {
 
                   {/* Food & Drinks breakdown (if selected) */}
                   {concessions.length > 0 && (
-                    <div className="pt-3 border-t border-dashed border-neutral-200 dark:border-white/10 space-y-1.5 text-xs">
+                    <div className="pt-3 border-t border-dashed border-neutral-200 dark:border-(--border-dark-mode) space-y-1.5 text-xs">
                       <span className="font-bold text-[#B90101] uppercase tracking-wider text-[11px] block">
                         Food & Drinks
                       </span>
@@ -437,7 +536,7 @@ export default function BookingConfirmedPage() {
             </h2>
 
             {/* Ticket Card */}
-            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#161A20] shadow-xl overflow-hidden flex flex-col justify-between flex-1">
+            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white  shadow-xl overflow-hidden flex flex-col justify-between flex-1">
               {/* Top 3 Red Badges */}
               <div className="p-5 pb-3 shrink-0">
                 <div className="grid grid-cols-3 gap-2.5">
@@ -472,9 +571,9 @@ export default function BookingConfirmedPage() {
 
               {/* Perforated Ticket Tear Line with Notches */}
               <div className="relative flex items-center justify-center my-2 shrink-0">
-                <div className="absolute -left-3.5 w-6 h-6 rounded-full bg-[#F6F7F9] dark:bg-[#0E1217] border-r border-neutral-200 dark:border-white/10" />
+                <div className="absolute -left-3.5 w-6 h-6 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-r border-neutral-200 " />
                 <div className="w-full border-b-2 border-dashed border-neutral-300 dark:border-neutral-700" />
-                <div className="absolute -right-3.5 w-6 h-6 rounded-full bg-[#F6F7F9] dark:bg-[#0E1217] border-l border-neutral-200 dark:border-white/10" />
+                <div className="absolute -right-3.5 w-6 h-6 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-l border-neutral-200 " />
               </div>
 
               {/* Card Body: QR Code vertically centered */}
@@ -484,24 +583,38 @@ export default function BookingConfirmedPage() {
                 </span>
 
                 {/* Giant Centered Scannable QR Code */}
-                <div className="p-4 bg-white rounded-3xl shadow-sm border border-neutral-200/80 text-neutral-900 flex items-center justify-center">
-                  <QrCode className="w-48 h-48 sm:w-52 sm:h-52" />
+                <div className="p-4 bg-white rounded-3xl shadow-sm border border-neutral-200/80 text-neutral-900 flex items-center justify-center min-h-[210px] min-w-[210px]">
+                  {isTicketQrLoading ? (
+                    <div className="flex flex-col items-center justify-center space-y-2 text-neutral-400">
+                      <div className="w-8 h-8 rounded-full border-3 border-[#B90101] border-t-transparent animate-spin" />
+                      <span className="text-xs font-bold">Loading Pass...</span>
+                    </div>
+                  ) : ticketQrBlob && !isTicketQrError ? (
+                    <img
+                      src={ticketQrBlob}
+                      alt={`Ticket QR for ${bookingRef}`}
+                      className="w-48 h-48 sm:w-52 sm:h-52 object-contain"
+                    />
+                  ) : (
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+                        `FILMZONE-PASS:${bookingRef}`,
+                      )}`}
+                      alt={`Ticket QR for ${bookingRef}`}
+                      className="w-48 h-48 sm:w-52 sm:h-52 object-contain"
+                    />
+                  )}
                 </div>
               </div>
 
-              {/* Bottom Red Footer */}
-              <div className="bg-[#B90101] text-white py-3 px-6 flex items-center justify-center gap-2.5 shrink-0">
-                <div className="w-6 h-6 rounded-full bg-white text-[#B90101] flex items-center justify-center shrink-0 shadow-xs">
-                  <Ticket className="w-3.5 h-3.5 text-[#B90101]" />
-                </div>
-                <div className="flex flex-col leading-none text-left">
-                  <span className="font-black text-xs tracking-wider uppercase">
-                    FilmZone
-                  </span>
-                  <span className="text-[9px] font-bold tracking-widest uppercase opacity-90">
-                    Cinema
-                  </span>
-                </div>
+              {/* Bottom Red Footer: Total Money */}
+              <div className="bg-[#B90101] text-white py-3 px-6 flex items-center justify-between shrink-0">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-white/90">
+                  Total Amount
+                </span>
+                <span className="text-base sm:text-lg font-black tracking-wide text-white">
+                  ${(Number(displayTotal) || 0).toFixed(2)}
+                </span>
               </div>
             </div>
 

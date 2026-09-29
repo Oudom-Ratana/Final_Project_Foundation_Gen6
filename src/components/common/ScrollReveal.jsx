@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 /**
  * ScrollReveal Component
@@ -8,8 +8,8 @@ export default function ScrollReveal({
   children,
   delay = 0,
   duration = 700,
-  distance = 'translate-y-10',
-  className = '',
+  distance = "translate-y-10",
+  className = "",
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef(null);
@@ -26,8 +26,8 @@ export default function ScrollReveal({
       },
       {
         threshold: 0.12,
-        rootMargin: '0px 0px -40px 0px',
-      }
+        rootMargin: "0px 0px -40px 0px",
+      },
     );
 
     const currentElem = domRef.current;
@@ -41,10 +41,10 @@ export default function ScrollReveal({
   return (
     <div
       ref={domRef}
-      className={`transition-all ease-out ${
+      className={`transition-[opacity,transform] ease-out will-change-[transform,opacity] ${
         isVisible
-          ? 'opacity-100 translate-y-0 scale-100 blur-0'
-          : `opacity-0 ${distance} scale-95 blur-[1px] pointer-events-none`
+          ? "opacity-100 translate-y-0 scale-100"
+          : `opacity-0 ${distance} scale-95 pointer-events-none`
       } ${className}`}
       style={{
         transitionDuration: `${duration}ms`,

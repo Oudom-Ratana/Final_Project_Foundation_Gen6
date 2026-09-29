@@ -42,11 +42,11 @@ export default function TicketCard({ ticket, onViewTicket }) {
 
   return (
     <div
-      className="flex gap-4 sm:gap-5 rounded-2xl p-4 sm:p-5 border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md transition-all duration-200 hover:shadow-md"
+      className="flex gap-4 sm:gap-5 rounded-2xl p-4 sm:p-5 border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-white dark:bg-[var(--primary-color-30)] backdrop-blur-md transition-all duration-200 hover:shadow-md"
       style={{
         backgroundColor: isDark
           ? "var(--primary-color-30)"
-          : "var(--primary-color-5)",
+          : "white",
         borderColor: isDark
           ? "var(--border-dark-mode)"
           : "var(--border-light-mode)",
@@ -77,13 +77,20 @@ export default function TicketCard({ ticket, onViewTicket }) {
           {/* Status Badge */}
           {isUpcoming ? (
             <span
-              className="shrink-0 text-[13px] font-bold whitespace-nowrap"
-              style={{ color: "#EAB308" }}
+              className="shrink-0 text-[13px] font-bold whitespace-nowrap text-amber-500"
             >
               • Upcoming
             </span>
+          ) : ticket.apiStatus === "CANCELLED" ? (
+            <span className="shrink-0 text-[13px] font-black uppercase tracking-wide text-neutral-400 whitespace-nowrap">
+              Cancelled
+            </span>
+          ) : ticket.apiStatus === "EXPIRED" ? (
+            <span className="shrink-0 text-[13px] font-black uppercase tracking-wide text-neutral-400 whitespace-nowrap">
+              Expired
+            </span>
           ) : (
-            <span className="shrink-0 text-[13px] font-black uppercase tracking-wide text-[#B90101] whitespace-nowrap">
+            <span className="shrink-0 text-[13px] font-black uppercase tracking-wide text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
               Completed
             </span>
           )}

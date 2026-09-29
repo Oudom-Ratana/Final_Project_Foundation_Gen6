@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { MOCK_TICKETS } from "../../data/ticketData";
+// MOCK_TICKETS removed to use only real API data
 
 const STORAGE_KEY = "filmzone_booked_tickets";
 
@@ -50,9 +50,6 @@ export const ticketSlice = createSlice({
 export const { addTicket, clearAllUserTickets } = ticketSlice.actions;
 
 export const selectUserTickets = (state) => state.tickets.userTickets;
-export const selectAllTickets = (state) => [
-  ...state.tickets.userTickets,
-  ...MOCK_TICKETS,
-];
+export const selectAllTickets = (state) => state.tickets.userTickets || [];
 
 export default ticketSlice.reducer;

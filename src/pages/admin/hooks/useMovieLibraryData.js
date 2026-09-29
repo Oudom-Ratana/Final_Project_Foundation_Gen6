@@ -28,9 +28,29 @@ import {
   useSearchTVQuery,
   useGetTVGenresQuery,
 } from "../../../services/api/tvApi";
+import {
+  useGetCinemaMoviesQuery,
+  useImportMovieFromTmdbMutation,
+  useDeleteMovieMutation,
+  useUpdateMovieStatusMutation,
+} from "../../../services/api/cinemaApi";
 
 export function useMovieLibraryData() {
-  // 1. Managed Cinema Local Catalog
+  // 1. Teacher's Backend Cinema Catalog Query & Mutations
+  const {
+    data: cinemaBackendData,
+    isLoading: isBackendLoading,
+    isFetching: isBackendFetching,
+  } = useGetCinemaMoviesQuery({
+    page: 0,
+    size: 100,
+  });
+
+  const [importMovieFromTmdbMutation] = useImportMovieFromTmdbMutation();
+  const [deleteMovieMutation] = useDeleteMovieMutation();
+  const [updateMovieStatusMutation] = useUpdateMovieStatusMutation();
+
+  // Managed Cinema Local Catalog (Fallback)
   const managedMovies = useActiveMovies();
 
   // 2. Active Panel & Category Navigation State
@@ -70,15 +90,16 @@ export function useMovieLibraryData() {
     return map;
   }, [movieGenresList, tvGenresList]);
 
-  // Set of TMDB IDs already in the Cinema Catalog for quick lookup
+  // Set of TMDB IDs already in the Cinema Database for quick lookup
   const catalogTmdbIdSet = useMemo(() => {
     const set = new Set();
-    managedMovies.forEach((m) => {
-      if (m.tmdbId) set.add(Number(m.tmdbId));
-      if (m.id) set.add(Number(m.id));
-    });
+    if (cinemaBackendData?.content) {
+      cinemaBackendData.content.forEach((m) => {
+        if (m.tmdbId) set.add(Number(m.tmdbId));
+      });
+    }
     return set;
-  }, [managedMovies]);
+  }, [cinemaBackendData]);
 
   // Query Triggers for each endpoint
   const hasSearch = searchQuery.trim().length > 0;
@@ -212,7 +233,37 @@ export function useMovieLibraryData() {
   const { displayItems, totalPages, isLoading, isFetching } = useMemo(() => {
     // A. MANAGED CINEMA CATALOG PANEL
     if (activePanelId === "MANAGED") {
-      let items = managedMovies;
+      const backendMovies = (cinemaBackendData?.content || []).map((m) => ({
+        id: m.uuid,
+        uuid: m.uuid,
+        tmdbId: m.tmdbId,
+        title: m.title,
+        overview: m.overview,
+        year: m.releaseDate ? m.releaseDate.slice(0, 4) : "2026",
+        duration: m.runtimeMinutes
+          ? `${Math.floor(m.runtimeMinutes / 60)}h ${m.runtimeMinutes % 60}m`
+          : "2h 10m",
+        genres: "Action, Drama",
+        hall: "FilmZone VIP Hall",
+        date: m.releaseDate || "Now Showing",
+        status:
+          m.status === "ACTIVE"
+            ? "Live"
+            : m.status === "COMING_SOON"
+              ? "Upcoming"
+              : m.status || "Live",
+        poster_path:
+          m.posterUrl ||
+          "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
+        backdrop_path:
+          m.backdropUrl ||
+          "https://image.tmdb.org/t/p/original/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg",
+        vote_average: 8.5,
+        isBackendMovie: true,
+      }));
+
+      // Show ONLY movies from Teacher's database in Cinema Catalog
+      let items = backendMovies;
 
       if (activeCatalogFilter === "LIVE") {
         items = items.filter((m) => m.status === "Live");
@@ -238,8 +289,8 @@ export function useMovieLibraryData() {
       return {
         displayItems: paginated,
         totalPages: count,
-        isLoading: false,
-        isFetching: false,
+        isLoading: isBackendLoading && backendMovies.length === 0,
+        isFetching: isBackendFetching,
       };
     }
 
@@ -360,6 +411,9 @@ export function useMovieLibraryData() {
     };
   }, [
     activePanelId,
+    cinemaBackendData,
+    isBackendLoading,
+    isBackendFetching,
     managedMovies,
     activeCatalogFilter,
     searchQuery,
@@ -446,7 +500,23 @@ export function useMovieLibraryData() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
+    // Check if it's a backend UUID or in backend movies
+    const backendMatch = cinemaBackendData?.content?.find(
+      (m) => m.uuid === id || m.id === id || String(m.tmdbId) === String(id),
+    );
+    const uuidToDelete =
+      backendMatch?.uuid ||
+      (typeof id === "string" && id.includes("-") ? id : null);
+
+    if (uuidToDelete) {
+      try {
+        await deleteMovieMutation(uuidToDelete).unwrap();
+        toast.success("Movie deleted from Cinema database!");
+      } catch (err) {
+        console.warn("Backend delete error:", err);
+      }
+    }
     deleteCatalogMovie(id);
     toast.info("Movie removed from Cinema Catalog");
   };
@@ -464,8 +534,8 @@ export function useMovieLibraryData() {
     toast.warn("Cinema catalog cleared and reset");
   };
 
-  // Quick One-Click Import from TMDB to Cinema Catalog
-  const handleQuickImportTmdb = (item) => {
+  // Quick One-Click Import from TMDB to Cinema Catalog & Database
+  const handleQuickImportTmdb = async (item) => {
     const isTv = !!item.first_air_date || activePanel.mediaType === "tv";
     const releaseDate =
       item.release_date || item.first_air_date || "2026-09-20";
@@ -501,8 +571,22 @@ export function useMovieLibraryData() {
       media_type: isTv ? "tv" : "movie",
     };
 
+    // If it has a TMDB ID and is a movie, import to Teacher's Cinema API (POST /movies/import/{tmdbId})
+    if (item.id && !isTv) {
+      try {
+        await importMovieFromTmdbMutation(item.id).unwrap();
+        toast.success(
+          `"${item.title || item.name}" imported directly into Cinema database!`,
+        );
+      } catch (err) {
+        console.warn("Backend import note:", err);
+      }
+    }
+
     addCatalogMovie(movieToImport);
-    toast.success(`"${item.title || item.name}" added to Cinema Catalog!`);
+    if (isTv || !item.id) {
+      toast.success(`"${item.title || item.name}" added to Cinema Catalog!`);
+    }
   };
 
   // Open MovieModal pre-filled with TMDB details
@@ -550,7 +634,7 @@ export function useMovieLibraryData() {
   };
 
   return {
-    managedMovies,
+    managedMovies: cinemaBackendData?.content || [],
     activePanelId,
     activeGroupTab,
     setActiveGroupTab,

@@ -1,12 +1,55 @@
-import { useState, useEffect } from "react";
-import { X, Play, Film } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
+import {
+  X,
+  Play,
+  Film,
+  Clapperboard,
+  AlertCircle,
+  RotateCcw,
+} from "lucide-react";
+import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
 
 /**
- * StreamPlayerModal
- * Cinema video player with:
- * 1. VidSrc.pm streaming engine for Full Movies and TV Series
- * 2. Official TMDB YouTube Trailers
+ * Multi-Server Streaming Engine
+ * Automatically fails over silently from Server 1 -> Server 2 -> Server 3 -> Server 4
+ * without requiring the user to manually click any server buttons.
  */
+const STREAM_SERVERS = [
+  {
+    id: "vidlink",
+    name: "Server 1",
+    getUrl: (id, isTV, s, ep) =>
+      isTV
+        ? `https://vidlink.pro/tv/${id}/${s}/${ep}?primaryColor=b90101`
+        : `https://vidlink.pro/movie/${id}?primaryColor=b90101`,
+  },
+  {
+    id: "vidsrc_cc",
+    name: "Server 2",
+    getUrl: (id, isTV, s, ep) =>
+      isTV
+        ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${ep}`
+        : `https://vidsrc.cc/v2/embed/movie/${id}`,
+  },
+  {
+    id: "multiembed",
+    name: "Server 3",
+    getUrl: (id, isTV, s, ep) =>
+      isTV
+        ? `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${ep}`
+        : `https://multiembed.mov/?video_id=${id}&tmdb=1`,
+  },
+  {
+    id: "autoembed",
+    name: "Server 4",
+    getUrl: (id, isTV, s, ep) =>
+      isTV
+        ? `https://player.autoembed.cc/embed/tv/${id}/${s}/${ep}`
+        : `https://player.autoembed.cc/embed/movie/${id}`,
+  },
+];
+
 export default function StreamPlayerModal({
   isOpen,
   onClose,
@@ -24,6 +67,29 @@ export default function StreamPlayerModal({
   const [currentSeason, setCurrentSeason] = useState(season);
   const [currentEpisode, setCurrentEpisode] = useState(episode);
 
+  // Auto-failover state (Zero manual server buttons)
+  const [serverIndex, setServerIndex] = useState(0);
+  const [isLoadingStream, setIsLoadingStream] = useState(true);
+  const [hasAllServersFailed, setHasAllServersFailed] = useState(false);
+  const failoverTimeoutRef = useRef(null);
+
+  const isTV = mediaType === "tv";
+
+  // Silent automatic failover to next server
+  const tryNextServer = useCallback(() => {
+    setServerIndex((prev) => {
+      if (prev < STREAM_SERVERS.length - 1) {
+        setIsLoadingStream(true);
+        return prev + 1;
+      } else {
+        setHasAllServersFailed(true);
+        setIsLoadingStream(false);
+        return prev;
+      }
+    });
+  }, []);
+
+  // Reset states when movie, episode, mode or modal changes
   useEffect(() => {
     setActiveMode(initialMode);
   }, [initialMode]);
@@ -32,6 +98,54 @@ export default function StreamPlayerModal({
     setCurrentSeason(season);
     setCurrentEpisode(episode);
   }, [season, episode]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setServerIndex(0);
+      setHasAllServersFailed(false);
+      setIsLoadingStream(true);
+    }
+  }, [isOpen, tmdbId, currentSeason, currentEpisode, activeMode]);
+
+  // Listen for cross-origin postMessage errors from stream providers
+  useEffect(() => {
+    const handleMessage = (e) => {
+      if (!e.data) return;
+      const dataStr =
+        typeof e.data === "string" ? e.data : JSON.stringify(e.data);
+      if (
+        dataStr.includes("error") ||
+        dataStr.includes("not_found") ||
+        dataStr.includes("PLAYER_ERROR") ||
+        dataStr.includes("MEDIA_NOT_FOUND")
+      ) {
+        tryNextServer();
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [tryNextServer]);
+
+  // Safety auto-failover timer: If an iframe hangs or fails to complete within 6s, silently switch
+  useEffect(() => {
+    if (!isOpen || activeMode !== "full_movie" || hasAllServersFailed) return;
+
+    clearTimeout(failoverTimeoutRef.current);
+    failoverTimeoutRef.current = setTimeout(() => {
+      if (isLoadingStream) {
+        tryNextServer();
+      }
+    }, 6500);
+
+    return () => clearTimeout(failoverTimeoutRef.current);
+  }, [
+    isOpen,
+    activeMode,
+    serverIndex,
+    isLoadingStream,
+    hasAllServersFailed,
+    tryNextServer,
+  ]);
 
   // Handle ESC key to close
   useEffect(() => {
@@ -50,31 +164,45 @@ export default function StreamPlayerModal({
 
   if (!isOpen || !tmdbId) return null;
 
-  const isTV = mediaType === "tv";
-
-  // VidSrc.pm streaming endpoint
-  const fullMovieUrl = isTV
-    ? `https://vidsrc.pm/embed/tv?tmdb=${tmdbId}&season=${currentSeason}&episode=${currentEpisode}`
-    : `https://vidsrc.pm/embed/movie?tmdb=${tmdbId}`;
+  // Active video URL resolution
+  const currentServer = STREAM_SERVERS[serverIndex] || STREAM_SERVERS[0];
+  const fullMovieUrl = currentServer.getUrl(
+    tmdbId,
+    isTV,
+    currentSeason,
+    currentEpisode,
+  );
 
   const youtubeUrl = trailerKey
     ? `https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0`
     : null;
 
-  const currentStreamSrc =
-    activeMode === "trailer" && youtubeUrl ? youtubeUrl : fullMovieUrl;
+  const currentStreamSrc = activeMode === "trailer" ? youtubeUrl : fullMovieUrl;
 
   const handleEpisodeSelect = (ep) => {
     setCurrentEpisode(ep);
+    setServerIndex(0);
+    setHasAllServersFailed(false);
+    setIsLoadingStream(true);
     if (onEpisodeChange) onEpisodeChange(ep);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-fadeIn">
-      {/* Modal Container */}
-      <div className="relative w-full max-w-5xl bg-neutral-950 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-        {/* 1. Modal Top Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5 border-b border-white/10 bg-neutral-900/80">
+  const handleManualRetry = () => {
+    setServerIndex(0);
+    setHasAllServersFailed(false);
+    setIsLoadingStream(true);
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] w-screen h-screen bg-black flex flex-col animate-fadeIn select-none">
+      {/* 1. Modal Top Bar */}
+      <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-white/10 bg-neutral-950">
+        <div className="flex items-center gap-3 min-w-0">
+          <img
+            src={filmZoneLogo}
+            alt="FilmZone"
+            className="h-6 sm:h-7 w-auto object-contain shrink-0"
+          />
           <div className="min-w-0">
             <h3 className="text-base sm:text-lg font-black text-white truncate">
               {title}
@@ -85,98 +213,180 @@ export default function StreamPlayerModal({
               </p>
             )}
           </div>
+        </div>
 
-          {/* Controls: Mode Switcher & Close */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Mode Switcher Pills */}
-            <div className="flex items-center p-1 rounded-full bg-neutral-800 border border-white/10 text-xs font-bold">
+        {/* Controls: Mode Switcher (Full Movie / Trailer) & Close */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Mode Switcher Pills */}
+          <div className="flex items-center p-1 rounded-full bg-neutral-900 border border-white/10 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => setActiveMode("full_movie")}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
+                activeMode === "full_movie"
+                  ? "bg-[#B90101] text-white"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>{mediaType === "tv" ? "Watch Series" : "Full Movie"}</span>
+            </button>
+
+            {trailerKey && (
               <button
                 type="button"
-                onClick={() => setActiveMode("full_movie")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
-                  activeMode === "full_movie"
-                    ? "bg-[#B90101] text-white shadow-sm"
+                onClick={() => setActiveMode("trailer")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
+                  activeMode === "trailer"
+                    ? "bg-[#B90101] text-white"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>
-                  {mediaType === "tv" ? "Watch Series" : "Full Movie"}
-                </span>
+                <Film className="w-3.5 h-3.5" />
+                <span>Trailer</span>
               </button>
+            )}
+          </div>
 
+          {/* Close Button */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-neutral-900 hover:bg-[#B90101] border border-white/15 text-white flex items-center justify-center transition active:scale-95 cursor-pointer"
+            aria-label="Close Player"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Fullscreen Video Player Viewport */}
+      <div className="relative flex-1 w-full bg-black flex items-center justify-center overflow-hidden">
+        {/* A. Stream Unavailable Fallback Card (When all servers return empty) */}
+        {activeMode === "full_movie" && hasAllServersFailed ? (
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-10 text-center bg-gradient-to-b from-neutral-900 to-neutral-950 text-white animate-fadeIn">
+            <div className="w-16 h-16 rounded-full bg-[#B90101]/15 border border-[#B90101]/30 flex items-center justify-center mb-4 text-[#B90101]">
+              <Clapperboard className="w-8 h-8" />
+            </div>
+            <h4 className="text-xl sm:text-2xl font-black tracking-tight text-white mb-2">
+              Stream Currently Unavailable
+            </h4>
+            <p className="text-xs sm:text-sm text-neutral-400 max-w-md mb-6 leading-relaxed">
+              We searched across all streaming servers, but &quot;{title}
+              &quot; has not been released for digital streaming yet.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
               {trailerKey && (
                 <button
                   type="button"
                   onClick={() => setActiveMode("trailer")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
-                    activeMode === "trailer"
-                      ? "bg-[#B90101] text-white shadow-sm"
-                      : "text-neutral-400 hover:text-white"
-                  }`}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#B90101] text-white text-xs sm:text-sm font-bold uppercase tracking-wider hover:brightness-110 active:scale-95 transition cursor-pointer"
                 >
-                  <Film className="w-3.5 h-3.5" />
-                  <span>Trailer</span>
+                  <Film className="w-4 h-4" />
+                  <span>Watch Official Trailer</span>
                 </button>
               )}
+              <button
+                type="button"
+                onClick={handleManualRetry}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white text-xs sm:text-sm font-bold uppercase tracking-wider border border-white/10 active:scale-95 transition cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>Retry Stream</span>
+              </button>
             </div>
-
-            {/* Close Button */}
+          </div>
+        ) : activeMode === "trailer" && !youtubeUrl ? (
+          /* B. Trailer Not Found Fallback Card */
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-10 text-center bg-gradient-to-b from-neutral-900 to-neutral-950 text-white animate-fadeIn">
+            <div className="w-16 h-16 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-4 text-amber-500">
+              <AlertCircle className="w-8 h-8" />
+            </div>
+            <h4 className="text-xl sm:text-2xl font-black tracking-tight text-white mb-2">
+              Trailer Not Available
+            </h4>
+            <p className="text-xs sm:text-sm text-neutral-400 max-w-md mb-6 leading-relaxed">
+              An official YouTube trailer has not been uploaded to TMDB for
+              &quot;{title}&quot; yet.
+            </p>
             <button
               type="button"
-              onClick={onClose}
-              className="w-9 h-9 rounded-full bg-neutral-800 hover:bg-[#B90101] border border-white/15 text-white flex items-center justify-center transition active:scale-95"
-              aria-label="Close Player"
+              onClick={() => setActiveMode("full_movie")}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#B90101] text-white text-xs sm:text-sm font-bold uppercase tracking-wider hover:brightness-110 active:scale-95 transition cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <Play className="w-4 h-4 fill-white" />
+              <span>Switch to Full Movie</span>
             </button>
           </div>
-        </div>
-
-        {/* 2. Responsive 16:9 Video Player Viewport */}
-        <div className="relative w-full aspect-video bg-black flex items-center justify-center">
-          <iframe
-            key={currentStreamSrc}
-            src={currentStreamSrc}
-            title={title}
-            className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
-        </div>
-
-        {/* 3. TV Series Episode Navigator (if TV Show & Full Movie mode) */}
-        {mediaType === "tv" &&
-          activeMode === "full_movie" &&
-          totalEpisodes > 1 && (
-            <div className="p-3 sm:p-4 bg-neutral-900 border-t border-white/10 flex items-center gap-3 overflow-x-auto select-none">
-              <span className="text-xs font-black text-neutral-400 uppercase tracking-wider shrink-0">
-                Episodes:
-              </span>
-              <div className="flex items-center gap-2">
-                {Array.from({ length: totalEpisodes }, (_, i) => i + 1).map(
-                  (epNum) => {
-                    const isActive = epNum === currentEpisode;
-                    return (
-                      <button
-                        key={epNum}
-                        type="button"
-                        onClick={() => handleEpisodeSelect(epNum)}
-                        className={`w-9 h-9 rounded-xl font-black text-sm flex items-center justify-center transition-all ${
-                          isActive
-                            ? "bg-[#B90101] text-white shadow-lg shadow-red-950/60 scale-105"
-                            : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-white/10"
-                        }`}
-                      >
-                        {epNum}
-                      </button>
-                    );
-                  },
-                )}
+        ) : (
+          /* C. Active Working Video Player */
+          <>
+            {isLoadingStream && activeMode === "full_movie" && (
+              <div className="absolute inset-0 bg-neutral-950/85 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-20 pointer-events-none transition-opacity duration-300">
+                <div className="w-10 h-10 border-3 border-[#B90101] border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs sm:text-sm font-bold text-neutral-300 tracking-wide">
+                  Connecting to high-speed stream...
+                </p>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* FilmZone Branding Badge (Always visible watermark) */}
+            {activeMode === "full_movie" && (
+              <div className="absolute top-4 right-6 z-30 pointer-events-none flex items-center px-3 py-1.5 rounded-lg bg-black/95 border border-white/20 select-none shadow-lg">
+                <img
+                  src={filmZoneLogo}
+                  alt="FilmZone"
+                  className="h-6 w-auto object-contain"
+                />
+              </div>
+            )}
+
+            <iframe
+              key={currentStreamSrc}
+              src={currentStreamSrc}
+              title={title}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              onLoad={() => setIsLoadingStream(false)}
+              onError={tryNextServer}
+            />
+          </>
+        )}
       </div>
-    </div>
+
+      {/* 3. TV Series Episode Navigator (if TV Show & Full Movie mode) */}
+      {mediaType === "tv" &&
+        activeMode === "full_movie" &&
+        totalEpisodes > 1 && (
+          <div className="shrink-0 px-4 sm:px-6 py-3 bg-neutral-950 border-t border-white/10 flex items-center gap-3 overflow-x-auto select-none">
+            <span className="text-xs font-black text-neutral-400 uppercase tracking-wider shrink-0">
+              Episodes:
+            </span>
+            <div className="flex items-center gap-2 p-1">
+              {Array.from({ length: totalEpisodes }, (_, i) => i + 1).map(
+                (epNum) => {
+                  const isActive = epNum === currentEpisode;
+                  return (
+                    <button
+                      key={epNum}
+                      type="button"
+                      onClick={() => handleEpisodeSelect(epNum)}
+                      className={`w-9 h-9 rounded-full font-black text-sm flex items-center justify-center transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-[#B90101] text-white"
+                          : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-white/10"
+                      }`}
+                    >
+                      {epNum}
+                    </button>
+                  );
+                },
+              )}
+            </div>
+          </div>
+        )}
+    </div>,
+    document.body,
   );
 }

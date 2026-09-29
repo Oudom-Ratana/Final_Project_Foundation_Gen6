@@ -9,11 +9,7 @@ import {
   ACTIVE_PROMOTIONS,
 } from "../../data/promotionData";
 
-/**
- * Renders on top of PromotionPage (via nested route + <Outlet />) whenever
- * the URL is /promo/:id, so the promo grid stays visible behind it.
- * Closing navigates back to /promo, which drops this route match.
- */
+
 export default function DetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();

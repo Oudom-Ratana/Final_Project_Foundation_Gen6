@@ -1,55 +1,52 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router";
+import { Link } from "react-router";
 import { Ticket, Play, ChevronLeft, ChevronRight } from "lucide-react";
-import { useGetTrendingMoviesQuery } from "../../services/api/movieApi";
+import { useGetCinemaMoviesQuery } from "../../services/api/cinemaApi";
 import SpidermanLoader from "../common/SpidermanLoader";
-import HeroMiniSlider from "./HeroMiniSlider";
 
 export default function HomeHero() {
-  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Fetch trending movies directly from TMDB API
-  const { data: tmdbMovies, isLoading } = useGetTrendingMoviesQuery("day");
+  // Fetch top featured movies directly from Teacher's Cinema API
+  const { data: cinemaData, isLoading } = useGetCinemaMoviesQuery({
+    page: 0,
+    size: 6,
+    sortBy: "createdAt",
+    direction: "desc",
+  });
 
-  // Build slides strictly from live TMDB data
+  // Build hero slides strictly from live Teacher's Cinema data
   const slides =
-    tmdbMovies && tmdbMovies.length > 0
-      ? tmdbMovies
-          .filter((m) => m.backdrop_path || m.poster_path)
-          .slice(0, 7)
-          .map((m, idx) => {
-            const words = (m.title || m.name || "").split(" ");
-            const mid = Math.ceil(words.length / 2);
-            const line1 = words.slice(0, mid).join(" ") || "TRENDING";
-            const line2 = words.slice(mid).join(" ") || "NOW";
+    cinemaData?.content && cinemaData.content.length > 0
+      ? cinemaData.content.map((m) => {
+          const words = (m.title || "").split(" ");
+          const mid = Math.ceil(words.length / 2);
+          const line1 = words.slice(0, mid).join(" ") || "FEATURED";
+          const line2 = words.slice(mid).join(" ") || "PREMIERE";
+          const movieUuid = m.uuid || m.id;
 
-            return {
-              id: m.id,
-              title: m.title || m.name,
-              displayTitleLine1: line1.toUpperCase(),
-              displayTitleLine2: line2.toUpperCase(),
-              brandTitle: (m.title || m.name || "CINEMA").toUpperCase(),
-              brandSubtitle: "NOW STREAMING IN CINEMAS",
-              studioBadge: idx % 2 === 0 ? "MARVEL STUDIOS" : "BLOCKBUSTER HIT",
-              overview:
-                m.overview ||
-                "Experience the pulse-pounding action and cinematic thrill of the season in ultra-high definition.",
-              backdrop_path: m.backdrop_path
-                ? `https://image.tmdb.org/t/p/original${m.backdrop_path}`
-                : `https://image.tmdb.org/t/p/original${m.poster_path}`,
-              poster_path: m.poster_path
-                ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
-                : m.backdrop_path
-                  ? `https://image.tmdb.org/t/p/w500${m.backdrop_path}`
-                  : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80",
-              vote_average: m.vote_average ? m.vote_average.toFixed(1) : "8.8",
-              genre: "ACTION / CINEMA",
-              release_date: m.release_date
-                ? m.release_date.substring(0, 4)
-                : "2026",
-            };
-          })
+          const backdrop =
+            m.backdropUrl ||
+            m.posterUrl ||
+            "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&auto=format&fit=crop&q=80";
+
+          return {
+            id: movieUuid,
+            uuid: movieUuid,
+            title: m.title,
+            displayTitleLine1: line1.toUpperCase(),
+            displayTitleLine2: line2.toUpperCase(),
+            brandTitle: (m.title || "CINEMA").toUpperCase(),
+            brandSubtitle: "NOW SHOWING IN CINEMAS",
+            overview:
+              m.overview ||
+              "Experience stunning visuals and immersive sound in FilmZone auditoriums.",
+            backdrop_path: backdrop,
+            poster_path: m.posterUrl || backdrop,
+            release_date: (m.releaseDate || "2026").substring(0, 4),
+            runtime: m.runtimeMinutes ? `${m.runtimeMinutes} min` : "120 min",
+          };
+        })
       : [];
 
   const totalSlides = slides.length;

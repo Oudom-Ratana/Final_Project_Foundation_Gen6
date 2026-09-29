@@ -2,6 +2,7 @@ import {
   Star,
   Check,
   Pencil,
+  Calendar,
   Trash2,
   Plus,
   SlidersHorizontal,
@@ -149,9 +150,9 @@ export default function MovieLibraryRow({
               type="button"
               onClick={() => onEdit(item)}
               className="w-8 h-8 rounded-full bg-[#b90101] hover:brightness-110 text-white flex items-center justify-center shadow-xs transition active:scale-95 cursor-pointer"
-              title="Edit movie schedule & halls"
+              title="Schedule showtimes in Teacher DB"
             >
-              <Pencil className="w-3.5 h-3.5" />
+              <Calendar className="w-3.5 h-3.5" />
             </button>
 
             <button

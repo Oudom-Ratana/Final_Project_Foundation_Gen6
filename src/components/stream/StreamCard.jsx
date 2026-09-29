@@ -266,7 +266,7 @@ export default function StreamCard({ movie, activeGenreId }) {
             role="dialog"
             aria-modal="true"
           >
-            <div className="relative w-full max-w-md rounded-2xl bg-white dark:bg-[#1A1F25] border border-neutral-200 dark:border-white/10 p-6 shadow-2xl">
+            <div className="relative w-full max-w-md rounded-2xl bg-white border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] p-6 shadow-2xl">
               <button
                 type="button"
                 onClick={() => setShowLoginPrompt(false)}
