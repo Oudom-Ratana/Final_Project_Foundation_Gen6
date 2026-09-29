@@ -119,4 +119,42 @@ export async function fetchLiveTmdbDetails(tmdbId) {
     console.warn("Fetch details error:", err);
     return null;
   }
+
+}
+/**
+ * Fetch movies currently in theaters (for Hero / NOW SHOWING)
+ */
+export async function fetchNowPlayingTmdb(page = 1) {
+  const key = getTmdbApiKey();
+  if (!key) throw new Error("Missing TMDB key in .env");
+
+  const isBearer = key.length > 50;
+  const url = isBearer
+    ? `https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=${page}`
+    : `https://api.themoviedb.org/3/movie/now_playing?api_key=${key}&language=en-US&page=${page}`;
+
+  const headers = { "Content-Type": "application/json" };
+  if (isBearer) headers["Authorization"] = `Bearer ${key}`;
+
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const err = new Error(`TMDB error status: ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+
+  const data = await res.json();
+  return (data.results || []).map((m) => ({
+    id: m.id,
+    title: m.title,
+    overview: m.overview,
+    release_date: m.release_date || "",
+    poster_path: m.poster_path
+      ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
+      : null,
+    backdrop_path: m.backdrop_path
+      ? `https://image.tmdb.org/t/p/original${m.backdrop_path}`
+      : null,
+    vote_average: m.vote_average ? Number(m.vote_average.toFixed(1)) : 0,
+  }));
 }

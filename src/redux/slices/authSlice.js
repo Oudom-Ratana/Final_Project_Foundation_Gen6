@@ -21,6 +21,10 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     // Teacher's exact action: setAccessToken
+    // ក្នុង reducers: { ... }
+    setUser: (state, action) => {
+       state.user = action.payload;
+    },  
     setAccessToken: (state, action) => {
       state.accessToken = action.payload;
       state.token = action.payload;
@@ -89,6 +93,7 @@ export const {
   setLoading,
 } = authSlice.actions;
 
+export const { setUser } = authSlice.actions;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectAuthLoading = (state) => state.auth.loading;
