@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams, Link } from "react-router";
 import { useSelector } from "react-redux";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Ticket, LogIn } from "lucide-react";
 import { selectTheme } from "../redux/slices/uiSlice";
-import { selectUserTickets } from "../redux/slices/ticketSlice";
 import { TICKETS_PER_PAGE } from "../data/ticketData";
 import { useGetMyBookingsQuery, useGetCinemaMoviesQuery } from "../services/api/cinemaApi";
 import TicketCard from "../components/tickets/TicketCard";
@@ -60,18 +59,21 @@ export default function MyTicketsPage() {
     }
   }, [tabParam]);
 
-  // Auth token
+  // Auth token: Strictly check if a user is logged in
   const token =
     useSelector((state) => state.auth?.accessToken || state.auth?.token) ||
     sessionStorage.getItem("accessToken") ||
     localStorage.getItem("accessToken");
 
-  // 1. Fetch live user bookings from Teacher's API
-  const { data: apiBookingsData, isLoading: isBookingsLoading } =
-    useGetMyBookingsQuery(
-      { page: 0, size: 50 },
-      { skip: !token, refetchOnMountOrArgChange: true },
-    );
+  // 1. RTK Query: Fetch live user bookings exclusively for the current authenticated user
+  const {
+    data: apiBookingsData,
+    isLoading: isBookingsLoading,
+    isFetching: isBookingsFetching,
+  } = useGetMyBookingsQuery(
+    { page: 0, size: 50 },
+    { skip: !token, refetchOnMountOrArgChange: true },
+  );
 
   // 2. Fetch cinema catalog to match real posters and metadata
   const { data: cinemaMoviesData } = useGetCinemaMoviesQuery();
@@ -81,23 +83,18 @@ export default function MyTicketsPage() {
     return [];
   }, [cinemaMoviesData]);
 
-  // 3. Newly confirmed session tickets from local storage
-  const localUserTickets = useSelector(selectUserTickets) || [];
-
-  // 4. Transform API bookings with real-time showtime check
-  const apiTickets = useMemo(() => {
-    if (!apiBookingsData?.content || !Array.isArray(apiBookingsData.content)) {
+  // 3. Transform API bookings: Strictly from the backend API (zero mock, zero local storage)
+  const allTickets = useMemo(() => {
+    if (!token || !apiBookingsData?.content || !Array.isArray(apiBookingsData.content)) {
       return [];
     }
 
     return apiBookingsData.content.map((booking) => {
       const showTimestamp = getShowtimeTimestamp(booking);
-      // REAL-TIME CHECK:
-      // If showtime is in the future (> currentTime) and not cancelled -> UPCOMING
-      // When clock hits showtime (e.g. 2:01 PM) -> moves to HISTORY
+
       // REAL-TIME SHOWTIME CHECK:
-      // If showtime is in the future (> currentTime) and not cancelled -> ALWAYS UPCOMING!
-      // Once clock passes showtime (e.g. 2:01 PM) -> smoothly moves to HISTORY!
+      // If showtime is in the future (> currentTime) and not cancelled -> UPCOMING
+      // When clock reaches showtime (e.g. 2:01 PM) -> smoothly moves to HISTORY
       const isPast = showTimestamp <= currentTime;
       const isCancelled = booking.status === "CANCELLED";
       const isUpcoming = !isPast && !isCancelled;
@@ -134,26 +131,16 @@ export default function MyTicketsPage() {
           (m.uuid && booking.movieUuid && m.uuid === booking.movieUuid),
       );
 
-      const localMatch = localUserTickets.find(
-        (t) =>
-          t.bookingUuid === booking.uuid ||
-          t.id === booking.uuid ||
-          t.id === bookingRef,
-      );
-
       const posterUrl =
         catalogMatch?.posterUrl ||
         catalogMatch?.poster_path ||
-        localMatch?.movie?.poster ||
         "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80";
 
-      const durationStr =
-        catalogMatch?.duration
-          ? `${Math.floor(catalogMatch.duration / 60)}h ${catalogMatch.duration % 60}m`
-          : localMatch?.movie?.duration || "2h 15m";
+      const durationStr = catalogMatch?.duration
+        ? `${Math.floor(catalogMatch.duration / 60)}h ${catalogMatch.duration % 60}m`
+        : "2h 15m";
 
-      const genresList =
-        catalogMatch?.genres || localMatch?.movie?.genres || ["Action", "Adventure"];
+      const genresList = catalogMatch?.genres || ["Action", "Adventure"];
 
       return {
         id: booking.uuid,
@@ -170,11 +157,11 @@ export default function MyTicketsPage() {
         showtime: {
           date: formattedDate,
           time: formattedTime,
-          format: localMatch?.showtime?.format || "2D",
+          format: "2D",
           hall: booking.hallName || "Hall 2 - Standard",
-          location: localMatch?.showtime?.location || "FilmZone SenSok",
+          location: "FilmZone Cinema",
         },
-        seats: seatLabels.length > 0 ? seatLabels : localMatch?.seats || ["Standard"],
+        seats: seatLabels.length > 0 ? seatLabels : ["Standard"],
         pricePerSeat:
           booking.seats?.[0]?.unitPrice ||
           (booking.totalAmount && seatLabels.length
@@ -193,45 +180,7 @@ export default function MyTicketsPage() {
         )}&total=${booking.totalAmount}`,
       };
     });
-  }, [apiBookingsData, catalogMovies, localUserTickets, currentTime]);
-
-  // 5. Deduplicate and merge tickets
-  const allTickets = useMemo(() => {
-    // Re-evaluate local session tickets with real-time clock as well
-    const formattedLocal = localUserTickets.map((t) => {
-      const showTimestamp = getShowtimeTimestamp(t);
-      const isPast = showTimestamp <= currentTime;
-      return {
-        ...t,
-        showTimestamp,
-        status: isPast ? "history" : "upcoming",
-        apiStatus: isPast ? "COMPLETED" : "CONFIRMED",
-      };
-    });
-
-    const seenKeys = new Set();
-    const result = [];
-
-    // Prioritize API tickets
-    for (const t of apiTickets) {
-      const key = `${t.movie.title}_${t.showtime.date}_${t.showtime.time}_${Array.isArray(t.seats) ? t.seats.join(',') : t.seats}`.toLowerCase();
-      seenKeys.add(key);
-      seenKeys.add(t.bookingUuid);
-      seenKeys.add(t.id);
-      result.push(t);
-    }
-
-    // Add unique local session tickets
-    for (const lt of formattedLocal) {
-      const key = `${lt.movie.title}_${lt.showtime.date}_${lt.showtime.time}_${Array.isArray(lt.seats) ? lt.seats.join(',') : lt.seats}`.toLowerCase();
-      if (!seenKeys.has(key) && !seenKeys.has(lt.bookingUuid) && !seenKeys.has(lt.id)) {
-        seenKeys.add(key);
-        result.push(lt);
-      }
-    }
-
-    return result;
-  }, [apiTickets, localUserTickets, currentTime]);
+  }, [token, apiBookingsData, catalogMovies, currentTime]);
 
   const filteredTickets = allTickets.filter((t) => {
     const status = (t.status || "").toLowerCase();
@@ -261,8 +210,43 @@ export default function MyTicketsPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // 4. When user is NOT logged in: Show clean login prompt (Zero tickets shown)
+  if (!token) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12 font-sans select-none">
+        <ScrollReveal delay={0} duration={600} distance="translate-y-4">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#161A20] border border-neutral-200 dark:border-white/10 shadow-2xl p-8 text-center space-y-5">
+            <div className="w-20 h-20 rounded-2xl bg-[#B90101]/10 text-[#B90101] flex items-center justify-center mx-auto shadow-inner">
+              <Ticket className="w-10 h-10 stroke-[2.2]" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h2 className="text-2xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">
+                Log In to View Tickets
+              </h2>
+              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed max-w-sm mx-auto">
+                Please log in to your account to view your upcoming movie passes and booking history.
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <Link
+                to="/login?redirect=/my-tickets"
+                className="w-full py-3.5 px-6 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm uppercase tracking-wider transition active:scale-95 shadow-md border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Log In</span>
+              </Link>
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    );
+  }
+
+  // 5. When user IS logged in: Render live API tickets
   return (
-    <div className="min-h-screen font-sans pb-16 pt-6 transition-colors duration-300">
+    <div className="min-h-screen font-sans pb-16 pt-6 transition-colors duration-300 select-none">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ── Tab Switcher ── */}
         <ScrollReveal delay={0} duration={600} distance="translate-y-4">
@@ -306,7 +290,7 @@ export default function MyTicketsPage() {
 
         {/* ── Ticket List ── */}
         <div className="space-y-4">
-          {isBookingsLoading ? (
+          {isBookingsLoading || isBookingsFetching ? (
             <div className="text-center py-20 flex flex-col items-center justify-center space-y-3">
               <Loader2 className="w-8 h-8 text-[#B90101] animate-spin" />
               <p className="text-sm font-semibold text-neutral-500">Loading your tickets from cinema...</p>
@@ -343,7 +327,7 @@ export default function MyTicketsPage() {
         </div>
 
         {/* ── Pagination ── */}
-        {!isBookingsLoading && totalPages > 1 && (
+        {!isBookingsLoading && !isBookingsFetching && totalPages > 1 && (
           <ScrollReveal delay={200} duration={600} distance="translate-y-4">
             <div className="flex items-center justify-center gap-2 mt-10 select-none">
               {/* Prev Button */}

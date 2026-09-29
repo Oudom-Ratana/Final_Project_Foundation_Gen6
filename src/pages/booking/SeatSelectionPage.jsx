@@ -94,9 +94,11 @@ export default function SeatSelectionPage() {
   const rawPrice = searchParams.get("price");
   const ticketPrice = rawPrice
     ? parseFloat(rawPrice)
-    : hallType === "gold"
-      ? GOLD_PRICE
-      : STANDARD_SINGLE_PRICE;
+    : showtimeDetails?.basePrice != null
+      ? Number(showtimeDetails.basePrice)
+      : hallType === "gold"
+        ? GOLD_PRICE
+        : STANDARD_SINGLE_PRICE;
 
   const [holdSeats, { isLoading: isHolding }] = useHoldSeatsMutation();
   const [createBooking] = useCreateBookingMutation();

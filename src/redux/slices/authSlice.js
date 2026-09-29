@@ -70,6 +70,7 @@ const authSlice = createSlice({
       localStorage.removeItem("cinema_token");
       localStorage.removeItem("cinema_refresh_token");
       localStorage.removeItem("cinema_user");
+      localStorage.removeItem("filmzone_booked_tickets");
     },
     setError: (state, action) => {
       state.error = action.payload;

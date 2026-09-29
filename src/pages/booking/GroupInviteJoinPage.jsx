@@ -45,19 +45,21 @@ export default function GroupInviteJoinPage() {
       return;
     }
 
+    const priceParam = showtime?.basePrice != null ? `&price=${showtime.basePrice}` : "";
+
     try {
       const res = await joinGroup(inviteToken).unwrap();
       toast.success("Successfully joined the group!");
       const targetGroupUuid = invite?.uuid || res?.uuid;
       navigate(
-        `/booking/seats?showtimeUuid=${showtimeUuid}&groupUuid=${targetGroupUuid}&type=group`
+        `/booking/seats?showtimeUuid=${showtimeUuid}&groupUuid=${targetGroupUuid}&type=group${priceParam}`
       );
     } catch (err) {
       const msg = err?.data?.message || err?.message || "Failed to join group.";
       if (msg.toLowerCase().includes("already") || msg.toLowerCase().includes("member")) {
         toast.info("You are already a member of this group!");
         navigate(
-          `/booking/seats?showtimeUuid=${showtimeUuid}&groupUuid=${invite?.uuid}&type=group`
+          `/booking/seats?showtimeUuid=${showtimeUuid}&groupUuid=${invite?.uuid}&type=group${priceParam}`
         );
       } else {
         toast.error(msg);

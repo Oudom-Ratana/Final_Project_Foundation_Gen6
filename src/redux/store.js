@@ -8,7 +8,7 @@ import { baseApi } from "../services/api/baseApi";
 import favouriteReducer from "./slices/favouriteSlice";
 import ticketReducer from "./slices/ticketSlice";
 
-// Middleware to immediately wipe all RTK Query API cache when switching users or logging out
+
 const authResetMiddleware = (storeApi) => (next) => (action) => {
   const result = next(action);
   if (action.type === "auth/logout" || action.type === "auth/setCredentials") {

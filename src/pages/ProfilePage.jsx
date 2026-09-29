@@ -10,6 +10,7 @@ import {
   Camera,
   LogIn,
   Loader2,
+  Pencil,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import {
@@ -92,6 +93,7 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
 
+  const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Sync server data & stored avatar into form fields
@@ -143,6 +145,16 @@ export default function ProfilePage() {
         : "Upcoming Show",
     }));
 
+  // Cancel editing and revert to current saved profile
+  const handleCancelEdit = () => {
+    setFirstName(activeUser.firstName || "");
+    setLastName(activeUser.lastName || "");
+    setUsername(activeUser.username || "");
+    setEmail(activeUser.email || "");
+    setPhone(activeUser.phone || "");
+    setIsEditing(false);
+  };
+
   // Handle Save Profile Changes via RTK Query
   const handleSaveChange = async (e) => {
     e?.preventDefault();
@@ -187,6 +199,7 @@ export default function ProfilePage() {
       );
 
       toast.success("Profile updated successfully!");
+      setIsEditing(false);
       refetchUser();
     } catch (err) {
       console.error("Failed to update profile:", err);
@@ -433,8 +446,13 @@ export default function ProfilePage() {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                    disabled={!isEditing}
                     placeholder="First Name"
-                    className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                    className={`w-full px-5 py-3 rounded-full border transition shadow-inner text-xs sm:text-sm ${
+                      !isEditing
+                        ? "border-neutral-200/80 dark:border-white/5 bg-neutral-100/70 dark:bg-white/[0.03] text-neutral-800 dark:text-neutral-300 cursor-not-allowed"
+                        : "border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-neutral-900 dark:text-white focus:outline-none focus:border-[#B90101]"
+                    }`}
                   />
                 </div>
                 <div>
@@ -445,8 +463,13 @@ export default function ProfilePage() {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
+                    disabled={!isEditing}
                     placeholder="Last Name"
-                    className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                    className={`w-full px-5 py-3 rounded-full border transition shadow-inner text-xs sm:text-sm ${
+                      !isEditing
+                        ? "border-neutral-200/80 dark:border-white/5 bg-neutral-100/70 dark:bg-white/[0.03] text-neutral-800 dark:text-neutral-300 cursor-not-allowed"
+                        : "border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-[#1A1F25]/60 text-neutral-900 dark:text-white focus:outline-none focus:border-[#B90101]"
+                    }`}
                   />
                 </div>
               </div>
@@ -460,10 +483,15 @@ export default function ProfilePage() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  disabled={!isEditing}
                   placeholder="Enter your username (min 3 characters)"
                   required
                   minLength={3}
-                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                  className={`w-full px-5 py-3 rounded-full border transition shadow-inner text-xs sm:text-sm ${
+                    !isEditing
+                      ? "border-neutral-200/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-100/70 text-neutral-800 dark:text-neutral-300 cursor-not-allowed"
+                      : "border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50 text-neutral-900 dark:text-white focus:outline-none focus:border-[#B90101]"
+                  }`}
                 />
               </div>
 
@@ -476,8 +504,13 @@ export default function ProfilePage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={!isEditing}
                   placeholder="Enter email address"
-                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                  className={`w-full px-5 py-3 rounded-full border transition shadow-inner text-xs sm:text-sm ${
+                    !isEditing
+                      ? "border-neutral-200/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-100/70 text-neutral-800 dark:text-neutral-300 cursor-not-allowed"
+                      : "border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50 text-neutral-900 dark:text-white focus:outline-none focus:border-[#B90101]"
+                  }`}
                 />
               </div>
 
@@ -490,27 +523,53 @@ export default function ProfilePage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  disabled={!isEditing}
                   placeholder="012 345 678"
-                  className="w-full px-5 py-3 rounded-full border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#B90101] transition shadow-inner"
+                  className={`w-full px-5 py-3 rounded-full border transition shadow-inner text-xs sm:text-sm ${
+                    !isEditing
+                      ? "border-neutral-200/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-100/70 text-neutral-800 dark:text-neutral-300 cursor-not-allowed"
+                      : "border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-neutral-50 text-neutral-900 dark:text-white focus:outline-none focus:border-[#B90101]"
+                  }`}
                 />
               </div>
 
-              {/* Save Change Button */}
+              {/* Action Buttons: Edit Profile or Cancel / Save Changes */}
               <div className="flex justify-end pt-3">
-                <button
-                  type="submit"
-                  disabled={isUpdating}
-                  className="px-8 py-2.5 rounded-full border border-[#B90101] text-xs sm:text-sm font-bold text-[#B90101] hover:bg-[#B90101] hover:text-white transition shadow-sm active:scale-95 cursor-pointer disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isUpdating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Saving to API...</span>
-                    </>
-                  ) : (
-                    <span>Save Changes</span>
-                  )}
-                </button>
+                {!isEditing ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="px-7 py-2.5 rounded-full border border-[#B90101] text-xs sm:text-sm font-bold text-[#B90101] hover:bg-[#B90101] hover:text-white transition shadow-sm active:scale-95 cursor-pointer flex items-center gap-2"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    <span>Edit Profile</span>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      disabled={isUpdating}
+                      className="px-6 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-xs sm:text-sm font-bold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition active:scale-95 cursor-pointer disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isUpdating}
+                      className="px-7 py-2.5 rounded-full bg-[#B90101] text-xs sm:text-sm font-bold text-white hover:brightness-110 transition shadow-md active:scale-95 cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isUpdating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Saving to API...</span>
+                        </>
+                      ) : (
+                        <span>Save Changes</span>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </form>
           </div>
