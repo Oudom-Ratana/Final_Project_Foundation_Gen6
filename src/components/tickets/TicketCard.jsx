@@ -77,13 +77,20 @@ export default function TicketCard({ ticket, onViewTicket }) {
           {/* Status Badge */}
           {isUpcoming ? (
             <span
-              className="shrink-0 text-[13px] font-bold whitespace-nowrap"
-              style={{ color: "#EAB308" }}
+              className="shrink-0 text-[13px] font-bold whitespace-nowrap text-amber-500"
             >
               • Upcoming
             </span>
+          ) : ticket.apiStatus === "CANCELLED" ? (
+            <span className="shrink-0 text-[13px] font-black uppercase tracking-wide text-neutral-400 whitespace-nowrap">
+              Cancelled
+            </span>
+          ) : ticket.apiStatus === "EXPIRED" ? (
+            <span className="shrink-0 text-[13px] font-black uppercase tracking-wide text-neutral-400 whitespace-nowrap">
+              Expired
+            </span>
           ) : (
-            <span className="shrink-0 text-[13px] font-black uppercase tracking-wide text-[#B90101] whitespace-nowrap">
+            <span className="shrink-0 text-[13px] font-black uppercase tracking-wide text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
               Completed
             </span>
           )}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
@@ -18,6 +18,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 const SignUpComponent = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || "/";
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
@@ -101,14 +103,18 @@ const SignUpComponent = () => {
               user: userProfile,
             }),
           );
-          navigate("/");
+          navigate(redirectUrl);
           return;
         }
       } catch (autoLoginErr) {
         console.warn("Auto-login note:", autoLoginErr);
       }
 
-      navigate("/login");
+      navigate(
+        redirectUrl !== "/"
+          ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+          : "/login"
+      );
     } catch (err) {
       console.error("Registration error:", err);
       const message =
@@ -144,7 +150,7 @@ const SignUpComponent = () => {
 
       dispatch(setCredentials(authData));
       toast.success(`Welcome to FilmZone, ${authData.user.name}!`);
-      navigate("/");
+      navigate(redirectUrl);
     } catch (err) {
       if (err.code !== "auth/popup-closed-by-user") {
         toast.error(err.message || "Google sign up failed");
@@ -432,7 +438,11 @@ const SignUpComponent = () => {
           <p className="mt-4 sm:mt-5 text-center text-xs text-neutral-500 dark:text-neutral-400">
             Already have an account?{" "}
             <Link
-              to="/login"
+              to={
+                redirectUrl !== "/"
+                  ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+                  : "/login"
+              }
               className="font-bold text-primary-red underline hover:opacity-90"
             >
               Log In

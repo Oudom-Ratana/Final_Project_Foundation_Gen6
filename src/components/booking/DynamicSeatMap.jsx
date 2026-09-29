@@ -35,7 +35,7 @@ export default function DynamicSeatMap({
     let max = 0;
 
     seats.forEach((seat) => {
-      const row = seat.rowLabel || "A";
+      const row = seat.rowLabel ?? "A";
       if (!rowMap[row]) {
         rowMap[row] = [];
       }
@@ -118,7 +118,7 @@ export default function DynamicSeatMap({
     if (rowLetter === "A") {
       const pairNumbers = STANDARD_ROW_A_PAIRS.find((p) => p.includes(col));
       if (pairNumbers) {
-        const rowSeats = seatsByRow[rowLetter] || [];
+        const rowSeats = seatsByRow[rowLetter] ?? [];
         const partnerCol =
           pairNumbers[0] === col ? pairNumbers[1] : pairNumbers[0];
         const partnerSeat = findSeatForCol(rowSeats, rowLetter, partnerCol);
@@ -206,7 +206,7 @@ export default function DynamicSeatMap({
       {/* Rows */}
       <div className="space-y-2.5 sm:space-y-3.5 w-fit">
         {sortedRows.map((rowLetter) => {
-          const rowSeats = seatsByRow[rowLetter] || [];
+          const rowSeats = seatsByRow[rowLetter] ?? [];
           const isRowA = rowLetter === "A";
 
           return (
@@ -280,10 +280,6 @@ export default function DynamicSeatMap({
                       const isCoupleHovered =
                         coupleKey && hoveredCoupleKey === coupleKey;
 
-                      const isFirstInPair = couplePair && couplePair[0] === col;
-                      const isSecondInPair =
-                        couplePair && couplePair[1] === col;
-
                       const avatarInfo = groupSeatAvatars[seatId];
                       const status = reserved
                         ? "reserved"
@@ -295,7 +291,7 @@ export default function DynamicSeatMap({
                       if (avatarInfo) {
                         return (
                           <button
-                            key={seat.seatUuid || seatId}
+                            key={seat.seatUuid ?? seatId}
                             type="button"
                             onClick={() => {
                               if (!avatarInfo.isLocked) {
@@ -324,7 +320,7 @@ export default function DynamicSeatMap({
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
                                   e.currentTarget.src = getFallbackSvg(
-                                    avatarInfo.initials || "U",
+                                    avatarInfo.initials ?? "U",
                                     avatarInfo.color,
                                   );
                                 }}
@@ -336,7 +332,7 @@ export default function DynamicSeatMap({
 
                       return (
                         <button
-                          key={seat.seatUuid || seatId}
+                          key={seat.seatUuid ?? seatId}
                           type="button"
                           onClick={() => handleSeatClick(seat, rowLetter, col)}
                           disabled={reserved}

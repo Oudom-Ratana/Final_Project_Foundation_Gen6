@@ -13,6 +13,7 @@ import {
   useGetBookingQrCodeQuery,
   useGetBookingByUuidQuery,
   useGetCinemaMovieByUuidQuery,
+  useGetShowtimeByUuidQuery,
 } from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
@@ -153,6 +154,17 @@ export default function BookingConfirmedPage() {
       poster_path: cinemaMovie?.posterUrl || null,
     };
 
+  const displayPoster =
+    cinemaMovie?.posterUrl ||
+    movie?.posterUrl ||
+    (movie?.poster_path
+      ? movie.poster_path.startsWith("http")
+        ? movie.poster_path
+        : `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+      : null) ||
+    movie?.backdropUrl ||
+    "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80";
+
   const rawScreenType =
     searchParams.get("screenType") || searchParams.get("format");
 
@@ -175,6 +187,40 @@ export default function BookingConfirmedPage() {
     return isGold ? "GOLD" : "2D";
   }, [rawScreenType, booking.showtime, branch, time, isGold]);
 
+    const showtimeUuidForMovie =
+    searchParams.get("showtimeUuid") || booking.showtime?.showtimeUuid;
+  const { data: showtimeForMovie } = useGetShowtimeByUuidQuery(showtimeUuidForMovie, {
+    skip: !showtimeUuidForMovie,
+  });
+
+  const effectiveMovieUuid =
+    (movieId && movieId.includes("-") ? movieId : null) ||
+    showtimeForMovie?.movieUuid ||
+    cinemaMovie?.uuid ||
+    (reduxMovie?.uuid || (reduxMovie?.id && String(reduxMovie.id).includes("-") ? reduxMovie.id : null));
+
+  const { data: directCinemaMovie } = useGetCinemaMovieByUuidQuery(effectiveMovieUuid, {
+    skip: !effectiveMovieUuid,
+  });
+
+  const resolvedMovie = directCinemaMovie || cinemaMovie || movie;
+  const movieTitle = resolvedMovie?.title || movie?.title || "Movie Booking";
+
+  const rawPoster =
+    resolvedMovie?.posterUrl ||
+    resolvedMovie?.poster_path ||
+    movie?.posterUrl ||
+    movie?.poster_path ||
+    reduxMovie?.posterUrl ||
+    reduxMovie?.poster_path;
+
+  const posterSrc = rawPoster
+    ? rawPoster.startsWith("http")
+      ? rawPoster
+      : `https://image.tmdb.org/t/p/w500${rawPoster}`
+    : resolvedMovie?.backdropUrl ||
+      "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80";
+
   const seatIds = selectedSeats.map((s) => s.id).join(", ");
   const pricePerSeat = selectedSeats[0]?.price || (isGold ? 10.0 : 5.0);
 
@@ -187,6 +233,12 @@ export default function BookingConfirmedPage() {
     0,
   );
   const totalPaid = ticketsTotal + concessionsTotal;
+  const displayTotal =
+    bookingData?.totalPrice ??
+    bookingData?.totalAmount ??
+    (searchParams.get('total') ? Number(searchParams.get('total')) : null) ??
+    (searchParams.get('amount') ? Number(searchParams.get('amount')) : null) ??
+    totalPaid;
 
   const dispatch = useDispatch();
 
@@ -203,10 +255,7 @@ export default function BookingConfirmedPage() {
         : movie.genres
       : ["Action", "Adventure"];
 
-    const posterUrl = movie?.poster_path
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-      : movie?.poster ||
-        "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg";
+    const posterUrl = posterSrc;
 
     const viewUrl = `/booking/confirmed?movie=${movieId}&hall=${hallType}&screenType=${encodeURIComponent(formatBadge)}&time=${encodeURIComponent(time)}&date=${encodeURIComponent(date)}&branch=${encodeURIComponent(branch)}&ref=${bookingRef}`;
 
@@ -297,17 +346,13 @@ export default function BookingConfirmedPage() {
                   {/* Movie Poster & Title & Date/Time */}
                   <div className="flex items-start gap-4">
                     <img
-                      src={
-                        movie.poster_path
-                          ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
-                          : "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg"
-                      }
-                      alt={movie.title}
+                      src={posterSrc}
+                      alt={movieTitle}
                       className="w-18 h-24 rounded-2xl object-cover shadow-md shrink-0 border border-neutral-200 dark:border-(--border-dark-mode)"
                     />
                     <div className="min-w-0 space-y-1">
                       <h3 className="font-extrabold text-base text-neutral-900 dark:text-white leading-snug">
-                        {movie.title}
+                        {movieTitle}
                       </h3>
                       <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
                         Date:{" "}
@@ -562,19 +607,14 @@ export default function BookingConfirmedPage() {
                 </div>
               </div>
 
-              {/* Bottom Red Footer */}
-              <div className="bg-[#B90101] text-white py-3 px-6 flex items-center justify-center gap-2.5 shrink-0">
-                <div className="w-6 h-6 rounded-full bg-white text-[#B90101] flex items-center justify-center shrink-0 shadow-xs">
-                  <Ticket className="w-3.5 h-3.5 text-[#B90101]" />
-                </div>
-                <div className="flex flex-col leading-none text-left">
-                  <span className="font-black text-xs tracking-wider uppercase">
-                    FilmZone
-                  </span>
-                  <span className="text-[9px] font-bold tracking-widest uppercase opacity-90">
-                    Cinema
-                  </span>
-                </div>
+              {/* Bottom Red Footer: Total Money */}
+              <div className="bg-[#B90101] text-white py-3 px-6 flex items-center justify-between shrink-0">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-white/90">
+                  Total Amount
+                </span>
+                <span className="text-base sm:text-lg font-black tracking-wide text-white">
+                  ${(Number(displayTotal) || 0).toFixed(2)}
+                </span>
               </div>
             </div>
 

@@ -8,6 +8,7 @@ const CINEMA_API_BASE =
   import.meta.env.VITE_CINEMA_API_BASE_URL ||
   "https://cinema-booking-api.eunglyzhia.com/api/v1";
 
+
 // Checks if the endpoint belongs to the Teacher's Cinema Booking API
 const isCinemaApiEndpoint = (url) => {
   if (typeof url !== "string") return false;
@@ -19,12 +20,13 @@ const isCinemaApiEndpoint = (url) => {
     url.startsWith("/halls") ||
     url.startsWith("/seats") ||
     url.startsWith("/bookings") ||
-    url.startsWith("/concessions") ||
+    url.startsWith("/concession") ||
     url.startsWith("/tickets") ||
     url.startsWith("/payments") ||
     url.startsWith("/files") ||
     url.startsWith("/group-bookings") ||
     url.startsWith("/group-payments") ||
+    url.startsWith("/cinema-api") ||
     url.startsWith("/api/v1")
   );
 };

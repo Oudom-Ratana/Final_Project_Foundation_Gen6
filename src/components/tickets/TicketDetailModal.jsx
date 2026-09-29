@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { ArrowLeft, Ticket, QrCode } from "lucide-react";
 import { useSelector } from "react-redux";
+import { useGetBookingQrCodeQuery } from "../../services/api/cinemaApi";
 import { selectTheme } from "../../redux/slices/uiSlice";
 
 export default function TicketDetailModal({ ticket, onClose }) {
@@ -23,6 +24,18 @@ export default function TicketDetailModal({ ticket, onClose }) {
     };
   }, [onClose]);
 
+  const bookingUuid =
+    ticket?.bookingUuid ||
+    (typeof ticket?.id === "string" && ticket.id.includes("-") ? ticket.id : null);
+
+  const {
+    data: ticketQrBlob,
+    isLoading: isTicketQrLoading,
+    isError: isTicketQrError,
+  } = useGetBookingQrCodeQuery(bookingUuid, {
+    skip: !bookingUuid || !ticket,
+  });
+
   if (!ticket) return null;
 
   const {
@@ -43,6 +56,8 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
   const seatIds = Array.isArray(seats) ? seats.join(", ") : seats || "G8";
   const seatCount = totalSeats || (Array.isArray(seats) ? seats.length : 1);
+
+
   const hallNumberOnly =
     (showtime.hall || "3").replace(/hall\s*/i, "").trim() || "3";
   const formatBadge = showtime.format || "SCREEN X";
@@ -115,7 +130,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
                     src={
                       movie.poster ||
                       movie.poster_path ||
-                      "https://i.pinimg.com/736x/95/26/68/9526684fe11e38cf6bb6fbd48e37de6a.jpg"
+                      "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80"
                     }
                     alt={movie.title}
                     className="w-12 h-16 sm:w-14 sm:h-18 rounded-xl object-cover shadow-xs shrink-0 border border-neutral-200 dark:border-white/10"
@@ -379,28 +394,39 @@ export default function TicketDetailModal({ ticket, onClose }) {
                 Scan at the cinema entrance
               </span>
 
-              {/* Scannable Lucide QR Code matching Booking Successful */}
-              <div className="p-2 sm:p-2.5 bg-white rounded-2xl shadow-xs border border-[var(--border-light-mode)] text-neutral-900 flex items-center justify-center">
-                <QrCode
-                  className="w-24 h-24 sm:w-28 sm:h-28 text-neutral-900"
-                  strokeWidth={1.5}
-                />
+              {/* Real QR matching Booking Successful page */}
+              <div className="p-2 sm:p-2.5 bg-white rounded-2xl shadow-xs border border-[var(--border-light-mode)] text-neutral-900 flex items-center justify-center min-h-[120px] min-w-[120px]">
+                {isTicketQrLoading ? (
+                  <div className="flex flex-col items-center justify-center space-y-1 text-neutral-400">
+                    <div className="w-6 h-6 rounded-full border-2 border-[#B90101] border-t-transparent animate-spin" />
+                    <span className="text-[9px] font-bold">Loading Pass...</span>
+                  </div>
+                ) : ticketQrBlob && !isTicketQrError ? (
+                  <img
+                    src={ticketQrBlob}
+                    alt={`Ticket QR for ${bookingRef}`}
+                    className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
+                  />
+                ) : (
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+                      `FILMZONE-PASS:${bookingRef}`,
+                    )}`}
+                    alt={`Ticket QR for ${bookingRef}`}
+                    className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
+                  />
+                )}
               </div>
             </div>
 
-            {/* Bottom Red Footer */}
-            <div className="bg-[#B90101] text-white py-1.5 sm:py-2 px-3 flex items-center justify-center gap-1.5 shrink-0">
-              <div className="w-5 h-5 rounded-full bg-white text-[#B90101] flex items-center justify-center shrink-0 shadow-xs">
-                <Ticket className="w-3 h-3 text-[#B90101]" />
-              </div>
-              <div className="flex flex-col leading-none text-left">
-                <span className="font-black text-[10px] sm:text-[11px] tracking-wider uppercase">
-                  FilmZone
-                </span>
-                <span className="text-[7px] sm:text-[8px] font-bold tracking-widest uppercase opacity-90">
-                  Cinema
-                </span>
-              </div>
+            {/* Bottom Red Footer: Total Money */}
+            <div className="bg-[#B90101] text-white py-1.5 sm:py-2 px-3 flex items-center justify-between shrink-0">
+              <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-white/90">
+                Total Amount
+              </span>
+              <span className="text-xs sm:text-sm font-black tracking-wide text-white">
+                ${Number(totalPrice).toFixed(2)}
+              </span>
             </div>
           </div>
         </div>

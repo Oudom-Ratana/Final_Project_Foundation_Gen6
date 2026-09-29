@@ -1,13 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router";
 import { useSelector } from "react-redux";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { selectTheme } from "../redux/slices/uiSlice";
-import { selectAllTickets } from "../redux/slices/ticketSlice";
+import { selectUserTickets } from "../redux/slices/ticketSlice";
 import { TICKETS_PER_PAGE } from "../data/ticketData";
+import { useGetMyBookingsQuery, useGetCinemaMoviesQuery } from "../services/api/cinemaApi";
 import TicketCard from "../components/tickets/TicketCard";
 import TicketDetailModal from "../components/tickets/TicketDetailModal";
 import ScrollReveal from "../components/common/ScrollReveal";
+
+// Helper to reliably parse showtime timestamp into milliseconds
+function getShowtimeTimestamp(booking) {
+  if (booking.startTime) {
+    const d = new Date(booking.startTime);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+  if (booking.showDate && booking.showTime) {
+    const d = new Date(`${booking.showDate}T${booking.showTime}`);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+  const dateStr = booking.showtime?.date || booking.date;
+  const timeStr = booking.showtime?.time || booking.time;
+  if (dateStr && timeStr) {
+    const d = new Date(`${dateStr} ${timeStr}`);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+  if (booking.createdAt) {
+    const d = new Date(booking.createdAt);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+  return Date.now() + 3600000;
+}
 
 export default function MyTicketsPage() {
   const theme = useSelector(selectTheme);
@@ -21,21 +45,202 @@ export default function MyTicketsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
+  // Real-time clock: checks current time every 30 seconds
+  const [currentTime, setCurrentTime] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     if (tabParam === "history" || tabParam === "upcoming") {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
 
-  const allTickets = useSelector(selectAllTickets);
+  // Auth token
+  const token =
+    useSelector((state) => state.auth?.accessToken || state.auth?.token) ||
+    sessionStorage.getItem("accessToken") ||
+    localStorage.getItem("accessToken");
+
+  // 1. Fetch live user bookings from Teacher's API
+  const { data: apiBookingsData, isLoading: isBookingsLoading } =
+    useGetMyBookingsQuery(
+      { page: 0, size: 50 },
+      { skip: !token, refetchOnMountOrArgChange: true },
+    );
+
+  // 2. Fetch cinema catalog to match real posters and metadata
+  const { data: cinemaMoviesData } = useGetCinemaMoviesQuery();
+  const catalogMovies = useMemo(() => {
+    if (Array.isArray(cinemaMoviesData)) return cinemaMoviesData;
+    if (Array.isArray(cinemaMoviesData?.content)) return cinemaMoviesData.content;
+    return [];
+  }, [cinemaMoviesData]);
+
+  // 3. Newly confirmed session tickets from local storage
+  const localUserTickets = useSelector(selectUserTickets) || [];
+
+  // 4. Transform API bookings with real-time showtime check
+  const apiTickets = useMemo(() => {
+    if (!apiBookingsData?.content || !Array.isArray(apiBookingsData.content)) {
+      return [];
+    }
+
+    return apiBookingsData.content.map((booking) => {
+      const showTimestamp = getShowtimeTimestamp(booking);
+      // REAL-TIME CHECK:
+      // If showtime is in the future (> currentTime) and not cancelled -> UPCOMING
+      // When clock hits showtime (e.g. 2:01 PM) -> moves to HISTORY
+      // REAL-TIME SHOWTIME CHECK:
+      // If showtime is in the future (> currentTime) and not cancelled -> ALWAYS UPCOMING!
+      // Once clock passes showtime (e.g. 2:01 PM) -> smoothly moves to HISTORY!
+      const isPast = showTimestamp <= currentTime;
+      const isCancelled = booking.status === "CANCELLED";
+      const isUpcoming = !isPast && !isCancelled;
+
+      const showDateObj = new Date(showTimestamp);
+      const formattedDate = !isNaN(showDateObj.getTime())
+        ? showDateObj.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "Showtime";
+
+      const formattedTime = !isNaN(showDateObj.getTime())
+        ? showDateObj.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+        : "TBD";
+
+      const seatLabels = Array.isArray(booking.seats)
+        ? booking.seats
+            .map((s) => s.seatLabel || s.label || s)
+            .filter(Boolean)
+        : [];
+
+      const bookingRef = `FZ-${booking.uuid.slice(0, 8).toUpperCase()}`;
+
+      // Match movie from catalog to get authentic poster, runtime, genres
+      const catalogMatch = catalogMovies.find(
+        (m) =>
+          m.title?.toLowerCase() === booking.movieTitle?.toLowerCase() ||
+          (m.uuid && booking.movieUuid && m.uuid === booking.movieUuid),
+      );
+
+      const localMatch = localUserTickets.find(
+        (t) =>
+          t.bookingUuid === booking.uuid ||
+          t.id === booking.uuid ||
+          t.id === bookingRef,
+      );
+
+      const posterUrl =
+        catalogMatch?.posterUrl ||
+        catalogMatch?.poster_path ||
+        localMatch?.movie?.poster ||
+        "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80";
+
+      const durationStr =
+        catalogMatch?.duration
+          ? `${Math.floor(catalogMatch.duration / 60)}h ${catalogMatch.duration % 60}m`
+          : localMatch?.movie?.duration || "2h 15m";
+
+      const genresList =
+        catalogMatch?.genres || localMatch?.movie?.genres || ["Action", "Adventure"];
+
+      return {
+        id: booking.uuid,
+        bookingUuid: booking.uuid,
+        showTimestamp,
+        status: isUpcoming ? "upcoming" : "history",
+        apiStatus: isPast ? (isCancelled ? "CANCELLED" : "COMPLETED") : (booking.status || "CONFIRMED"),
+        movie: {
+          title: booking.movieTitle || catalogMatch?.title || "Movie Ticket",
+          poster: posterUrl,
+          duration: durationStr,
+          genres: genresList,
+        },
+        showtime: {
+          date: formattedDate,
+          time: formattedTime,
+          format: localMatch?.showtime?.format || "2D",
+          hall: booking.hallName || "Hall 2 - Standard",
+          location: localMatch?.showtime?.location || "FilmZone SenSok",
+        },
+        seats: seatLabels.length > 0 ? seatLabels : localMatch?.seats || ["Standard"],
+        pricePerSeat:
+          booking.seats?.[0]?.unitPrice ||
+          (booking.totalAmount && seatLabels.length
+            ? booking.totalAmount / seatLabels.length
+            : 0.01),
+        totalSeats: seatLabels.length || 1,
+        totalPrice: booking.totalAmount || 0.01,
+        bookingRef,
+        ticketQrToken: booking.ticketQrToken,
+        viewUrl: `/booking/confirmed?bookingUuid=${booking.uuid}&movie=${encodeURIComponent(
+          booking.movieTitle || "",
+        )}&ref=${bookingRef}&time=${encodeURIComponent(
+          formattedTime,
+        )}&date=${encodeURIComponent(formattedDate)}&seats=${encodeURIComponent(
+          seatLabels.join(","),
+        )}&total=${booking.totalAmount}`,
+      };
+    });
+  }, [apiBookingsData, catalogMovies, localUserTickets, currentTime]);
+
+  // 5. Deduplicate and merge tickets
+  const allTickets = useMemo(() => {
+    // Re-evaluate local session tickets with real-time clock as well
+    const formattedLocal = localUserTickets.map((t) => {
+      const showTimestamp = getShowtimeTimestamp(t);
+      const isPast = showTimestamp <= currentTime;
+      return {
+        ...t,
+        showTimestamp,
+        status: isPast ? "history" : "upcoming",
+        apiStatus: isPast ? "COMPLETED" : "CONFIRMED",
+      };
+    });
+
+    const seenKeys = new Set();
+    const result = [];
+
+    // Prioritize API tickets
+    for (const t of apiTickets) {
+      const key = `${t.movie.title}_${t.showtime.date}_${t.showtime.time}_${Array.isArray(t.seats) ? t.seats.join(',') : t.seats}`.toLowerCase();
+      seenKeys.add(key);
+      seenKeys.add(t.bookingUuid);
+      seenKeys.add(t.id);
+      result.push(t);
+    }
+
+    // Add unique local session tickets
+    for (const lt of formattedLocal) {
+      const key = `${lt.movie.title}_${lt.showtime.date}_${lt.showtime.time}_${Array.isArray(lt.seats) ? lt.seats.join(',') : lt.seats}`.toLowerCase();
+      if (!seenKeys.has(key) && !seenKeys.has(lt.bookingUuid) && !seenKeys.has(lt.id)) {
+        seenKeys.add(key);
+        result.push(lt);
+      }
+    }
+
+    return result;
+  }, [apiTickets, localUserTickets, currentTime]);
 
   const filteredTickets = allTickets.filter((t) => {
     const status = (t.status || "").toLowerCase();
     if (activeTab === "history") {
-      return status === "history" || status === "completed";
+      return status === "history" || status === "completed" || status === "cancelled";
     }
     return status === activeTab;
   });
+
   const totalPages = Math.ceil(filteredTickets.length / TICKETS_PER_PAGE);
   const startIndex = (currentPage - 1) * TICKETS_PER_PAGE;
   const paginatedTickets = filteredTickets.slice(
@@ -45,7 +250,7 @@ export default function MyTicketsPage() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    setCurrentPage(1); // Reset to page 1 when switching tabs
+    setCurrentPage(1);
     const newParams = new URLSearchParams(searchParams);
     newParams.set("tab", tab);
     setSearchParams(newParams, { replace: true });
@@ -65,7 +270,7 @@ export default function MyTicketsPage() {
             <button
               type="button"
               onClick={() => handleTabChange("upcoming")}
-              className={`text-2xl sm:text-3xl font-black transition-colors duration-200 ${
+              className={`text-2xl sm:text-3xl font-black transition-colors duration-200 cursor-pointer ${
                 activeTab === "upcoming"
                   ? "text-[#B90101]"
                   : isDark
@@ -86,7 +291,7 @@ export default function MyTicketsPage() {
             <button
               type="button"
               onClick={() => handleTabChange("history")}
-              className={`text-2xl sm:text-3xl font-black transition-colors duration-200 ${
+              className={`text-2xl sm:text-3xl font-black transition-colors duration-200 cursor-pointer ${
                 activeTab === "history"
                   ? "text-[#B90101]"
                   : isDark
@@ -101,7 +306,12 @@ export default function MyTicketsPage() {
 
         {/* ── Ticket List ── */}
         <div className="space-y-4">
-          {paginatedTickets.length === 0 ? (
+          {isBookingsLoading ? (
+            <div className="text-center py-20 flex flex-col items-center justify-center space-y-3">
+              <Loader2 className="w-8 h-8 text-[#B90101] animate-spin" />
+              <p className="text-sm font-semibold text-neutral-500">Loading your tickets from cinema...</p>
+            </div>
+          ) : paginatedTickets.length === 0 ? (
             <ScrollReveal delay={100} duration={600} distance="translate-y-6">
               <div className="text-center py-20">
                 <p
@@ -133,7 +343,7 @@ export default function MyTicketsPage() {
         </div>
 
         {/* ── Pagination ── */}
-        {totalPages > 1 && (
+        {!isBookingsLoading && totalPages > 1 && (
           <ScrollReveal delay={200} duration={600} distance="translate-y-4">
             <div className="flex items-center justify-center gap-2 mt-10 select-none">
               {/* Prev Button */}

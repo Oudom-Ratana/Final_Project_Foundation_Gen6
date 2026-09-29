@@ -178,10 +178,6 @@ export default function Navbar() {
 
   const isTransparentHeroMode = isHomePage && !isScrolled;
 
-  // Active state: Primary red with red underline indicator bar
-  // Inactive state:
-  // - Top of homepage: Golden yellow text (#EAB308) matching the dark hero banner
-  // - Scrolled / Other pages: Crisp charcoal (#1E293B / neutral-800) in light mode, Golden yellow in dark mode
   const navLinkClass = ({ isActive }) =>
     `relative text-[14px] lg:text-[18px] font-bold transition-all px-1 pb-0.5 ${
       isActive
@@ -189,6 +185,13 @@ export default function Navbar() {
         : isTransparentHeroMode
           ? "text-[#EAB308] hover:text-[#B90101]"
           : "text-neutral-800 dark:text-[#EAB308] hover:text-[#B90101] dark:hover:text-[#B90101]"
+    }`;
+
+  const mobileNavLinkClass = ({ isActive }) =>
+    `block text-[16px] font-bold py-2 px-1 transition-colors ${
+      isActive
+        ? "text-[#B90101] font-black pl-2 border-l-2 border-[#B90101]"
+        : "text-neutral-800 dark:text-neutral-200 hover:text-[#B90101] dark:hover:text-[#B90101]"
     }`;
 
   return (
@@ -199,7 +202,7 @@ export default function Navbar() {
           : "bg-white/55 dark:bg-black/40 backdrop-blur-md border-b border-neutral-200/80 dark:border-[#9E0505]/20 shadow-xs dark:shadow-none"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 sm:h-13.5 flex items-center justify-between gap-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
         {/* 1. Left: FilmZone Logo */}
         <Link
           to="/"
@@ -213,11 +216,8 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* 2. Center: Navigation Links (Home, Promo, Stream, About) */}
+        {/* 2. Center: Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          {/* <NavLink to="/" className={navLinkClass}>
-            Home
-          </NavLink> */}
           <NavLink to="/stream" className={navLinkClass}>
             Movies
           </NavLink>
@@ -229,9 +229,9 @@ export default function Navbar() {
           </NavLink>
         </nav>
 
-        {/* 3. Right: Action Buttons (Notification Bell, Theme Switcher, Avatar/Login on far right) */}
+        {/* 3. Right: Desktop Action Controls */}
         <div className="hidden sm:flex items-center gap-2">
-          {/* Notification Bell Button — navigates to /my-tickets */}
+          {/* Notification Bell Button */}
           <Link
             to="/my-tickets"
             className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full border backdrop-blur-md flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-xs ${
@@ -265,7 +265,7 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* User Avatar Dropdown on the far right (Replaces Admin button) */}
+          {/* User Avatar Dropdown */}
           {isAuthenticated && user ? (
             <div className="relative" ref={profileDropdownRef}>
               <button
@@ -288,10 +288,9 @@ export default function Navbar() {
                 )}
               </button>
 
-              {/* Popup Dropdown Menu with Profile, Favorite, and Logout */}
+              {/* Popup Dropdown Menu */}
               {isProfileDropdownOpen && (
                 <div className="absolute right-0 mt-3 w-52 rounded-2xl bg-white dark:bg-[#1A1F25] border border-neutral-200 dark:border-white/10 shadow-2xl backdrop-blur-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  {/* User Header */}
                   <div className="px-4 py-2 border-b border-neutral-100 dark:border-white/5">
                     <p className="text-sm font-bold text-neutral-900 dark:text-white truncate">
                       {user.name}
@@ -301,7 +300,6 @@ export default function Navbar() {
                     </p>
                   </div>
 
-                  {/* 1. Profile Option */}
                   <Link
                     to="/profile"
                     onClick={() => setIsProfileDropdownOpen(false)}
@@ -311,7 +309,6 @@ export default function Navbar() {
                     <span>Profile</span>
                   </Link>
 
-                  {/* 2. Favorite Option (Inside dropdown below profile) */}
                   <Link
                     to="/favourite"
                     onClick={() => setIsProfileDropdownOpen(false)}
@@ -328,7 +325,6 @@ export default function Navbar() {
                     )}
                   </Link>
 
-                  {/* 3. Admin Dashboard Option (Only for admin) */}
                   {isAdmin && (
                     <Link
                       to="/admin"
@@ -342,7 +338,6 @@ export default function Navbar() {
 
                   <div className="my-1 border-t border-neutral-100 dark:border-white/5" />
 
-                  {/* 4. Logout Option */}
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -366,9 +361,22 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Action Controls */}
+        {/* Mobile Action Bar (Right side of Header) */}
         <div className="flex md:hidden items-center gap-2">
-          {/* Mobile Theme Switcher (Red primary color #B90101) */}
+          {/* Mobile Tickets Bell */}
+          <Link
+            to="/my-tickets"
+            className={`w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center shadow-xs transition-colors ${
+              isTransparentHeroMode
+                ? "bg-[#1A1F25]/20 hover:bg-[#1A1F25]/40 border border-white/20 text-[#FFD700]"
+                : "bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 border border-neutral-200 dark:border-white/15 text-[#B90101] dark:text-[#EAB308]"
+            }`}
+            aria-label="My Tickets"
+          >
+            <Bell className="w-3.5 h-3.5 fill-current" />
+          </Link>
+
+          {/* Mobile Theme Switcher */}
           <button
             onClick={handleThemeToggle}
             className={`w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center text-[#B90101] shadow-xs cursor-pointer transition-colors ${
@@ -388,7 +396,7 @@ export default function Navbar() {
           {/* Mobile Hamburger Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`p-1 rounded-lg backdrop-blur-md shadow-xs cursor-pointer transition-colors ${
+            className={`p-1.5 rounded-lg backdrop-blur-md shadow-xs cursor-pointer transition-colors ${
               isTransparentHeroMode
                 ? "text-white bg-[#1A1F25]/20 hover:bg-[#1A1F25]/40 border border-white/20"
                 : "text-neutral-800 dark:text-white bg-white/80 hover:bg-white dark:bg-[#1A1F25]/40 border border-neutral-200 dark:border-white/15"
@@ -404,64 +412,69 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu (Matches user mockup) */}
+      {/* Mobile Drawer Dropdown Menu with Safe Scroll Bounds */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t bg-white/95 dark:bg-neutral-950/95 backdrop-blur-xl px-6 py-4 space-y-3 transition-colors border-neutral-200 dark:border-[#9E0505]/20 shadow-xl">
+        <div className="md:hidden border-t bg-white/95 dark:bg-[#0f1115]/95 backdrop-blur-xl px-5 py-4 space-y-3 transition-colors border-neutral-200 dark:border-[#9E0505]/20 shadow-2xl max-h-[calc(100dvh-3.5rem)] overflow-y-auto">
           <NavLink
             to="/"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
+            className={mobileNavLinkClass}
           >
             Home
           </NavLink>
 
           <NavLink
-            to="/deals"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
-          >
-            Deals
-          </NavLink>
-
-          <NavLink
             to="/stream"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
+            className={mobileNavLinkClass}
           >
             Movies
           </NavLink>
 
-          {/* Favorites: ONLY appears on the nav when logged in */}
+          <NavLink
+            to="/deals"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={mobileNavLinkClass}
+          >
+            Deals
+          </NavLink>
+
           {isAuthenticated && user && (
             <NavLink
               to="/favourite"
               onClick={() => setIsMobileMenuOpen(false)}
-              className={navLinkClass}
+              className={mobileNavLinkClass}
             >
-              Favorites {favoriteCount > 0 && `(${favoriteCount})`}
+              <div className="flex items-center justify-between">
+                <span>Favorites</span>
+                {favoriteCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-[#B90101] text-white text-[11px] font-bold">
+                    {favoriteCount}
+                  </span>
+                )}
+              </div>
             </NavLink>
           )}
 
           <NavLink
             to="/about"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={navLinkClass}
+            className={mobileNavLinkClass}
           >
             About
           </NavLink>
 
-          {/* Admin Dashboard: ONLY appears when user is Admin */}
           {isAuthenticated && isAdmin && (
             <NavLink
               to="/admin"
               onClick={() => setIsMobileMenuOpen(false)}
-              className={navLinkClass}
+              className={mobileNavLinkClass}
             >
               Admin Dashboard
             </NavLink>
           )}
 
-          {/* Bottom Account Card or Login Button */}
+          {/* Mobile Bottom Account Card or Login Button */}
           <div
             className="pt-3 border-t flex flex-col gap-2.5"
             style={{ borderColor: "rgba(158, 5, 5, 0.20)" }}
@@ -505,7 +518,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full py-2.5 rounded-[35px] text-white font-bold text-[18px] flex items-center justify-center gap-2 shadow-md hover:brightness-110 transition"
+                className="w-full py-2.5 rounded-full text-white font-bold text-base flex items-center justify-center gap-2 shadow-md hover:brightness-110 transition active:scale-[0.99]"
                 style={{ backgroundColor: "#B90101" }}
               >
                 <User className="w-4 h-4 fill-white" />
