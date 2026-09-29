@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
@@ -9,8 +9,6 @@ import {
   useLoginMutation,
   useLazyGetCurrentUserQuery,
 } from "../../services/api/authApi";
-import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../../firebase/config";
 import { loginSchema } from "../../schemas/authSchema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,10 +16,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 const LoginComponent = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const redirectUrl = searchParams.get("redirect") || "/";
+  const initialEmail = searchParams.get("email") || location?.state?.registeredEmail || "";
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
-  const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const [loginMutation, { isLoading: isApiSubmitting }] = useLoginMutation();
@@ -33,8 +32,9 @@ const LoginComponent = () => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
+    mode: "onChange",
     defaultValues: {
-      email: "",
+      email: initialEmail,
       password: "",
     },
   });
@@ -103,41 +103,7 @@ const LoginComponent = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      setIsSocialSubmitting(true);
-      const userCredential = await signInWithPopup(auth, googleProvider);
-      const fbUser = userCredential.user;
-
-      const authData = {
-        user: {
-          id: fbUser.uid,
-          name: fbUser.displayName || "Google User",
-          email: fbUser.email,
-          role: "user",
-          avatar:
-            fbUser.photoURL ||
-            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-              fbUser.displayName || "User",
-            )}`,
-          createdAt: new Date().toISOString(),
-        },
-        token: await fbUser.getIdToken(),
-      };
-
-      dispatch(setCredentials(authData));
-      toast.success(`Welcome back, ${authData.user.name}!`);
-      navigate(redirectUrl);
-    } catch (err) {
-      if (err.code !== "auth/popup-closed-by-user") {
-        toast.error(err.message || "Google sign in failed");
-      }
-    } finally {
-      setIsSocialSubmitting(false);
-    }
-  };
-
-  return (
+        return (
     <div className="relative flex h-full w-full">
       {/* Back to Home - top-left corner on the image side (like the Stream Movie Detail page) */}
       <Link
@@ -215,7 +181,7 @@ const LoginComponent = () => {
               <input
                 type="email"
                 id="email"
-                placeholder="Enter your email address"
+                placeholder="Enter your email or username"
                 {...register("email")}
                 className={`w-full rounded-full border ${
                   errors.email
@@ -276,29 +242,14 @@ const LoginComponent = () => {
 
             <button
               type="submit"
-              disabled={isSubmitting || isSocialSubmitting || isApiSubmitting}
+              disabled={isSubmitting || isApiSubmitting}
               className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-1 disabled:opacity-60"
             >
               {isSubmitting || isApiSubmitting ? "Logging In..." : "Login"}
             </button>
           </form>
 
-          <div className="my-4 sm:my-5 flex items-center gap-3">
-            <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-700" />
-            <span className="text-xs font-semibold text-primary-red">Or</span>
-            <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-700" />
-          </div>
-
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-(--border-light-mode) bg-[var(--primary-color-5)] dark:border-neutral-700 dark:bg-neutral-800/70 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
-          >
-            <GoogleIcon />
-            <span>Login with Google</span>
-          </button>
-
-          <p className="mt-4 sm:mt-5 text-center text-xs text-neutral-500 dark:text-neutral-400">
+                    <p className="mt-4 sm:mt-5 text-center text-xs text-neutral-500 dark:text-neutral-400">
             Don&apos;t have an account?{" "}
             <Link
               to={
@@ -316,33 +267,6 @@ const LoginComponent = () => {
     </div>
   );
 };
-
-const GoogleIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 20 20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.98-4.33 2.98-7.33Z"
-      fill="#4285F4"
-    />
-    <path
-      d="M10 20c2.7 0 4.96-.9 6.62-2.44l-3.24-2.5c-.9.6-2.06.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H1.06v2.58A10 10 0 0 0 10 20Z"
-      fill="#34A853"
-    />
-    <path
-      d="M4.41 11.9a6 6 0 0 1 0-3.8V5.52H1.06a10 10 0 0 0 0 8.96l3.35-2.58Z"
-      fill="#FBBC05"
-    />
-    <path
-      d="M10 3.98c1.47 0 2.79.5 3.83 1.5l2.87-2.87A9.96 9.96 0 0 0 10 0 10 10 0 0 0 1.06 5.52L4.41 8.1C5.2 5.74 7.4 3.98 10 3.98Z"
-      fill="#EA4335"
-    />
-  </svg>
-);
 
 const EyeIcon = () => (
   <svg

@@ -1,17 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import heroImage from "../../assets/others/cinema.png";
-import { setCredentials } from "../../redux/slices/authSlice";
 import {
   useRegisterMutation,
-  useLoginMutation,
-  useLazyGetCurrentUserQuery,
 } from "../../services/api/authApi";
-import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../../firebase/config";
 import { registerSchema } from "../../schemas/authSchema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,15 +14,11 @@ const SignUpComponent = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/";
-  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
-  const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const [registerMutation, { isLoading: isApiSubmitting }] =
     useRegisterMutation();
-  const [loginMutation] = useLoginMutation();
-  const [getCurrentUser] = useLazyGetCurrentUserQuery();
 
   const {
     register,
@@ -36,6 +26,7 @@ const SignUpComponent = () => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
+    mode: "onChange",
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -50,7 +41,7 @@ const SignUpComponent = () => {
     setErrorMsg("");
 
     try {
-      // 1. Send registration payload to Teacher's Movie Booking API
+      // 1. Send registration payload to Cinema API
       await registerMutation({
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
@@ -60,61 +51,17 @@ const SignUpComponent = () => {
         password: data.password,
       }).unwrap();
 
-      toast.success("Account created successfully! Logging you in...");
+      toast.success("Account created successfully! Please log in with your credentials.");
 
-      // 2. Automatically log the user in
-      try {
-        const loginRes = await loginMutation({
-          identifier: data.email.trim(),
-          password: data.password,
-        }).unwrap();
-
-        if (loginRes?.accessToken) {
-          if (loginRes.refreshToken) {
-            sessionStorage.setItem("refreshToken", loginRes.refreshToken);
-          }
-
-          let userProfile = {
-            email: data.email,
-            username: data.username,
-            name: `${data.firstName} ${data.lastName}`.trim(),
-          };
-
-          try {
-            const meRes = await getCurrentUser().unwrap();
-            if (meRes) {
-              userProfile = {
-                ...meRes,
-                name:
-                  `${meRes.firstName || ""} ${meRes.lastName || ""}`.trim() ||
-                  meRes.username ||
-                  data.username,
-              };
-            }
-          } catch (e) {
-            console.warn("Fetch me after register:", e);
-          }
-
-          dispatch(
-            setCredentials({
-              accessToken: loginRes.accessToken,
-              token: loginRes.accessToken,
-              refreshToken: loginRes.refreshToken,
-              user: userProfile,
-            }),
-          );
-          navigate(redirectUrl);
-          return;
-        }
-      } catch (autoLoginErr) {
-        console.warn("Auto-login note:", autoLoginErr);
-      }
-
-      navigate(
+      // 2. Redirect directly to Login page with registered email
+      const targetLogin =
         redirectUrl !== "/"
-          ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
-          : "/login"
-      );
+          ? `/login?redirect=${encodeURIComponent(redirectUrl)}&email=${encodeURIComponent(data.email.trim())}`
+          : `/login?email=${encodeURIComponent(data.email.trim())}`;
+
+      navigate(targetLogin, {
+        state: { registeredEmail: data.email.trim() },
+      });
     } catch (err) {
       console.error("Registration error:", err);
       const message =
@@ -126,41 +73,7 @@ const SignUpComponent = () => {
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    try {
-      setIsSocialSubmitting(true);
-      const userCredential = await signInWithPopup(auth, googleProvider);
-      const fbUser = userCredential.user;
-
-      const authData = {
-        user: {
-          id: fbUser.uid,
-          name: fbUser.displayName || "Google User",
-          email: fbUser.email,
-          role: "user",
-          avatar:
-            fbUser.photoURL ||
-            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-              fbUser.displayName || "User",
-            )}`,
-          createdAt: new Date().toISOString(),
-        },
-        token: await fbUser.getIdToken(),
-      };
-
-      dispatch(setCredentials(authData));
-      toast.success(`Welcome to FilmZone, ${authData.user.name}!`);
-      navigate(redirectUrl);
-    } catch (err) {
-      if (err.code !== "auth/popup-closed-by-user") {
-        toast.error(err.message || "Google sign up failed");
-      }
-    } finally {
-      setIsSocialSubmitting(false);
-    }
-  };
-
-  return (
+        return (
     <div className="relative flex h-full w-full">
       {/* Back to Home - top-left corner on the image side (like the Stream Movie Detail page) */}
       <Link
@@ -210,37 +123,7 @@ const SignUpComponent = () => {
             </span>
           </div>
 
-          {/* Social Auth */}
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={handleGoogleSignUp}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-(--border-light-mode) bg-[var(--primary-color-5)] dark:border-neutral-700 dark:bg-neutral-800/70 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
-            >
-              <GoogleIcon />
-              <span>Google</span>
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                toast.info(
-                  "Facebook registration coming soon! Try Google or Email.",
-                )
-              }
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-(--border-light-mode) bg-[var(--primary-color-5)] dark:border-neutral-700  dark:bg-neutral-800/70 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition cursor-pointer"
-            >
-              <FacebookIcon />
-              <span>Facebook</span>
-            </button>
-          </div>
-
-          <div className="my-3.5 sm:my-4 flex items-center gap-3">
-            <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-700" />
-            <span className="text-xs font-semibold text-primary-red">Or</span>
-            <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-700" />
-          </div>
-
-          {errorMsg && (
+                    {errorMsg && (
             <div className="mb-3 p-3 rounded-xl bg-red-500/10 border border-[#B90101]/30 text-[#B90101] text-xs font-semibold">
               {errorMsg}
             </div>
@@ -426,7 +309,7 @@ const SignUpComponent = () => {
 
             <button
               type="submit"
-              disabled={isSubmitting || isApiSubmitting || isSocialSubmitting}
+              disabled={isSubmitting || isApiSubmitting}
               className="w-full rounded-full bg-primary-red py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer mt-2 disabled:opacity-60"
             >
               {isSubmitting || isApiSubmitting
@@ -453,48 +336,6 @@ const SignUpComponent = () => {
     </div>
   );
 };
-
-const GoogleIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 20 20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.98-4.33 2.98-7.33Z"
-      fill="#4285F4"
-    />
-    <path
-      d="M10 20c2.7 0 4.96-.9 6.62-2.44l-3.24-2.5c-.9.6-2.06.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H1.06v2.58A10 10 0 0 0 10 20Z"
-      fill="#34A853"
-    />
-    <path
-      d="M4.41 11.9a6 6 0 0 1 0-3.8V5.52H1.06a10 10 0 0 0 0 8.96l3.35-2.58Z"
-      fill="#FBBC05"
-    />
-    <path
-      d="M10 3.98c1.47 0 2.79.5 3.83 1.5l2.87-2.87A9.96 9.96 0 0 0 10 0 10 10 0 0 0 1.06 5.52L4.41 8.1C5.2 5.74 7.4 3.98 10 3.98Z"
-      fill="#EA4335"
-    />
-  </svg>
-);
-
-const FacebookIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 20 20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M20 10a10 10 0 1 0-11.56 9.88v-6.99H5.9V10h2.54V7.8c0-2.5 1.49-3.89 3.77-3.89 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V10h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 20 10Z"
-      fill="#1877F2"
-    />
-  </svg>
-);
 
 const EyeIcon = () => (
   <svg

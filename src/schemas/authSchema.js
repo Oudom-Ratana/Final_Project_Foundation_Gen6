@@ -2,8 +2,13 @@ import { z } from "zod";
 
 // 1. Login Validation Schema (identifier can be email or username)
 export const loginSchema = z.object({
-  email: z.string().trim().min(1, "Email or username is required"),
-  password: z.string().min(1, "Password is required"),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email or username is required"),
+  password: z
+    .string()
+    .min(1, "Password is required"),
 });
 
 // 2. Register Validation Schema (Teacher's Movie Booking API)
@@ -31,19 +36,20 @@ export const registerSchema = z.object({
     .string()
     .trim()
     .min(1, "Email address is required")
-    .email("Please enter a valid email address"),
+    .email("Please enter a valid email address (e.g. name@example.com)"),
   phone: z
     .string()
     .trim()
     .min(8, "Phone number must be at least 8 digits")
-    .max(20, "Phone number is too long"),
+    .max(20, "Phone number cannot exceed 20 digits")
+    .regex(/^[0-9+\s-]+$/, "Phone number can only contain numbers, +, and hyphens"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
     .max(50, "Password must be under 50 characters")
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/,
-      "Password must include uppercase, lowercase, number, and special character (@$!%*?&)",
+      "Must include uppercase, lowercase, number, and special character (@$!%*?&)",
     ),
 });
 
