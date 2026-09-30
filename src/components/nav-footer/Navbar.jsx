@@ -423,6 +423,14 @@ export default function Navbar() {
             Deals
           </NavLink>
 
+          <NavLink
+            to="/my-tickets"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={mobileNavLinkClass}
+          >
+            My Tickets
+          </NavLink>
+
           {isAuthenticated && user && (
             <NavLink
               to="/favourite"

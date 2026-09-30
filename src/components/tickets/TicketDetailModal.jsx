@@ -425,12 +425,12 @@ export default function TicketDetailModal({ ticket, onClose }) {
           </div>
         </div>
 
-        <div className="mt-3 sm:mt-3.5 flex justify-center">
+        <div className="mt-3 sm:mt-3.5 flex justify-center px-1">
           <button
             type="button"
             onClick={handleDownloadPdf}
             disabled={isDownloading}
-            className="py-2.5 px-8 rounded-full bg-[#B90101] hover:bg-[#8B0101] disabled:opacity-75 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm tracking-wide shadow-md transition active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+            className="w-full sm:w-auto py-2.5 sm:py-3 px-6 sm:px-8 rounded-full bg-[#B90101] hover:bg-[#8B0101] disabled:opacity-75 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm tracking-wide shadow-md transition active:scale-95 cursor-pointer flex items-center justify-center gap-2"
           >
             {isDownloading ? (
               <>

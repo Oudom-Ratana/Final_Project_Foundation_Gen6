@@ -237,14 +237,14 @@ export default function MyTicketsPage() {
   }
 
   return (
-    <div className="min-h-screen font-sans pb-16 pt-6 transition-colors duration-300 select-none">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen font-sans pb-16 pt-4 sm:pt-6 transition-colors duration-300 select-none">
+      <div className="max-w-3xl mx-auto px-3 sm:px-6 lg:px-8">
         <ScrollReveal delay={0} duration={600} distance="translate-y-4">
-          <div className="flex items-center justify-center gap-4 mb-10">
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-10">
             <button
               type="button"
               onClick={() => handleTabChange("upcoming")}
-              className={`text-2xl sm:text-3xl font-black transition-colors duration-200 cursor-pointer ${
+              className={`text-xl xs:text-2xl sm:text-3xl font-black transition-colors duration-200 cursor-pointer ${
                 activeTab === "upcoming"
                   ? "text-[#B90101]"
                   : isDark
@@ -256,7 +256,7 @@ export default function MyTicketsPage() {
             </button>
 
             <span
-              className={`text-2xl sm:text-3xl font-light select-none ${isDark ? "text-neutral-600" : "text-neutral-300"}`}
+              className={`text-xl xs:text-2xl sm:text-3xl font-light select-none ${isDark ? "text-neutral-600" : "text-neutral-300"}`}
             >
               |
             </span>
@@ -264,7 +264,7 @@ export default function MyTicketsPage() {
             <button
               type="button"
               onClick={() => handleTabChange("history")}
-              className={`text-2xl sm:text-3xl font-black transition-colors duration-200 cursor-pointer ${
+              className={`text-xl xs:text-2xl sm:text-3xl font-black transition-colors duration-200 cursor-pointer ${
                 activeTab === "history"
                   ? "text-[#B90101]"
                   : isDark

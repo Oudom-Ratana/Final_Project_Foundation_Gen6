@@ -7,6 +7,7 @@ import {
   Clapperboard,
   AlertCircle,
   RotateCcw,
+  Server,
 } from "lucide-react";
 import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
 
@@ -144,6 +145,12 @@ export default function StreamPlayerModal({
     return () => window.removeEventListener("message", handleMessage);
   }, [tryNextServer]);
 
+  const handleServerSelect = (index) => {
+    setServerIndex(index);
+    setHasAllServersFailed(false);
+    setIsLoadingStream(true);
+  };
+
   useEffect(() => {
     if (!isOpen || activeMode !== "full_movie" || hasAllServersFailed) return;
 
@@ -152,7 +159,7 @@ export default function StreamPlayerModal({
       if (isLoadingStream) {
         tryNextServer();
       }
-    }, 4000);
+    }, 10000);
 
     return () => clearTimeout(failoverTimeoutRef.current);
   }, [
@@ -241,7 +248,33 @@ export default function StreamPlayerModal({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
+          {activeMode === "full_movie" && (
+            <div className="hidden sm:flex items-center p-1 rounded-full bg-neutral-900 border border-white/10 text-xs font-bold gap-1">
+              <span className="text-[11px] font-extrabold text-neutral-400 pl-2 pr-1 uppercase tracking-wider flex items-center gap-1">
+                <Server className="w-3 h-3 text-[#B90101]" />
+                Server:
+              </span>
+              {STREAM_SERVERS.map((srv, idx) => {
+                const isSelected = serverIndex === idx;
+                return (
+                  <button
+                    key={srv.id}
+                    type="button"
+                    onClick={() => handleServerSelect(idx)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-[#B90101] text-white shadow-xs"
+                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <div className="flex items-center p-1 rounded-full bg-neutral-900 border border-white/10 text-xs font-bold">
             <button
               type="button"
@@ -372,6 +405,34 @@ export default function StreamPlayerModal({
           </>
         )}
       </div>
+
+      {activeMode === "full_movie" && (
+        <div className="sm:hidden shrink-0 px-4 py-2 bg-neutral-950 border-t border-white/10 flex items-center justify-between gap-2 overflow-x-auto select-none">
+          <span className="text-[11px] font-black text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <Server className="w-3 h-3 text-[#B90101]" />
+            Server:
+          </span>
+          <div className="flex items-center gap-1.5">
+            {STREAM_SERVERS.map((srv, idx) => {
+              const isSelected = serverIndex === idx;
+              return (
+                <button
+                  key={srv.id}
+                  type="button"
+                  onClick={() => handleServerSelect(idx)}
+                  className={`w-7 h-7 rounded-full text-xs font-black flex items-center justify-center transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-[#B90101] text-white shadow-xs"
+                      : "bg-neutral-900 text-neutral-400 hover:text-white border border-white/10"
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {mediaType === "tv" &&
         activeMode === "full_movie" &&
