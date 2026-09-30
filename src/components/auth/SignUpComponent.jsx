@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import heroImage from "../../assets/others/cinema.png";
+import SEO from "../common/SEO";
 import {
   useRegisterMutation,
 } from "../../services/api/authApi";
@@ -71,8 +72,13 @@ const SignUpComponent = () => {
     }
   };
 
-        return (
+  return (
     <div className="relative flex h-full w-full">
+      <SEO
+        title="Create Account | FilmZone"
+        description="Join FilmZone today to book tickets, save favorite movies, and stream anytime."
+        url="/signup"
+      />
       <Link
         to="/"
         aria-label="Back to Home"

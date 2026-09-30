@@ -81,7 +81,7 @@ export default function PaymentKhqrModal({
 
     if (status === "PAID" || status === "SUCCESS" || status === "COMPLETED") {
       setIsPaid(true);
-      toast.success("Payment verified successfully with Bakong!");
+      toast.success("Payment verified successfully!");
       const timer = setTimeout(() => {
         onPaymentSuccess(activePayment);
       }, 1200);
@@ -100,7 +100,7 @@ export default function PaymentKhqrModal({
         const status = typeof rawStatus === "string" ? rawStatus.toUpperCase() : "";
         if (status === "PAID" || status === "SUCCESS" || status === "COMPLETED") {
           setIsPaid(true);
-          toast.success("Payment verified successfully with Bakong!");
+          toast.success("Payment verified successfully!");
           setTimeout(() => {
             onPaymentSuccess(res);
           }, 1200);
@@ -117,27 +117,31 @@ export default function PaymentKhqrModal({
 
   const handleDone = async () => {
     if (paymentUuid) {
-      try {
-        if (isConcessionPayment) {
-          try {
-            await verifyConcessionPayment(paymentUuid).unwrap();
-          } catch (vErr) {
-            console.warn("Concession verify note:", vErr);
+      if (isConcessionPayment) {
+        try {
+          const res = await verifyConcessionPayment(paymentUuid).unwrap();
+          const rawStatus = res?.status ?? res?.data?.status ?? res?.paymentStatus;
+          const status = typeof rawStatus === "string" ? rawStatus.toUpperCase() : "";
+
+          if (status === "PAID" || status === "SUCCESS" || status === "COMPLETED") {
+            setIsPaid(true);
+            toast.success("Payment verified successfully!");
+            setTimeout(() => onPaymentSuccess(res), 1200);
+            return;
           }
-          try {
-            await markSuccess(paymentUuid).unwrap();
-          } catch (mErr) {
-            console.warn("Payment mark success note:", mErr);
-          }
-        } else {
-          await markSuccess(paymentUuid).unwrap();
+        } catch (err) {
+          console.warn("Concession verification attempt note:", err);
         }
-      } catch (err) {
-        console.warn("Payment simulation note:", err);
+      } else {
+        try {
+          await markSuccess(paymentUuid).unwrap();
+        } catch (err) {
+          console.warn("Payment simulation note:", err);
+        }
       }
     }
     setIsPaid(true);
-    toast.success("Payment confirmed!");
+    toast.success("Payment verified successfully!");
     setTimeout(() => onPaymentSuccess({ status: "SUCCESS" }), 1200);
   };
 

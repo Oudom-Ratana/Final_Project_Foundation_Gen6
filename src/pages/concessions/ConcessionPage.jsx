@@ -8,10 +8,16 @@ import ConcessionHero from "../../components/concessions/ConcessionHero";
 import ConcessionTicker from "../../components/concessions/ConcessionTicker";
 import ConcessionCard from "../../components/concessions/ConcessionCard";
 import ScrollReveal from "../../components/common/ScrollReveal";
+import SEO from "../../components/common/SEO";
 
 export default function ConcessionPage() {
   return (
     <div className="space-y-10 pb-24">
+      <SEO
+        title="Popcorn, Snacks & Combos | FilmZone Deals"
+        description="Enjoy hot buttery popcorn, crispy nachos, refreshing sodas, and exclusive cinema combo deals at FilmZone."
+        url="/deals"
+      />
       <ConcessionHero />
       <ConcessionTicker />
 

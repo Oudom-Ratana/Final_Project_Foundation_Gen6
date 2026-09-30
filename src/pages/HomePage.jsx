@@ -6,10 +6,16 @@ import PopcornBarSection from "../components/home/PopcornBarSection";
 import FeaturedSeriesSection from "../components/home/FeaturedSeriesSection";
 import TrailerSpotlightSection from "../components/home/TrailerSpotlightSection";
 import ComingSoonSection from "../components/home/ComingSoonSection";
+import SEO from "../components/common/SEO";
 
 export default function HomePage() {
   return (
     <div className="w-full font-sans overflow-x-hidden">
+      <SEO
+        title="FilmZone - Cinema & Free Stream"
+        description="Discover trending movies and TV series, book cinema tickets, and stream for free on FilmZone."
+        url="/"
+      />
       <HomeHero />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20 sm:space-y-24 mt-12 sm:mt-16">

@@ -13,6 +13,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import SEO from "../components/common/SEO";
 import {
   selectCurrentUser,
   updateUser as updateReduxUser,
@@ -313,6 +314,11 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full min-h-screen py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto font-sans">
+      <SEO
+        title="My Profile & Settings | FilmZone"
+        description="Manage your FilmZone cinema account, profile picture, and view your tickets."
+        url="/profile"
+      />
       <div className="mb-8 flex items-center">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
           <span className="text-[#B90101] dark:text-white">Profile</span>

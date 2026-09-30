@@ -10,6 +10,7 @@ import TicketDetailModal from "../components/tickets/TicketDetailModal";
 import AddSnacksModal from "../components/tickets/AddSnacksModal";
 import { getSafePosterUrl } from "../utils/downloadTicketPdf";
 import ScrollReveal from "../components/common/ScrollReveal";
+import SEO from "../components/common/SEO";
 
 function getShowtimeTimestamp(booking) {
   if (booking.startTime) {
@@ -241,6 +242,11 @@ export default function MyTicketsPage() {
 
   return (
     <div className="min-h-screen font-sans pb-16 pt-4 sm:pt-6 transition-colors duration-300 select-none">
+      <SEO
+        title="My Tickets & Movie Passes | FilmZone"
+        description="View your active cinema bookings, showtimes, seats, and download digital tickets on FilmZone."
+        url="/my-tickets"
+      />
       <div className="max-w-3xl mx-auto px-3 sm:px-6 lg:px-8">
         <ScrollReveal delay={0} duration={600} distance="translate-y-4">
           <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-10">

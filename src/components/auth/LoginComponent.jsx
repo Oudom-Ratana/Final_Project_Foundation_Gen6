@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import heroImage from "../../assets/others/cinema.png";
 import { setCredentials } from "../../redux/slices/authSlice";
+import SEO from "../common/SEO";
 import {
   useLoginMutation,
   useLazyGetCurrentUserQuery,
@@ -100,8 +101,13 @@ const LoginComponent = () => {
     }
   };
 
-        return (
+  return (
     <div className="relative flex h-full w-full">
+      <SEO
+        title="Log In | FilmZone"
+        description="Log in to your FilmZone account to book cinema tickets and manage your watchlist."
+        url="/login"
+      />
       <Link
         to="/"
         aria-label="Back to Home"

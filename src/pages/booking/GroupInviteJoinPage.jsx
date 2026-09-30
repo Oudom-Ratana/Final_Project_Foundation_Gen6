@@ -10,6 +10,7 @@ import {
   useGetCinemaMovieByUuidQuery,
 } from "../../services/api/cinemaApi";
 import { selectIsAuthenticated } from "../../redux/slices/authSlice";
+import SEO from "../../components/common/SEO";
 
 export default function GroupInviteJoinPage() {
   const { inviteToken } = useParams();
@@ -160,6 +161,10 @@ export default function GroupInviteJoinPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+      <SEO
+        title={invite?.name ? `Join ${invite.name} | FilmZone Group Booking` : "Join Group Cinema Booking | FilmZone"}
+        description="You have been invited to join a group cinema booking on FilmZone. Pick your seats alongside friends!"
+      />
       <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 shadow-2xl p-6 sm:p-8 space-y-6">
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="w-16 h-16 rounded-2xl bg-[#B90101]/10 dark:bg-[#FFD700]/10 text-[#B90101] dark:text-[#FFD700] flex items-center justify-center shadow-inner">

@@ -1,8 +1,9 @@
-﻿import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Clock, CheckCircle2, Lock } from "lucide-react";
+import SEO from "../../components/common/SEO";
 import {
   selectSelectedSeats,
   selectBooking,
@@ -454,6 +455,11 @@ export default function BookingDetailsPage() {
 
   return (
     <div className="relative min-h-[calc(100vh-70px)] w-full font-sans select-none overflow-x-hidden py-1 sm:py-2 pb-3">
+      <SEO
+        title={movie?.title ? `Checkout: ${movie.title} | FilmZone` : "Checkout & Snacks | FilmZone Cinema"}
+        description="Review your seats, add delicious popcorn & drinks, and proceed to payment on FilmZone."
+        url="/booking/details"
+      />
       <div className="pointer-events-none absolute inset-0 -top-10 z-0 overflow-hidden">
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>

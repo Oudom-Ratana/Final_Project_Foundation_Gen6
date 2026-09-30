@@ -1,8 +1,9 @@
-﻿import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Clock } from "lucide-react";
+import SEO from "../../components/common/SEO";
 import {
   toggleSeat,
   clearSeats,
@@ -454,6 +455,11 @@ export default function SeatSelectionPage() {
 
   return (
     <div className="relative min-h-screen w-full pb-28 font-sans select-none overflow-x-hidden">
+      <SEO
+        title={movie?.title ? `Select Seats: ${movie.title} | FilmZone` : "Select Seats | FilmZone Cinema"}
+        description="Choose your favorite cinema seats with real-time seat availability map on FilmZone."
+        url="/booking/seats"
+      />
       <div className="pointer-events-none absolute inset-0 -top-10 z-0 overflow-hidden">
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>

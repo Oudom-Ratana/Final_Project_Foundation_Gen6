@@ -4,6 +4,7 @@ import { selectTheme } from "../redux/slices/uiSlice";
 import Navbar from "../components/nav-footer/Navbar";
 import Footer from "../components/nav-footer/Footer";
 
+
 export default function RootLayout() {
   const location = useLocation();
   const theme = useSelector(selectTheme);

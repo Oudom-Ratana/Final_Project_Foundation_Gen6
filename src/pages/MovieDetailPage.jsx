@@ -5,6 +5,7 @@ import { useGetCinemaMovieByUuidQuery } from "../services/api/cinemaApi";
 import { useGetMovieTrailersQuery } from "../services/api/movieApi";
 import ShowtimeSection from "../components/booking/ShowtimeSection";
 import MovieDetailSkeleton from "../components/common/MovieDetailSkeleton";
+import SEO from "../components/common/SEO";
 
 export default function MovieDetailPage() {
   const { id } = useParams();
@@ -81,6 +82,13 @@ export default function MovieDetailPage() {
 
   return (
     <div className="relative w-full pb-24 font-sans select-none space-y-12">
+      <SEO
+        title={title}
+        description={overview}
+        image={backdropUrl || posterUrl}
+        url={`/movies/${id}`}
+        type="video.movie"
+      />
       <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-neutral-950 border border-neutral-800/80 shadow-2xl min-h-[460px] md:min-h-[500px]">
         {backdropUrl && (
           <div

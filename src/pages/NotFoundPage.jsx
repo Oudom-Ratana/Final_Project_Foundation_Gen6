@@ -2,6 +2,7 @@ import { Link, ScrollRestoration } from "react-router";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../redux/slices/uiSlice";
 import { Home } from "lucide-react";
+import SEO from "../components/common/SEO";
 
 import peopleSvg from "../assets/others/NotFound/people.svg";
 import lightSvg from "../assets/others/NotFound/light.svg";
@@ -24,6 +25,10 @@ export default function NotFoundPage() {
         maxHeight: "100vh",
       }}
     >
+      <SEO
+        title="404 - Page Not Found | FilmZone"
+        description="The scene you are looking for was cut from the reel. Return home to discover the latest movies and streams."
+      />
       <div
         className="absolute -top-4 -left-4 sm:-top-2 sm:left-2 md:left-4 w-28 sm:w-40 md:w-52 lg:w-60 pointer-events-none select-none z-10 opacity-90 animate-cinema-spotlight"
         style={{ transformOrigin: "top left" }}

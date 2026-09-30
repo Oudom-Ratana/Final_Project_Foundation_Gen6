@@ -27,6 +27,7 @@ import {
 } from "../services/api/tvApi";
 import StreamPlayerModal from "../components/stream/StreamPlayerModal";
 import MovieDetailSkeleton from "../components/common/MovieDetailSkeleton";
+import SEO from "../components/common/SEO";
 import { formatMovieRuntime } from "../utils/formatRuntime";
 import {
   addToFavourite,
@@ -242,6 +243,13 @@ export default function StreamMovieDetailPage() {
 
   return (
     <div className="relative w-full -mt-6 sm:-mt-8 pb-20 font-sans select-none">
+      <SEO
+        title={title}
+        description={data.overview || `Watch ${title} in HD on FilmZone.`}
+        image={backdropUrl || posterUrl}
+        url={`/stream/${id}${isTV ? "?type=tv" : ""}`}
+        type={isTV ? "video.tv_show" : "video.movie"}
+      />
       <div className="absolute -top-24 -bottom-12 left-1/2 -translate-x-1/2 w-screen z-0 pointer-events-none overflow-hidden">
         {backdropUrl && (
           <img

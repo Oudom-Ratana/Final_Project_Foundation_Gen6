@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import { Heart, LogIn, Film } from "lucide-react";
 import { toast } from "react-toastify";
 import FavouriteMovieCard from "../components/favourite/FavouriteMovieCard";
+import SEO from "../components/common/SEO";
 import {
   removeFromFavourite,
   setFavouriteMovies,
@@ -109,9 +110,19 @@ export default function FavouritePage() {
     }
   };
 
+  const seoEl = (
+    <SEO
+      title="My Watchlist & Favorites | FilmZone"
+      description="Keep track of your favorite blockbuster films and trending series to watch anytime on FilmZone."
+      url="/favourite"
+    />
+  );
+
   if (!token) {
     return (
-      <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
+      <>
+        {seoEl}
+        <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
         <div className="w-16 h-16 rounded-full bg-[#B90101]/10 flex items-center justify-center">
           <Heart className="w-8 h-8 text-[#B90101]" />
         </div>
@@ -131,18 +142,22 @@ export default function FavouritePage() {
           <span>Sign In to Account</span>
         </Link>
       </div>
+      </>
     );
   }
 
   const isInitialLoading = isFavoritesLoading && !teacherFavoritesData;
   if (isInitialLoading) {
     return (
-      <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
+      <>
+        {seoEl}
+        <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
         <div className="w-10 h-10 border-4 border-[#B90101] border-t-transparent rounded-full animate-spin" />
         <p className="text-neutral-500 dark:text-neutral-400 font-semibold text-sm">
           Loading your favourites from Cinema API...
         </p>
       </div>
+      </>
     );
   }
 
@@ -150,7 +165,9 @@ export default function FavouritePage() {
 
   if (displayMovies.length === 0) {
     return (
-      <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
+      <>
+        {seoEl}
+        <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
         <div className="w-16 h-16 rounded-full bg-[#B90101]/10 flex items-center justify-center">
           <Heart className="w-8 h-8 text-[#B90101]" />
         </div>
@@ -171,11 +188,13 @@ export default function FavouritePage() {
           <span>Browse Now Showing Movies</span>
         </Link>
       </div>
+      </>
     );
   }
 
   return (
     <div className="w-full space-y-8 pb-10 font-sans">
+      {seoEl}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span

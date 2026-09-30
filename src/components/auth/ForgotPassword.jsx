@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, CheckCircle2, ArrowLeft } from "lucide-react";
 import heroImage from "../../assets/others/cinema.png";
+import SEO from "../common/SEO";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../firebase/config";
 import { forgotPasswordSchema } from "../../schemas/authSchema";
@@ -43,6 +44,11 @@ const ForgotPassword = () => {
 
   return (
     <div className="relative flex h-full w-full">
+      <SEO
+        title="Reset Password | FilmZone"
+        description="Reset your FilmZone cinema account password securely."
+        url="/forgot-password"
+      />
       <Link
         to="/"
         aria-label="Back to Home"

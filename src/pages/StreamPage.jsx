@@ -8,6 +8,7 @@ import { useDiscoverTVQuery, useSearchTVQuery } from "../services/api/tvApi";
 import MovieCardSkeleton from "../components/home/MovieCardSkeleton";
 import ScrollReveal from "../components/common/ScrollReveal";
 import StreamHero from "../components/stream/StreamHero";
+import SEO from "../components/common/SEO";
 import {
   ChevronLeft,
   ChevronRight,
@@ -277,6 +278,11 @@ export default function StreamPage() {
 
   return (
     <div className="w-full space-y-10 pb-20 font-sans">
+      <SEO
+        title="Free Movie & TV Streaming | FilmZone"
+        description="Stream high-definition movies, top-rated television shows, and popular series anytime for free on FilmZone."
+        url="/stream"
+      />
       <StreamHero />
 
       <div className="flex justify-center w-full px-2">

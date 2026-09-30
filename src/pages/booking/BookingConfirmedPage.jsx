@@ -19,6 +19,7 @@ import {
 } from "../../services/api/cinemaApi";
 import BookingStepper from "../../components/booking/BookingStepper";
 import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
+import SEO from "../../components/common/SEO";
 
 export default function BookingConfirmedPage() {
   const [searchParams] = useSearchParams();
@@ -311,6 +312,11 @@ export default function BookingConfirmedPage() {
 
   return (
     <div className="relative min-h-screen w-full pb-24 font-sans select-none overflow-x-hidden">
+      <SEO
+        title="Booking Confirmed | FilmZone"
+        description="Your cinema tickets are confirmed! Download your ticket pass and enjoy your movie."
+        url="/booking/confirmed"
+      />
       <div className="pointer-events-none absolute inset-0 -top-10 z-0 overflow-hidden">
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>

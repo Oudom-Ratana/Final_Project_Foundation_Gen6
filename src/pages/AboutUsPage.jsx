@@ -5,10 +5,16 @@ import ContactQuickCards from "../components/about/ContactQuickCards";
 import ContactForm from "../components/about/ContactForm";
 import ContactInfo from "../components/about/ContactInfo";
 import ScrollReveal from "../components/common/ScrollReveal";
+import SEO from "../components/common/SEO";
 
 export default function AboutUsPage() {
   return (
     <div className="space-y-16 pb-20 font-sans overflow-x-hidden">
+      <SEO
+        title="About Us & Contact | FilmZone Cinema"
+        description="Learn more about FilmZone, our cinema technology, our team, and how to get in touch with us."
+        url="/about"
+      />
       <ScrollReveal>
         <AboutHero />
       </ScrollReveal>
