@@ -55,7 +55,6 @@ function ConcessionCatalog() {
           CINEMA MENU
         </h2>
 
-        {/* Filter Tabs */}
         <div className="flex flex-wrap items-center gap-2">
           {tabs.map((tab) => (
             <button

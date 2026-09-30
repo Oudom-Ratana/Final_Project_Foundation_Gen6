@@ -2,11 +2,7 @@ import { baseApi } from "./baseApi";
 
 export const cinemaApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // ==========================================
-    // 1. MOVIES (movie-controller)
-    // ==========================================
 
-    // Customer & Admin: Get all movies with pagination & sorting
     getCinemaMovies: builder.query({
       query: (params = {}) => {
         const {
@@ -22,13 +18,11 @@ export const cinemaApi = baseApi.injectEndpoints({
       providesTags: ["Movie"],
     }),
 
-    // Customer & Admin: Get movie by UUID
     getCinemaMovieByUuid: builder.query({
       query: (uuid) => `/movies/${uuid}`,
       providesTags: (result, error, uuid) => [{ type: "Movie", id: uuid }],
     }),
 
-    // Search movies in database
     searchCinemaMovies: builder.query({
       query: (params = {}) => {
         const { query = "", page = 0, size = 20 } = params;
@@ -37,7 +31,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       providesTags: ["Movie"],
     }),
 
-    // Admin: Import a movie from TMDB into Cinema database
     importMovieFromTmdb: builder.mutation({
       query: (tmdbId) => ({
         url: `/movies/import/${tmdbId}`,
@@ -46,7 +39,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Movie"],
     }),
 
-    // Admin: Update movie status (ACTIVE, INACTIVE, COMING_SOON, ARCHIVED)
     updateMovieStatus: builder.mutation({
       query: ({ uuid, status }) => ({
         url: `/movies/${uuid}/status`,
@@ -56,7 +48,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Movie"],
     }),
 
-    // Admin: Delete a movie from database
     deleteMovie: builder.mutation({
       query: (uuid) => ({
         url: `/movies/${uuid}`,
@@ -65,23 +56,17 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Movie", "Showtime"],
     }),
 
-    // ==========================================
-    // 2. SHOWTIMES & SEAT HOLDS (showtime & seat-hold-controller)
-    // ==========================================
 
-    // Customer & Admin: Get all showtimes
     getAllShowtimes: builder.query({
       query: () => "/showtimes",
       providesTags: ["Showtime"],
     }),
 
-    // Customer & Admin: Get showtime by UUID
     getShowtimeByUuid: builder.query({
       query: (uuid) => `/showtimes/${uuid}`,
       providesTags: (result, error, uuid) => [{ type: "Showtime", id: uuid }],
     }),
 
-    // Customer: Get real-time seat availability for a specific showtime
     getShowtimeSeats: builder.query({
       query: (showtimeUuid) => `/showtimes/${showtimeUuid}/seats`,
       providesTags: (result, error, showtimeUuid) => [
@@ -90,7 +75,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Admin: Create a new showtime
     createShowtime: builder.mutation({
       query: (showtimeData) => ({
         url: "/showtimes",
@@ -100,7 +84,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Showtime"],
     }),
 
-    // Customer: Hold selected seats for checkout countdown
     holdSeats: builder.mutation({
       query: ({ showtimeUuid, seatUuids }) => ({
         url: `/showtimes/${showtimeUuid}/holds`,
@@ -112,7 +95,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Customer: Release seat hold if cancelled or timed out
     releaseHold: builder.mutation({
       query: ({ showtimeUuid, holdId }) => ({
         url: `/showtimes/${showtimeUuid}/holds/${holdId}`,
@@ -123,11 +105,7 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // ==========================================
-    // 3. BOOKINGS (booking-controller)
-    // ==========================================
 
-    // Customer: Create official booking from hold
     createBooking: builder.mutation({
       query: ({ showtimeUuid, holdId }) => ({
         url: "/bookings",
@@ -137,13 +115,11 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Booking", "Seat"],
     }),
 
-    // Customer: Get booking by UUID
     getBookingByUuid: builder.query({
       query: (uuid) => `/bookings/${uuid}`,
       providesTags: (result, error, uuid) => [{ type: "Booking", id: uuid }],
     }),
 
-    // Customer: Get my bookings history (/api/v1/bookings/me)
     getMyBookings: builder.query({
       query: (params = {}) => {
         const { page = 0, size = 20 } = params;
@@ -152,11 +128,7 @@ export const cinemaApi = baseApi.injectEndpoints({
       providesTags: ["Booking"],
     }),
 
-    // ==========================================
-    // 4. BOOKING CONCESSION ORDERS (booking-concession-controller)
-    // ==========================================
 
-    // Get concessions ordered for a booking
     getBookingConcessionOrder: builder.query({
       query: (bookingUuid) => `/bookings/${bookingUuid}/concession-order`,
       providesTags: (result, error, bookingUuid) => [
@@ -164,7 +136,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Add or update concessions for a booking (items: [{ concessionItemUuid, quantity }])
     upsertBookingConcessionOrder: builder.mutation({
       query: ({ bookingUuid, items }) => ({
         url: `/bookings/${bookingUuid}/concession-order`,
@@ -177,7 +148,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Remove concession order from a booking
     removeBookingConcessionOrder: builder.mutation({
       query: (bookingUuid) => ({
         url: `/bookings/${bookingUuid}/concession-order`,
@@ -189,17 +159,12 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // ==========================================
-    // STANDALONE CONCESSION PRE-ORDERS (/deals flow)
-    // ==========================================
 
-    // Get customer's upcoming confirmed bookings eligible for snack pre-orders
     getEligibleBookings: builder.query({
       query: () => "/concession-orders/eligible-bookings",
       providesTags: ["Booking", "ConcessionOrder"],
     }),
 
-    // Create standalone concession pre-order linked to a confirmed booking
     createPostBookingConcessionOrder: builder.mutation({
       query: ({ bookingUuid, items }) => ({
         url: "/concession-orders",
@@ -209,7 +174,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["ConcessionOrder"],
     }),
 
-    // Generate Bakong KHQR for standalone concession order
     createConcessionPayment: builder.mutation({
       query: (concessionOrderUuid) => ({
         url: `/concession-payments/orders/${concessionOrderUuid}`,
@@ -218,7 +182,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["ConcessionPayment"],
     }),
 
-    // Verify Bakong KHQR payment for concession order
     verifyConcessionPayment: builder.mutation({
       query: (paymentUuid) => ({
         url: `/concession-payments/${paymentUuid}/verify`,
@@ -227,7 +190,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["ConcessionPayment", "ConcessionInvoice"],
     }),
 
-    // Get snack pickup pass invoice for an order
     getConcessionInvoice: builder.query({
       query: (orderUuid) => `/concession-invoices/orders/${orderUuid}`,
       providesTags: (result, error, orderUuid) => [
@@ -235,7 +197,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Counter staff: pickup scan by qrToken
     pickupConcession: builder.mutation({
       query: ({ qrToken }) => ({
         url: "/concession-invoices/pickup",
@@ -245,23 +206,17 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["ConcessionInvoice"],
     }),
 
-    // ==========================================
-    // 5. CONCESSIONS CATALOG (concession-controller)
-    // ==========================================
 
-    // Customer & Admin: Get all concessions (popcorn, drinks, combos)
     getAllConcessions: builder.query({
       query: () => "/concessions",
       providesTags: ["Concession"],
     }),
 
-    // Get concession by UUID
     getConcessionByUuid: builder.query({
       query: (uuid) => `/concessions/${uuid}`,
       providesTags: (result, error, uuid) => [{ type: "Concession", id: uuid }],
     }),
 
-    // Admin: Create a new concession item
     createConcession: builder.mutation({
       query: (concessionData) => ({
         url: "/concessions",
@@ -271,7 +226,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Concession"],
     }),
 
-    // Admin: Update concession details
     updateConcession: builder.mutation({
       query: ({ uuid, concessionData }) => ({
         url: `/concessions/${uuid}`,
@@ -281,7 +235,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Concession"],
     }),
 
-    // Admin: Toggle concession active status
     toggleConcessionStatus: builder.mutation({
       query: (uuid) => ({
         url: `/concessions/${uuid}/toggle-status`,
@@ -290,7 +243,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Concession"],
     }),
 
-    // Admin: Permanently delete a concession
     deleteConcessionPermanently: builder.mutation({
       query: (uuid) => ({
         url: `/concessions/${uuid}/permanent`,
@@ -299,11 +251,7 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Concession"],
     }),
 
-    // ==========================================
-    // 6. PAYMENTS & BAKONG KHQR (payment-controller)
-    // ==========================================
 
-    // Create payment order for a booking (path param bookingUuid)
     createPayment: builder.mutation({
   query: (bookingUuid) => ({
     url: `/bookings/${bookingUuid}/payments`,
@@ -312,7 +260,6 @@ export const cinemaApi = baseApi.injectEndpoints({
   invalidatesTags: ["Payment", "Booking"],
 }),
 
-    // Get payment details by payment UUID
     getPaymentByUuid: builder.query({
       query: (paymentUuid) => `/payments/${paymentUuid}`,
       providesTags: (result, error, paymentUuid) => [
@@ -320,7 +267,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Get Bakong KHQR QR Code PNG image for payment (returns browser blob URL)
     getPaymentQr: builder.query({
       query: (paymentUuid) => ({
         url: `/payments/${paymentUuid}/qr`,
@@ -334,7 +280,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Customer: Verify payment completion after scan
     verifyPayment: builder.mutation({
       query: (paymentUuid) => ({
         url: `/payments/${paymentUuid}/verify`,
@@ -343,7 +288,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Payment", "Booking", "Ticket"],
     }),
 
-    // Customer: Get my payment history
     getMyPayments: builder.query({
       query: (params = {}) => {
         const { page = 0, size = 20 } = params;
@@ -352,7 +296,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       providesTags: ["Payment"],
     }),
 
-    // Admin: Mark payment as SUCCESS
     markPaymentSuccess: builder.mutation({
       query: (paymentUuid) => ({
         url: `/payments/${paymentUuid}/success`,
@@ -361,7 +304,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Payment", "Booking"],
     }),
 
-    // Admin: Mark payment as FAILED
     markPaymentFailed: builder.mutation({
       query: (paymentUuid) => ({
         url: `/payments/${paymentUuid}/failed`,
@@ -370,11 +312,7 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Payment", "Booking"],
     }),
 
-    // ==========================================
-    // 7. TICKETS & QR VALIDATION (ticket-controller)
-    // ==========================================
 
-    // Customer: Get my digital cinema tickets
     getMyTickets: builder.query({
       query: (params = {}) => {
         const { page = 0, size = 20 } = params;
@@ -383,7 +321,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       providesTags: ["Ticket"],
     }),
 
-    // Get booking scannable QR code (authenticated PNG blob)
     getBookingQrCode: builder.query({
       query: (bookingUuid) => ({
         url: `/tickets/bookings/${bookingUuid}/qr`,
@@ -397,7 +334,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Cinema Door Scanner: Get digital ticket by QR token
     getDigitalTicketByQr: builder.query({
       query: (qrToken) => `/tickets/qr/${qrToken}`,
       providesTags: (result, error, qrToken) => [
@@ -405,23 +341,17 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // ==========================================
-    // 8. HALLS (hall-controller)
-    // ==========================================
 
-    // Get all cinema halls
     getAllHalls: builder.query({
       query: () => "/halls",
       providesTags: ["Hall"],
     }),
 
-    // Get single hall by UUID
     getHallByUuid: builder.query({
       query: (uuid) => `/halls/${uuid}`,
       providesTags: (result, error, uuid) => [{ type: "Hall", id: uuid }],
     }),
 
-    // Admin: Create a new cinema hall
     createHall: builder.mutation({
       query: (hallData) => ({
         url: "/halls",
@@ -431,7 +361,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Hall"],
     }),
 
-    // Admin: Update hall capacity
     updateHallCapacity: builder.mutation({
       query: ({ uuid, capacity }) => ({
         url: `/halls/${uuid}`,
@@ -441,7 +370,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Hall"],
     }),
 
-    // Admin: Update hall status (ACTIVE, MAINTENANCE, INACTIVE)
     updateHallStatus: builder.mutation({
       query: ({ uuid, status }) => ({
         url: `/halls/${uuid}/status`,
@@ -451,7 +379,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Hall"],
     }),
 
-    // Admin: Delete a cinema hall
     deleteHall: builder.mutation({
       query: (uuid) => ({
         url: `/halls/${uuid}`,
@@ -460,11 +387,7 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Hall"],
     }),
 
-    // ==========================================
-    // 9. SEATS (seat-controller)
-    // ==========================================
 
-    // Get all seats configured in a hall
     getSeatsByHall: builder.query({
       query: (hallUuid) => `/halls/${hallUuid}/seats`,
       providesTags: (result, error, hallUuid) => [
@@ -472,7 +395,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Admin: Create single seat in a hall
     createSeat: builder.mutation({
       query: ({ hallUuid, seatData }) => ({
         url: `/halls/${hallUuid}/seats`,
@@ -482,7 +404,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Seat", "Hall"],
     }),
 
-    // Admin: Create couple seat pair in a hall
     createCoupleSeat: builder.mutation({
       query: ({ hallUuid, coupleData }) => ({
         url: `/halls/${hallUuid}/seats/couple`,
@@ -492,7 +413,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Seat", "Hall"],
     }),
 
-    // Admin: Bulk generate seats for a hall
     createSeatsBulk: builder.mutation({
       query: ({ hallUuid, rows }) => ({
         url: `/halls/${hallUuid}/seats/bulk`,
@@ -502,13 +422,11 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Seat", "Hall"],
     }),
 
-    // Get seat details by UUID
     getSeatByUuid: builder.query({
       query: (uuid) => `/seats/${uuid}`,
       providesTags: (result, error, uuid) => [{ type: "Seat", id: uuid }],
     }),
 
-    // Admin: Update seat status (ACTIVE, INACTIVE, MAINTENANCE)
     updateSeatStatus: builder.mutation({
       query: ({ uuid, status }) => ({
         url: `/seats/${uuid}/status`,
@@ -518,11 +436,7 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["Seat"],
     }),
 
-    // ==========================================
-    // 10. FILE UPLOADS (file-controller)
-    // ==========================================
 
-    // Admin: Upload image file (returns image URL on teacher server)
     uploadImage: builder.mutation({
       query: (formData) => ({
         url: "/files/images",
@@ -531,21 +445,16 @@ export const cinemaApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // ==========================================
-    // 11. GROUP BOOKINGS (group-booking-controller)
-    // ==========================================
 
-    // 1. Create a group booking: POST /group-bookings
     createGroupBooking: builder.mutation({
       query: (data) => ({
         url: "/group-bookings",
         method: "POST",
-        body: data, // { showtimeUuid, name }
+        body: data, 
       }),
       invalidatesTags: ["GroupBooking"],
     }),
 
-    // 2. Open invitation information: GET /group-bookings/invitations/{inviteToken}
     getGroupInvitation: builder.query({
       query: (inviteToken) => `/group-bookings/invitations/${inviteToken}`,
       providesTags: (result, error, inviteToken) => [
@@ -553,7 +462,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 3. Join the group: POST /group-bookings/join/{inviteToken}
     joinGroupBooking: builder.mutation({
       query: (inviteToken) => ({
         url: `/group-bookings/join/${inviteToken}`,
@@ -562,7 +470,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       invalidatesTags: ["GroupBooking"],
     }),
 
-    // 4. Get group information: GET /group-bookings/{groupUuid}
     getGroupBookingByUuid: builder.query({
       query: (groupUuid) => `/group-bookings/${groupUuid}`,
       providesTags: (result, error, groupUuid) => [
@@ -570,7 +477,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 5. Get group members: GET /group-bookings/{groupUuid}/members
     getGroupMembers: builder.query({
       query: (groupUuid) => `/group-bookings/${groupUuid}/members`,
       providesTags: (result, error, groupUuid) => [
@@ -578,7 +484,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 8. Attach the created booking to the current group member: PUT /group-bookings/{groupUuid}/members/me/booking/{bookingUuid}
     attachMemberBooking: builder.mutation({
       query: ({ groupUuid, bookingUuid }) => ({
         url: `/group-bookings/${groupUuid}/members/me/booking/${bookingUuid}`,
@@ -590,7 +495,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 10. Non-host members mark themselves as ready: PATCH /group-bookings/{groupUuid}/members/me/ready
     markMemberReady: builder.mutation({
       query: (groupUuid) => ({
         url: `/group-bookings/${groupUuid}/members/me/ready`,
@@ -602,7 +506,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 11. If a member wants to edit before the group is locked: PATCH /group-bookings/{groupUuid}/members/me/selecting
     markMemberSelecting: builder.mutation({
       query: (groupUuid) => ({
         url: `/group-bookings/${groupUuid}/members/me/selecting`,
@@ -614,7 +517,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 12. The host checks that all members are ready, then locks the group: POST /group-bookings/{groupUuid}/lock
     lockGroupBooking: builder.mutation({
       query: (groupUuid) => ({
         url: `/group-bookings/${groupUuid}/lock`,
@@ -627,7 +529,6 @@ export const cinemaApi = baseApi.injectEndpoints({
     }),
 
 
-    // 13. Host creates the group payment: POST /group-bookings/{groupUuid}/payments
     createGroupPayment: builder.mutation({
       query: (groupUuid) => ({
         url: `/group-bookings/${groupUuid}/payments`,
@@ -639,7 +540,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Get group payment by UUID: GET /group-payments/{paymentUuid}
     getGroupPaymentByUuid: builder.query({
       query: (paymentUuid) => `/group-payments/${paymentUuid}`,
       providesTags: (result, error, paymentUuid) => [
@@ -647,7 +547,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 14. Get the KHQR image using the returned groupPaymentUuid: GET /group-payments/{paymentUuid}/qr
     getGroupPaymentQr: builder.query({
       query: (paymentUuid) => ({
         url: `/group-payments/${paymentUuid}/qr`,
@@ -661,7 +560,6 @@ export const cinemaApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 15. After payment, verify the transaction: POST /group-payments/{paymentUuid}/verify
     verifyGroupPayment: builder.mutation({
       query: (paymentUuid) => ({
         url: `/group-payments/${paymentUuid}/verify`,
@@ -674,7 +572,6 @@ export const cinemaApi = baseApi.injectEndpoints({
 });
 
 export const {
-  // 1. Movies
   useGetCinemaMoviesQuery,
   useLazyGetCinemaMoviesQuery,
   useGetCinemaMovieByUuidQuery,
@@ -685,7 +582,6 @@ export const {
   useUpdateMovieStatusMutation,
   useDeleteMovieMutation,
 
-  // 2. Showtimes & Holds
   useGetAllShowtimesQuery,
   useLazyGetAllShowtimesQuery,
   useGetShowtimeByUuidQuery,
@@ -696,20 +592,17 @@ export const {
   useHoldSeatsMutation,
   useReleaseHoldMutation,
 
-  // 3. Bookings
   useCreateBookingMutation,
   useGetBookingByUuidQuery,
   useLazyGetBookingByUuidQuery,
   useGetMyBookingsQuery,
   useLazyGetMyBookingsQuery,
 
-  // 4. Booking Concession Orders
   useGetBookingConcessionOrderQuery,
   useLazyGetBookingConcessionOrderQuery,
   useUpsertBookingConcessionOrderMutation,
   useRemoveBookingConcessionOrderMutation,
 
-  // Standalone Concession Pre-Orders (/deals flow)
   useGetEligibleBookingsQuery,
   useLazyGetEligibleBookingsQuery,
   useCreatePostBookingConcessionOrderMutation,
@@ -719,7 +612,6 @@ export const {
   useLazyGetConcessionInvoiceQuery,
   usePickupConcessionMutation,
 
-  // 5. Concessions Catalog
   useGetAllConcessionsQuery,
   useLazyGetAllConcessionsQuery,
   useGetConcessionByUuidQuery,
@@ -729,7 +621,6 @@ export const {
   useToggleConcessionStatusMutation,
   useDeleteConcessionPermanentlyMutation,
 
-  // 6. Payments & KHQR
   useCreatePaymentMutation,
   useGetPaymentByUuidQuery,
   useLazyGetPaymentByUuidQuery,
@@ -741,7 +632,6 @@ export const {
   useMarkPaymentSuccessMutation,
   useMarkPaymentFailedMutation,
 
-  // 7. Tickets
   useGetMyTicketsQuery,
   useLazyGetMyTicketsQuery,
   useGetBookingQrCodeQuery,
@@ -749,7 +639,6 @@ export const {
   useGetDigitalTicketByQrQuery,
   useLazyGetDigitalTicketByQrQuery,
 
-  // 8. Halls
   useGetAllHallsQuery,
   useLazyGetAllHallsQuery,
   useGetHallByUuidQuery,
@@ -759,7 +648,6 @@ export const {
   useUpdateHallStatusMutation,
   useDeleteHallMutation,
 
-  // 9. Seats
   useGetSeatsByHallQuery,
   useLazyGetSeatsByHallQuery,
   useCreateSeatMutation,
@@ -769,10 +657,8 @@ export const {
   useLazyGetSeatByUuidQuery,
   useUpdateSeatStatusMutation,
 
-  // 10. Files
   useUploadImageMutation,
 
-  // 11. Group Bookings
   useCreateGroupBookingMutation,
   useGetGroupInvitationQuery,
   useLazyGetGroupInvitationQuery,
@@ -786,7 +672,6 @@ export const {
   useMarkMemberSelectingMutation,
   useLockGroupBookingMutation,
 
-  // 12. Group Payments
   useCreateGroupPaymentMutation,
   useGetGroupPaymentByUuidQuery,
   useLazyGetGroupPaymentByUuidQuery,

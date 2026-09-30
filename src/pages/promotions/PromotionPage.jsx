@@ -1,5 +1,4 @@
 
-// Promotion page 
 
 import { Outlet } from "react-router";
 import ActivePromosSection from "../../components/promotions/ActivePromosSection";

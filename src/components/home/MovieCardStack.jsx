@@ -9,7 +9,6 @@ export default function MovieCardStack({
   subtitle = "Swipe or click through our featured blockbusters in interactive 3D fanned view",
   maxMovies = 7,
 }) {
-  // Fetch Page 1 from Teacher's Cinema API (distinct from Now Showing which uses Page 0)
   const { data: cinemaData } = useGetCinemaMoviesQuery({
     page: 1,
     size: maxMovies,
@@ -17,13 +16,11 @@ export default function MovieCardStack({
     direction: "desc",
   });
 
-  // Prepare movie items for the card stack from Teacher's API
   const movieItems = useMemo(() => {
     const sourceList = cinemaData?.content || [];
     if (!sourceList.length) return [];
 
     return sourceList.slice(0, maxMovies).map((movie, index) => {
-      // Backdrop and poster from Teacher's Cinema API
       const backdrop =
         movie.backdropUrl ||
         movie.posterUrl ||
@@ -63,7 +60,6 @@ export default function MovieCardStack({
 
   return (
     <section className="w-full font-sans py-6">
-      {/* Header Container (Aligned to max-w-7xl) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
@@ -83,7 +79,6 @@ export default function MovieCardStack({
         </div>
       </div>
 
-      {/* 3D Fan Stack - Frameless Full Width (No bottom cutoff) */}
       <div className="w-full pb-8">
         <CardStack
           items={movieItems}
@@ -100,7 +95,6 @@ export default function MovieCardStack({
           showDots={false}
           renderCard={(movie, { active }) => (
             <div className="relative h-full w-full bg-neutral-900 rounded-3xl overflow-hidden shadow-2xl">
-              {/* Movie Backdrop Artwork */}
               <img
                 src={movie.imageSrc}
                 alt={movie.title}
@@ -118,10 +112,8 @@ export default function MovieCardStack({
                 draggable={false}
               />
 
-              {/* Bottom Cinema Gradient (No harsh side blackout) */}
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
 
-              {/* Top Meta Badges */}
               <div className="absolute top-4 inset-x-4 flex items-center justify-between z-20">
                 <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#B90101] text-white shadow-md">
                   {movie.genre}
@@ -133,7 +125,6 @@ export default function MovieCardStack({
                 </div>
               </div>
 
-              {/* Bottom Content Bar */}
               <div className="absolute bottom-0 inset-x-0 p-5 sm:p-6 z-20 flex flex-col justify-end">
                 <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight line-clamp-1 drop-shadow-md">
                   {movie.title}
@@ -143,7 +134,6 @@ export default function MovieCardStack({
                   {movie.description}
                 </p>
 
-                {/* Footer with Showtimes CTA */}
                 <div className="mt-3.5 pt-3 border-t border-white/15 flex items-center justify-between">
                   <div className="flex items-center gap-3 text-[11px] text-neutral-400 font-semibold">
                     <span className="flex items-center gap-1">

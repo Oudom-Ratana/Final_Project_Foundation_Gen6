@@ -27,9 +27,7 @@ export default function ConcessionTicker() {
         `}</style>
 
         <div className="flex w-max promo-ticker-track">
-          {/* Real, screen-reader-visible copy */}
           <TickerHalf ariaHidden={false} />
-          {/* Duplicate copy purely for the seamless visual loop */}
           <TickerHalf ariaHidden />
         </div>
       </section>
@@ -38,7 +36,6 @@ export default function ConcessionTicker() {
 }
 
 function TickerHalf({ ariaHidden }) {
-  // Repeat items 4 times so one half is very wide, eliminating any viewport gaps
   const items = [
     ...CONCESSION_TICKER_ITEMS,
     ...CONCESSION_TICKER_ITEMS,

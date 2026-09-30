@@ -63,7 +63,6 @@ const PROMO_DEALS = [
 export default function PromoOffersSection() {
   return (
     <section className="space-y-8 font-sans">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-2">
@@ -90,7 +89,6 @@ export default function PromoOffersSection() {
         </Link>
       </div>
 
-      {/* 4 Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {PROMO_DEALS.map((deal, idx) => {
           const Icon = deal.icon;
@@ -103,13 +101,11 @@ export default function PromoOffersSection() {
               distance="translate-y-8"
             >
               <div className="group relative rounded-3xl overflow-hidden p-6 text-white shadow-lg flex flex-col justify-between min-h-[300px] transition-transform duration-300 hover:-translate-y-1.5">
-                {/* Gradient Background */}
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${deal.gradient}`}
                 />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
 
-                {/* Top: Badges and Big Discount */}
                 <div className="relative z-10 space-y-3">
                   <div className="flex items-center justify-between">
                     <span
@@ -136,7 +132,6 @@ export default function PromoOffersSection() {
                   </p>
                 </div>
 
-                {/* Bottom CTA */}
                 <div className="relative z-10 pt-4 border-t border-white/15 mt-4">
                   <Link
                     to="/deals"

@@ -8,10 +8,8 @@ export default function MemberCard({ member }) {
   return (
     <div className="relative group p-6 pt-7 pb-6 rounded-[24px] bg-white/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] backdrop-blur-md border border-neutral-200/90  shadow-md dark:shadow-2xl flex flex-col items-center text-center justify-between min-h-[380px] w-full max-w-[240px] mx-auto transition-colors duration-300 font-sans overflow-hidden">
       
-      {/* Outer Border Line with Moving Segment */}
       <div className="absolute inset-3.5 pointer-events-none z-0">
         <svg className="w-full h-full overflow-visible">
-          {/* Base Static Red Line with Top Notch Cut Out */}
           <rect
             x="1"
             y="1"
@@ -28,7 +26,6 @@ export default function MemberCard({ member }) {
             }}
           />
 
-          {/* Moving Bright Red Segment */}
           <rect
             x="1"
             y="1"
@@ -47,14 +44,11 @@ export default function MemberCard({ member }) {
           />
         </svg>
 
-        {/* Left Red Dot */}
         <span className="absolute -top-[5px] left-[28%] -translate-x-1/2 h-3 w-3 rounded-full bg-[var(--primary-red)] z-10" />
 
-        {/* Right Red Dot */}
         <span className="absolute -top-[5px] left-[72%] -translate-x-1/2 h-3 w-3 rounded-full bg-[var(--primary-red)] z-10" />
       </div>
 
-      {/* Profile Image */}
       <div className="relative z-10 w-36 h-36 mt-1 rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-800 shadow-sm shrink-0 border border-neutral-200 dark:border-(--border-dark-mode)">
         <img
           src={image}
@@ -64,7 +58,6 @@ export default function MemberCard({ member }) {
         />
       </div>
 
-      {/* Name and Role Badge */}
       <div className="relative z-10 flex flex-col items-center gap-2 my-auto">
         <h3 className="text-h4 font-bold text-neutral-900 dark:text-white tracking-tight leading-tight px-1">
           {name}
@@ -75,9 +68,7 @@ export default function MemberCard({ member }) {
         </span>
       </div>
 
-      {/* Social Icons Container */}
       <div className="relative z-10 flex items-center justify-center gap-2.5 mb-1">
-        {/* Telegram */}
         <a
           href={telegram || '#'}
           target="_blank"
@@ -88,7 +79,6 @@ export default function MemberCard({ member }) {
           <Send className="w-4 h-4 -ml-0.5" />
         </a>
 
-        {/* GitHub */}
         <a
           href={github || '#'}
           target="_blank"
@@ -101,7 +91,6 @@ export default function MemberCard({ member }) {
           </svg>
         </a>
 
-        {/* Email */}
         <a
           href={email ? (email.startsWith('mailto:') ? email : `mailto:${email}`) : (portfolio || '#')}
           target="_blank"
@@ -113,7 +102,6 @@ export default function MemberCard({ member }) {
         </a>
       </div>
 
-      {/* Animation Keyframes */}
       <style>{`
         @keyframes traceLine {
           0% {

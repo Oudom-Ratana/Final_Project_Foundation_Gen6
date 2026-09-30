@@ -41,7 +41,6 @@ export default function ComingSoonSection() {
     return () => window.removeEventListener("resize", updateSize);
   }, []);
 
-  // IntersectionObserver: automatically start auto-switch whenever scrolled into view
   useEffect(() => {
     if (isLoading || !len) return;
     const el = containerRef.current;
@@ -66,7 +65,6 @@ export default function ComingSoonSection() {
     setActiveIndex((prev) => (prev - 1 + len) % len);
   }, [len]);
 
-  // Autoplay every 3 seconds smoothly forever when in view
   const nextRef = useRef(next);
   nextRef.current = next;
 
@@ -96,7 +94,6 @@ export default function ComingSoonSection() {
 
   const activeMovie = movies[activeIndex];
 
-  // Dynamic card sizing for responsive curved carousel
   const cardWidth = Math.min(340, Math.round(containerWidth * 0.7));
   const cardHeight = Math.round(cardWidth * 1.48);
   const spacing = Math.round(cardWidth * 0.58);
@@ -118,7 +115,6 @@ export default function ComingSoonSection() {
       className="space-y-8 font-sans select-none relative"
       ref={containerRef}
     >
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-2">
@@ -132,7 +128,6 @@ export default function ComingSoonSection() {
           </h2>
         </div>
 
-        {/* Counter Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-neutral-200 text-neutral-600 dark:text-neutral-300 text-xs font-bold self-start sm:self-auto">
           <Sparkles className="w-3.5 h-3.5 text-[#EAB308]" />
           <span>
@@ -141,32 +136,26 @@ export default function ComingSoonSection() {
         </div>
       </div>
 
-      {/* 3D Curved Apple Vision Glassmorphic Stage */}
       <div
         className="relative w-full py-8 overflow-hidden rounded-[36px] bg-gradient-to-b from-white/80 via-white/70 to-white/60 dark:from-[var(--primary-color-20)] dark:via-[var(--primary-color-30)] dark:to-[var(--primary-color-40)] border border-neutral-200/70 dark:border-(--border-dark-mode) shadow-xs dark:shadow-none backdrop-blur-xl flex flex-col items-center justify-center min-h-[580px] sm:min-h-[640px]"
         style={{ perspective: "1400px" }}
       >
-        {/* Soft Ambient Spotlight Glow */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[340px] bg-gradient-to-r from-[#B90101]/10 via-[#FFD700]/5 to-[#B90101]/10 rounded-full blur-[100px] pointer-events-none" />
 
-        {/* Curved Cards Fan Track */}
         <div className="relative w-full h-[460px] sm:h-[500px] flex items-center justify-center">
           <AnimatePresence initial={false}>
             {movies.map((movie, idx) => {
-              // Minimal signed distance for cyclic loop
               let diff = idx - activeIndex;
               if (diff > len / 2) diff -= len;
               if (diff < -len / 2) diff += len;
 
               const absDiff = Math.abs(diff);
-              // Render up to 3 cards for seamless edge fade transitions (no sudden pop)
               if (absDiff > 3) return null;
 
               const isActive = diff === 0;
               const isEdgeBuffer = absDiff === 3;
 
-              // 3D Spatial Geometry matching reference curved arc
-              const rotateY = diff * -20; // Inward curve angle
+              const rotateY = diff * -20; 
               const translateX = diff * spacing;
               const translateZ = isEdgeBuffer
                 ? -360
@@ -221,7 +210,6 @@ export default function ComingSoonSection() {
                     mass: 0.6,
                   }}
                 >
-                  {/* Poster Image */}
                   <img
                     src={posterUrl}
                     alt={movie.title}
@@ -229,10 +217,8 @@ export default function ComingSoonSection() {
                     draggable={false}
                   />
 
-                  {/* Glassmorphic Cinema Frosted Bottom Shading */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent pointer-events-none" />
 
-                  {/* Card Corner Badges */}
                   <div className="absolute top-3.5 inset-x-3.5 flex items-center justify-between z-20">
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/60 backdrop-blur-md text-white border border-white/15">
                       {formatReleaseDate(movie.release_date)}
@@ -246,7 +232,6 @@ export default function ComingSoonSection() {
                     )}
                   </div>
 
-                  {/* Card Content Bar (Clean: Title & Release Date) */}
                   <div className="absolute bottom-0 inset-x-0 p-5 z-20 flex flex-col justify-end text-white">
                     <h3 className="text-lg sm:text-xl font-black tracking-tight line-clamp-1 drop-shadow-md">
                       {movie.title}
@@ -271,10 +256,8 @@ export default function ComingSoonSection() {
           </AnimatePresence>
         </div>
 
-        {/* Floating Vision Pill Controller (Bottom Center) */}
         <div className="relative z-30 mt-4 sm:mt-6 flex items-center justify-center">
           <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-black/60 dark:bg-[var(--primary-color-30)] backdrop-blur-xl border border-white/20 shadow-sm text-white">
-            {/* Prev Button */}
             <button
               onClick={prev}
               type="button"
@@ -284,7 +267,6 @@ export default function ComingSoonSection() {
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            {/* Thumbnail Circle of Active Movie */}
             <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 shrink-0 bg-neutral-800 relative">
               <img
                 key={activeMovie?.id}
@@ -298,7 +280,6 @@ export default function ComingSoonSection() {
               />
             </div>
 
-            {/* Active Movie Mini Text */}
             <div className="text-left max-w-[140px] sm:max-w-[200px]">
               <p
                 key={`title-${activeMovie?.id}`}
@@ -314,7 +295,6 @@ export default function ComingSoonSection() {
               </p>
             </div>
 
-            {/* Next Button */}
             <button
               onClick={next}
               type="button"
@@ -326,23 +306,6 @@ export default function ComingSoonSection() {
           </div>
         </div>
 
-        {/* Bottom Pagination Bar & Dots (High Contrast & Clear in Light & Dark Mode) */}
-        {/* <div className="flex items-center justify-center mt-3.5 z-30">
-          <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-900/10 dark:bg-black/50 backdrop-blur-md border border-neutral-300/60 dark:border-white/10 shadow-xs">
-            {movies.map((_, dotIdx) => (
-              <button
-                key={dotIdx}
-                onClick={() => setActiveIndex(dotIdx)}
-                className={`transition-all duration-300 rounded-full cursor-pointer ${
-                  dotIdx === activeIndex
-                    ? "w-8 h-2.5 bg-[#B90101] shadow-sm shadow-[#B90101]/40"
-                    : "w-2 h-2 bg-neutral-400 dark:bg-neutral-500 hover:bg-neutral-600 dark:hover:bg-neutral-300"
-                }`}
-                aria-label={`Go to slide ${dotIdx + 1}`}
-              />
-            ))}
-          </div>
-        </div> */}
       </div>
     </section>
   );

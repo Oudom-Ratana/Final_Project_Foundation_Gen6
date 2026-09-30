@@ -14,12 +14,10 @@ const CATEGORY_COLORS = {
 export default function PopcornBarSection() {
   const { data: concessions = [], isLoading } = useGetAllConcessionsQuery();
 
-  // Take the first 4 items from the teacher's API
   const items = concessions.slice(0, 4);
 
   return (
     <section className="space-y-8 font-sans">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-2">
@@ -46,10 +44,8 @@ export default function PopcornBarSection() {
         </Link>
       </div>
 
-      {/* Grid: items-stretch ensures all cards in a row have identical height */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
         {isLoading ? (
-          // Skeleton loading state
           Array.from({ length: 4 }).map((_, idx) => (
             <div
               key={idx}
@@ -83,10 +79,8 @@ export default function PopcornBarSection() {
                   to={`/deals/${item.uuid}`}
                   className="group relative rounded-3xl bg-white dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 hover:border-[#B90101]/60 p-4 sm:p-5 shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col justify-between overflow-hidden block hover:-translate-y-1"
                 >
-                  {/* Background Glow */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500 pointer-events-none" />
 
-                  {/* Top: Image Container with Floating Badge */}
                   <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-800/60 shadow-inner mb-3 shrink-0">
                     <img
                       src={item.imageUrl || popcornImg}
@@ -99,7 +93,6 @@ export default function PopcornBarSection() {
                       loading="lazy"
                     />
 
-                    {/* Category Pill Tag floating in top-left */}
                     {item.category && (
                       <span
                         className={`absolute top-2.5 left-2.5 z-10 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-md ${tagColor}`}
@@ -109,7 +102,6 @@ export default function PopcornBarSection() {
                     )}
                   </div>
 
-                  {/* Bottom: Title, Price & Uniform Description Box */}
                   <div className="flex-1 flex flex-col justify-between space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="text-base sm:text-lg font-black text-neutral-900 dark:text-white leading-tight capitalize group-hover:text-[#B90101] dark:group-hover:text-[#FFD700] transition-colors line-clamp-1">
@@ -121,7 +113,6 @@ export default function PopcornBarSection() {
                         </span>
                       )}
                     </div>
-                    {/* Uniform 2-line height box (min-h-[34px]) so 1-line vs 2-line descriptions have the exact same height */}
                     <div className="min-h-[34px] flex items-start">
                       <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed">
                         {item.description || "\u00A0"}

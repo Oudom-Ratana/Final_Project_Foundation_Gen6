@@ -17,7 +17,6 @@
       className="w-full flex-1 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 shadow-sm backdrop-blur-md flex flex-col justify-between space-y-3 sm:space-y-3.5"
       style={glassCardStyle}
     >
-      {/* Movie Header */}
       <div className="flex items-center gap-3.5">
         {posterSrc ? (
           <img
@@ -40,10 +39,8 @@
         </div>
       </div>
 
-      {/* Dashed Divider */}
       <div className="border-b border-dashed border-neutral-300 dark:border-(--border-dark-mode)" />
 
-      {/* Booking Details Grid */}
       <div className="space-y-2.5 text-xs sm:text-sm">
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -102,10 +99,8 @@
         </div>
       </div>
 
-      {/* Dashed Divider */}
       <div className="border-b border-dashed border-neutral-300 dark:border-(--border-dark-mode)" />
 
-      {/* Food & Drinks Line Items */}
       <div className="space-y-1.5">
         <h4 className="font-bold text-xs text-[#B90101] uppercase tracking-wider">
           Food & Drinks

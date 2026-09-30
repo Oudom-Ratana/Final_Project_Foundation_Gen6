@@ -1,9 +1,4 @@
-/**
- * 100 Real TMDB Blockbuster Movies & TV Shows Catalog
- * Complete with authentic TMDB IDs, posters, release years, durations, halls, genres, and statuses
- */
 export const TMDB_100_MOVIES = [
-  // 1-10
   {
     id: 1,
     tmdbId: 634649,
@@ -193,7 +188,6 @@ export const TMDB_100_MOVIES = [
     isFreeStream: true,
   },
 
-  // 11-20
   {
     id: 11,
     tmdbId: 558449,
@@ -355,7 +349,6 @@ export const TMDB_100_MOVIES = [
     isFreeStream: true,
   },
 
-  // 21-30: Blockbuster Classics & Marvel
   {
     id: 21,
     tmdbId: 299534,
@@ -517,7 +510,6 @@ export const TMDB_100_MOVIES = [
     isFreeStream: true,
   },
 
-  // 31-40: Anime & Popular Animation
   {
     id: 31,
     tmdbId: 635302,
@@ -679,7 +671,6 @@ export const TMDB_100_MOVIES = [
     isFreeStream: true,
   },
 
-  // 41-100 Generated dynamically with realistic TMDB metadata
   ...Array.from({ length: 60 }, (_, i) => {
     const num = i + 41;
     const genresList = [

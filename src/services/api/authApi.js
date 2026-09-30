@@ -2,11 +2,7 @@ import { baseApi } from "./baseApi";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // ==========================================
-    // 1. AUTHENTICATION (auth-controller)
-    // ==========================================
 
-    // 1. Login (/api/v1/auth/login)
     login: builder.mutation({
       query: (credentials) => ({
         url: "/auth/login",
@@ -16,7 +12,6 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["Auth", "User"],
     }),
 
-    // 2. Register (/api/v1/auth/register)
     register: builder.mutation({
       query: (userData) => ({
         url: "/auth/register",
@@ -25,7 +20,6 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // 3. Refresh Token (/api/v1/auth/refresh)
     refreshToken: builder.mutation({
       query: (body) => ({
         url: "/auth/refresh",
@@ -34,7 +28,6 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // 4. Logout (/api/v1/auth/logout)
     logoutApi: builder.mutation({
       query: (body = {}) => {
         const refreshToken = (
@@ -55,17 +48,12 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["Auth", "User"],
     }),
 
-    // ==========================================
-    // 2. CURRENT USER & PROFILE (current-user & user-controller)
-    // ==========================================
 
-    // Current User Profile (/api/v1/users/me)
     getCurrentUser: builder.query({
       query: () => "/users/me",
       providesTags: ["Auth", "User"],
     }),
 
-    // Admin: Get all users (/api/v1/users)
     getAllUsers: builder.query({
       query: (params = {}) => {
         const { page = 0, size = 20 } = params;
@@ -74,13 +62,11 @@ export const authApi = baseApi.injectEndpoints({
       providesTags: ["User"],
     }),
 
-    // Admin: Get user by UUID (/api/v1/users/{uuid})
     getUserByUuid: builder.query({
       query: (uuid) => `/users/${uuid}`,
       providesTags: (result, error, uuid) => [{ type: "User", id: uuid }],
     }),
 
-    // Update user profile (/api/v1/users/{uuid})
     updateUser: builder.mutation({
       query: ({ uuid, userData }) => ({
         url: `/users/${uuid}`,
@@ -90,7 +76,6 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["User"],
     }),
 
-    // Admin: Delete user (/api/v1/users/{uuid})
     deleteUser: builder.mutation({
       query: (uuid) => ({
         url: `/users/${uuid}`,
@@ -99,7 +84,6 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["User"],
     }),
 
-    // Admin: Enable user (/api/v1/users/{uuid}/enable)
     enableUser: builder.mutation({
       query: (uuid) => ({
         url: `/users/${uuid}/enable`,
@@ -108,7 +92,6 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["User"],
     }),
 
-    // Admin: Disable user (/api/v1/users/{uuid}/disable)
     disableUser: builder.mutation({
       query: (uuid) => ({
         url: `/users/${uuid}/disable`,
@@ -117,7 +100,6 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["User"],
     }),
 
-    // Admin: Update user role (/api/v1/users/{userUuid}/role)
     updateUserRole: builder.mutation({
       query: ({ userUuid, role }) => ({
         url: `/users/${userUuid}/role`,
@@ -127,11 +109,7 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["User"],
     }),
 
-    // ==========================================
-    // 3. FAVORITES (favorite-controller)
-    // ==========================================
 
-    // Get my favorites (/api/v1/users/me/favorites)
     getMyFavorites: builder.query({
       query: (params = {}) => {
         const { page = 0, size = 20 } = params;
@@ -140,7 +118,6 @@ export const authApi = baseApi.injectEndpoints({
       providesTags: ["Favorite"],
     }),
 
-    // Toggle favorite (/api/v1/users/me/favorites/{movieUuid})
     toggleFavorite: builder.mutation({
       query: (movieUuid) => ({
         url: `/users/me/favorites/${movieUuid}`,
@@ -149,7 +126,6 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["Favorite"],
     }),
 
-    // Check favorite status for a movie (/api/v1/users/me/favorites/{movieUuid}/status)
     getFavoriteStatus: builder.query({
       query: (movieUuid) => `/users/me/favorites/${movieUuid}/status`,
       providesTags: (result, error, movieUuid) => [
@@ -157,7 +133,6 @@ export const authApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Get total favorite count (/api/v1/users/me/favorites/count)
     getMyFavoriteCount: builder.query({
       query: () => "/users/me/favorites/count",
       providesTags: ["Favorite"],
@@ -167,13 +142,11 @@ export const authApi = baseApi.injectEndpoints({
 });
 
 export const {
-  // Auth hooks
   useLoginMutation,
   useRegisterMutation,
   useRefreshTokenMutation,
   useLogoutApiMutation,
 
-  // User profile hooks
   useGetCurrentUserQuery,
   useLazyGetCurrentUserQuery,
   useGetAllUsersQuery,
@@ -186,7 +159,6 @@ export const {
   useDisableUserMutation,
   useUpdateUserRoleMutation,
 
-  // Favorites hooks
   useGetMyFavoritesQuery,
   useLazyGetMyFavoritesQuery,
   useToggleFavoriteMutation,

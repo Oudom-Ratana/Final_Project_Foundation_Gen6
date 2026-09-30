@@ -112,7 +112,6 @@ function CinemaExperienceCard({ exp, idx, isLeft }) {
         isShaking ? "animate-card-auto-swing" : ""
       }`}
     >
-      {/* Thin Glowing Red Snake Beam Running on the Outside Perimeter on Hover */}
       <svg
         className="absolute -inset-[3px] w-[calc(100%+6px)] h-[calc(100%+6px)] pointer-events-none rounded-[27px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 overflow-visible"
         style={{
@@ -134,7 +133,6 @@ function CinemaExperienceCard({ exp, idx, isLeft }) {
             <stop offset="100%" stopColor="#B90101" stopOpacity="1" />
           </linearGradient>
         </defs>
-        {/* Thin Core Primary Red Laser Beam on Outside Perimeter */}
         <rect
           x="0"
           y="0"
@@ -153,16 +151,13 @@ function CinemaExperienceCard({ exp, idx, isLeft }) {
       </svg>
 
       <div className="relative z-10 space-y-4">
-        {/* Top Row: Saturated Squircle Icon + Tag with Pulsing Radar Dot */}
         <div className="flex items-center justify-between gap-4">
-          {/* Saturated Squircle Icon Box with Gentle Hover Scale */}
           <div
             className={`size-13 sm:size-14 rounded-2xl grid place-items-center shrink-0 transition-transform duration-300 ease-out group-hover:scale-105 ${exp.iconBg}`}
           >
             <Icon className="size-7" />
           </div>
 
-          {/* Category Tag with Pulsing Radar Dot */}
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
             <span className="relative flex size-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B90101] opacity-75" />
@@ -172,7 +167,6 @@ function CinemaExperienceCard({ exp, idx, isLeft }) {
           </span>
         </div>
 
-        {/* Title & Subtitle */}
         <div className="pt-1">
           <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight min-h-[2rem] sm:min-h-[2.25rem] flex items-center">
             <TypewriterText
@@ -189,7 +183,6 @@ function CinemaExperienceCard({ exp, idx, isLeft }) {
           </p>
         </div>
 
-        {/* Description: Strictly 18px font size with crystal-clear high contrast */}
         <p className="text-[18px] leading-[28px] font-normal text-slate-700 dark:text-slate-200 pt-1">
           {exp.description}
         </p>
@@ -202,7 +195,6 @@ export default function CinemaExperienceSection() {
   const sectionRef = useRef(null);
   const timelineLineRef = useRef(null);
 
-  // Track scroll position for subtle streaming along the timeline without React re-renders
   useEffect(() => {
     let ticking = false;
 
@@ -238,7 +230,6 @@ export default function CinemaExperienceSection() {
       ref={sectionRef}
       className="relative space-y-10 font-sans select-none py-6"
     >
-      {/* ── Section Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 relative z-20">
         <div>
           <div className="flex items-center gap-2.5 mb-2">
@@ -265,20 +256,15 @@ export default function CinemaExperienceSection() {
         </div>
       </div>
 
-      {/* ── Timeline Canvas: Vertical Timeline with Alternating Cards (Matching Prototype) ── */}
       <div className="relative rounded-3xl p-4 sm:p-6 lg:p-10">
-        {/* Soft Ambient Radial Light in Dark Mode */}
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 size-[600px] bg-[#B90101]/[0.05] rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 size-[600px] bg-[#FFC928]/[0.03] rounded-full blur-3xl" />
         </div>
 
-        {/* ── SLEEK VERTICAL TIMELINE TRACK (SUBTLE & TIGHT GLOW) ── */}
         <div className="absolute left-6 md:left-1/2 top-4 bottom-4 -translate-x-1/2 w-[1.5px] pointer-events-none z-0">
-          {/* 1. Subtle Inactive Background Track */}
           <div className="w-full h-full bg-slate-200/80 dark:bg-white/10" />
 
-          {/* 2. Scroll-Driven Active Red Line with Tight Laser Glow */}
           <div
             ref={timelineLineRef}
             className="absolute top-0 left-0 w-full bg-[#B90101] rounded-full transition-all duration-150"
@@ -289,7 +275,6 @@ export default function CinemaExperienceSection() {
           />
         </div>
 
-        {/* ── ALTERNATING CARDS TIMELINE (MATCHING PROTOTYPE) ── */}
         <div className="relative z-10 flex flex-col space-y-12 sm:space-y-16 lg:space-y-20 max-w-6xl mx-auto">
           {EXPERIENCES.map((exp, idx) => {
             const isLeft = exp.side === "left";
@@ -299,26 +284,19 @@ export default function CinemaExperienceSection() {
                 key={exp.id}
                 className="group/item relative w-full flex items-center"
               >
-                {/* Desktop Central Timeline Node (Matching Prototype Image with Subtle Animation) */}
                 <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 items-center justify-center pointer-events-none">
                   <div className="relative flex items-center justify-center">
-                    {/* Continuous Tight Radar Ripple Wave 1 */}
                     <span className="absolute size-7.5 rounded-full border border-[#B90101] animate-timeline-ripple-1 opacity-60" />
-                    {/* Continuous Tight Radar Ripple Wave 2 (Staggered) */}
                     <span className="absolute size-7.5 rounded-full border border-[#B90101] animate-timeline-ripple-2 opacity-60" />
 
-                    {/* Outer Translucent Halo Ring with Subtle Red Glow */}
                     <div className="size-6.5 sm:size-7 rounded-full bg-[#B90101]/10 dark:bg-[#B90101]/25 border border-[#B90101]/35 dark:border-[#B90101]/60 flex items-center justify-center shadow-[0_0_6px_rgba(185,1,1,0.2)] transition-transform duration-300 group-hover/item:scale-110">
-                      {/* Middle Crisp Pure White Ring (Pops in Dark Mode) */}
                       <div className="size-4 sm:size-4.5 rounded-full bg-white border border-slate-200/90 dark:border-white shadow-sm dark:shadow-[0_0_8px_rgba(255,255,255,0.5)] flex items-center justify-center">
-                        {/* Inner Solid Red Core Dot with Subtle Breathing Glow */}
                         <div className="size-2 sm:size-2.5 rounded-full bg-[#B90101] animate-timeline-core" />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Mobile Left Timeline Node */}
                 <div className="md:hidden absolute left-6 top-10 -translate-x-1/2 z-20 flex items-center justify-center pointer-events-none">
                   <div className="relative flex items-center justify-center">
                     <span className="absolute size-6.5 rounded-full border border-[#B90101] animate-timeline-ripple-1 opacity-60" />
@@ -330,7 +308,6 @@ export default function CinemaExperienceSection() {
                   </div>
                 </div>
 
-                {/* Card Container: Placed on Left or Right of the Film Reel */}
                 <div
                   className={`w-full pl-12 sm:pl-16 md:pl-0 ${
                     isLeft

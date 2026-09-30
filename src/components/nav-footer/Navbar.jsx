@@ -69,7 +69,6 @@ export default function Navbar() {
     toast.info("Logged out successfully");
   };
 
-  // Circular Theme Toggle via View Transitions API
   const handleThemeToggle = (e) => {
     const isAppearanceTransition =
       typeof document !== "undefined" &&
@@ -122,7 +121,6 @@ export default function Navbar() {
       .catch(() => {});
   };
 
-  // Close profile dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       const clickedDesktop =
@@ -145,7 +143,6 @@ export default function Navbar() {
     };
   }, [isProfileDropdownOpen]);
 
-  // Close menus on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsProfileDropdownOpen(false);
@@ -154,7 +151,6 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const isHomePage = location.pathname === "/";
 
-  // Track scroll position for dynamic homepage navbar transition
   useEffect(() => {
     let ticking = false;
 
@@ -203,7 +199,6 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
-        {/* 1. Left: FilmZone Logo */}
         <Link
           to="/"
           className="flex items-center gap-2 group shrink-0 select-none py-0.5"
@@ -216,7 +211,6 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* 2. Center: Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
           <NavLink to="/stream" className={navLinkClass}>
             Movies
@@ -229,9 +223,7 @@ export default function Navbar() {
           </NavLink>
         </nav>
 
-        {/* 3. Right: Desktop Action Controls */}
         <div className="hidden sm:flex items-center gap-2">
-          {/* Notification Bell Button */}
           <Link
             to="/my-tickets"
             className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full border backdrop-blur-md flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-xs ${
@@ -245,7 +237,6 @@ export default function Navbar() {
             <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
           </Link>
 
-          {/* Theme Switcher Toggle Button */}
           <button
             onClick={handleThemeToggle}
             className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full border backdrop-blur-md flex items-center justify-center text-[#B90101] hover:scale-105 active:scale-95 transition shadow-xs cursor-pointer ${
@@ -265,7 +256,6 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* User Avatar Dropdown */}
           {isAuthenticated && user ? (
             <div className="relative" ref={profileDropdownRef}>
               <button
@@ -288,7 +278,6 @@ export default function Navbar() {
                 )}
               </button>
 
-              {/* Popup Dropdown Menu */}
               {isProfileDropdownOpen && (
                 <div className="absolute right-0 mt-3 w-52 rounded-2xl bg-white dark:bg-[#1A1F25] border border-neutral-200 dark:border-white/10 shadow-2xl backdrop-blur-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="px-4 py-2 border-b border-neutral-100 dark:border-white/5">
@@ -361,9 +350,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Action Bar (Right side of Header) */}
         <div className="flex md:hidden items-center gap-2">
-          {/* Mobile Tickets Bell */}
           <Link
             to="/my-tickets"
             className={`w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center shadow-xs transition-colors ${
@@ -376,7 +363,6 @@ export default function Navbar() {
             <Bell className="w-3.5 h-3.5 fill-current" />
           </Link>
 
-          {/* Mobile Theme Switcher */}
           <button
             onClick={handleThemeToggle}
             className={`w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center text-[#B90101] shadow-xs cursor-pointer transition-colors ${
@@ -393,7 +379,6 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Mobile Hamburger Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`p-1.5 rounded-lg backdrop-blur-md shadow-xs cursor-pointer transition-colors ${
@@ -412,7 +397,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer Dropdown Menu with Safe Scroll Bounds */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t bg-white/95 dark:bg-[#0f1115]/95 backdrop-blur-xl px-5 py-4 space-y-3 transition-colors border-neutral-200 dark:border-[#9E0505]/20 shadow-2xl max-h-[calc(100dvh-3.5rem)] overflow-y-auto">
           <NavLink
@@ -474,7 +458,6 @@ export default function Navbar() {
             </NavLink>
           )}
 
-          {/* Mobile Bottom Account Card or Login Button */}
           <div
             className="pt-3 border-t flex flex-col gap-2.5"
             style={{ borderColor: "rgba(158, 5, 5, 0.20)" }}

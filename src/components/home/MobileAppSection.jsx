@@ -39,12 +39,10 @@ export default function MobileAppSection() {
     <section className="font-sans">
       <ScrollReveal duration={750} distance="translate-y-8">
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black border border-neutral-800 shadow-2xl p-6 sm:p-10 lg:p-14">
-          {/* Decorative ambient glow */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#B90101]/15 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#FFD700]/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            {/* Left Column: Info & Features (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B90101]/20 border border-[#B90101]/40 text-[#FFD700] text-xs font-black uppercase tracking-widest">
                 <Sparkles className="w-3.5 h-3.5 text-[#FFD700]" />
@@ -62,7 +60,6 @@ export default function MobileAppSection() {
                 </p>
               </div>
 
-              {/* 4 Feature Points */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 {VIP_FEATURES.map((item, idx) => {
                   const Icon = item.icon;
@@ -87,10 +84,8 @@ export default function MobileAppSection() {
                 })}
               </div>
 
-              {/* Download CTA + QR Code */}
               <div className="pt-4 border-t border-neutral-800 flex flex-wrap items-center gap-6">
                 <div className="flex flex-wrap gap-3">
-                  {/* Apple App Store */}
                   <a
                     href="#download"
                     className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white hover:bg-neutral-100 text-neutral-900 transition shadow-md group"
@@ -111,7 +106,6 @@ export default function MobileAppSection() {
                     </div>
                   </a>
 
-                  {/* Google Play */}
                   <a
                     href="#download"
                     className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 transition shadow-md group"
@@ -133,7 +127,6 @@ export default function MobileAppSection() {
                   </a>
                 </div>
 
-                {/* QR Code preview */}
                 <div className="flex items-center gap-3 bg-neutral-900/90 border border-neutral-800 px-3 py-2 rounded-2xl">
                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1 shrink-0">
                     <QrCode className="w-full h-full text-black" />
@@ -150,10 +143,8 @@ export default function MobileAppSection() {
               </div>
             </div>
 
-            {/* Right Column: Phone Mockup & Digital Ticket Preview (5 cols) */}
             <div className="lg:col-span-5 flex justify-center">
               <div className="relative w-full max-w-[320px]">
-                {/* Background Card - FilmZone VIP Card */}
                 <div className="absolute -top-5 -left-4 right-4 h-48 rounded-3xl bg-gradient-to-r from-[#B90101] via-[#900000] to-neutral-900 p-5 text-white shadow-xl rotate-[-3deg] border border-white/20">
                   <div className="flex items-center justify-between">
                     <img
@@ -181,7 +172,6 @@ export default function MobileAppSection() {
                   </div>
                 </div>
 
-                {/* Foreground Card - Digital Ticket Mockup */}
                 <div className="relative z-10 bg-white dark:bg-neutral-900 rounded-3xl p-5 shadow-2xl border border-neutral-200 dark:border-neutral-800 space-y-4 translate-y-8">
                   <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
                     <div className="flex items-center gap-2">
@@ -195,7 +185,6 @@ export default function MobileAppSection() {
                     </span>
                   </div>
 
-                  {/* Movie preview details */}
                   <div className="space-y-1">
                     <span className="text-[10px] font-black uppercase text-[#B90101] tracking-wider">
                       ScreenX 270°
@@ -208,7 +197,6 @@ export default function MobileAppSection() {
                     </p>
                   </div>
 
-                  {/* Seat & Date details */}
                   <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 text-center">
                     <div>
                       <p className="text-[9px] font-bold uppercase text-neutral-400">
@@ -236,7 +224,6 @@ export default function MobileAppSection() {
                     </div>
                   </div>
 
-                  {/* Barcode Graphic */}
                   <div className="pt-2 text-center">
                     <div className="h-10 bg-neutral-900 dark:bg-neutral-800 rounded-lg flex items-center justify-center px-4 overflow-hidden">
                       <div className="w-full flex justify-between items-center opacity-80 h-7 space-x-1">

@@ -18,7 +18,6 @@ export default function DetailPage() {
 
   const promo = findPromoById(id);
 
-  // Lock background scroll while the modal is open.
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -26,14 +25,12 @@ export default function DetailPage() {
     };
   }, []);
 
-  // Close on Escape.
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.key === "Escape") close();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const close = () => navigate("/promo");
@@ -45,7 +42,6 @@ export default function DetailPage() {
       aria-modal="true"
       aria-label={promo ? promo.title : "Promotion details"}
     >
-      {/* Backdrop */}
       <button
         type="button"
         aria-label="Close"
@@ -53,7 +49,6 @@ export default function DetailPage() {
         className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-default"
       />
 
-      {/* Modal card */}
       <div
         className={`relative w-full max-w-3xl rounded-[28px] p-6 sm:p-8 shadow-2xl ${
           isDark ? "bg-neutral-900 border border-white/10" : "bg-white"
@@ -70,7 +65,6 @@ export default function DetailPage() {
 
         {promo ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-start">
-            {/* Image */}
             <div
               className="relative rounded-2xl overflow-hidden aspect-square md:aspect-[4/5]"
               style={{
@@ -99,7 +93,6 @@ export default function DetailPage() {
               )}
             </div>
 
-            {/* Content */}
             <div className="pt-1 sm:pt-4 pr-8">
               <h2
                 className={`font-extrabold text-3xl sm:text-4xl leading-[1.1] ${

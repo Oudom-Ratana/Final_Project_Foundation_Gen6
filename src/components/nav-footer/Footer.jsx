@@ -8,9 +8,6 @@ import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
 import FilmZoneDarkLogo from "../../assets/logo/FilmZone_DarkModeLogo.png";
 import { bg } from "zod/v4/locales";
 
-// --- Static content -------------------------------------------------
-// Keeping these as plain arrays (instead of hardcoding JSX) makes it easy
-// to add/remove/reorder links later without touching the markup below.
 
 const QUICK_LINKS = [
   { label: "Home", to: "/" },
@@ -19,17 +16,12 @@ const QUICK_LINKS = [
   { label: "About", to: "/about" },
 ];
 
-// NOTE: these pages don't exist in the router yet (see main.jsx).
-// Swap `to` for the real path once the team builds them.
 const MORE_LINKS = [
-  // { label: "Free Movie", to: "/stream" },
   { label: "My Ticket", to: "/my-tickets" },
-  // { label: "Deals", to: "/deals" },
   { label: "Favourite", to: "/favourite" },
   { label: "How to Book", to: "/how-to-book" },
 ];
 
-// NOTE: placeholder pages — no legal pages exist yet.
 const LEGAL_LINKS = [
   { label: "Privacy Policy", to: "/privacy-policy" },
   { label: "Terms of Service", to: "/terms-of-service" },
@@ -59,10 +51,6 @@ const SOCIAL_LINKS = [
   },
 ];
 
-/**
- * Section heading used across every footer column: bold label with a
- * short red accent underline, matching the reference design.
- */
 function FooterHeading({ isDark, children }) {
   return (
     <div className="mb-4">
@@ -78,7 +66,6 @@ function FooterHeading({ isDark, children }) {
   );
 }
 
-/** Shared link styling: gray by default, red on hover, with smooth transition. */
 function footerLinkClass(isDark) {
   return `text-[15px] font-medium transition-colors duration-200 hover:text-[#B90101] ${
     isDark ? "text-neutral-400" : "text-[#777777]"
@@ -106,7 +93,6 @@ export default function Footer() {
     >
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-8 gap-y-12 lg:gap-y-10">
-          {/* 1. Brand & Info */}
           <div className="flex flex-col items-center text-center space-y-4 lg:block lg:text-left lg:col-span-1">
             <Link
               to="/"
@@ -157,7 +143,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* 2. Quick Link */}
           <nav
             aria-label="Quick links"
             className="flex flex-col items-center text-center lg:block lg:text-left"
@@ -174,7 +159,6 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* 3. More */}
           <nav
             aria-label="More links"
             className="flex flex-col items-center text-center lg:block lg:text-left"
@@ -191,7 +175,6 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* 4. Legal & App */}
           <nav
             aria-label="Legal links"
             className="flex flex-col items-center text-center lg:block lg:text-left"
@@ -208,7 +191,6 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* 5. Get in Touch */}
           <div className="flex flex-col items-center text-center lg:block lg:text-left">
             <FooterHeading isDark={isDark}>Get in Touch</FooterHeading>
             <ul
@@ -243,7 +225,6 @@ export default function Footer() {
             >
               Sponsored and Organized
             </p>
-            {/* Official ISTAD Partner & Organizer Badge */}
             <a
               href="https://istad.co/"
               target="_blank"
@@ -260,7 +241,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div className={`mt-3 pt-5 border-t-2 border-[#B90101] text-center`}>
           <p
             className={`text-[16px] ${isDark ? "text-neutral-400" : "text-neutral-800"}`}

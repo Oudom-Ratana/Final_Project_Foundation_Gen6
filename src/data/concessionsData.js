@@ -85,7 +85,6 @@ export const CONCESSION_TICKER_ITEMS = [
   "HOT DEALS ONLY",
 ];
 
-// Backward compatibility: BookingDetailsPage uses item.id and item.image
 export const CONCESSIONS = FALLBACK_CONCESSIONS.map((item) => ({
   ...item,
   id: item.uuid,

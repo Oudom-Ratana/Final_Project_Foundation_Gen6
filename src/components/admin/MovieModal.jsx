@@ -28,7 +28,6 @@ import {
   useImportMovieFromTmdbMutation,
 } from "../../services/api/cinemaApi";
 
-// 4 Auto-Generated Cinema Hall Presets matching the 2 hall types (Standard: 94 seats, VIP: 36 seats)
 const AUTO_HALL_PRESETS = [
   {
     name: "Hall 1 - Screen X",
@@ -59,10 +58,8 @@ const AUTO_HALL_PRESETS = [
 ];
 
 export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
-  // Tabs: 'import' | 'schedule' | 'halls'
   const [activeTab, setActiveTab] = useState("import");
 
-  // Queries & Mutations from Teacher's API
   const { data: cinemaMoviesData, refetch: refetchCinemaMovies } =
     useGetCinemaMoviesQuery({ page: 0, size: 100 });
   const { data: halls = [], refetch: refetchHalls } = useGetAllHallsQuery();
@@ -73,17 +70,14 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
   const [createHall, { isLoading: isCreatingHall }] = useCreateHallMutation();
   const [createSeatsBulk] = useCreateSeatsBulkMutation();
 
-  // Fallback / Initial Now Playing movies when search query is empty
   const { data: nowPlayingMovies = [] } = useGetNowPlayingMoviesQuery(1, {
     skip: !isOpen,
   });
 
-  // TMDB Live Real-Time Search
   const [searchQuery, setSearchQuery] = useState("");
   const [triggerSearch, { data: searchResults, isFetching: isSearching }] =
     useLazySearchMoviesQuery();
 
-  // Schedule Showtime Form State
   const [selectedMovieUuid, setSelectedMovieUuid] = useState("");
   const [selectedHallUuid, setSelectedHallUuid] = useState("");
   const [showDate, setShowDate] = useState(() => {
@@ -93,7 +87,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
   const [showTime, setShowTime] = useState("14:30:00");
   const [basePrice, setBasePrice] = useState(4.5);
 
-  // New Hall Form State
   const [hallName, setHallName] = useState("Hall 1 - Screen X");
   const [hallType, setHallType] = useState("STANDARD");
   const [hallCapacity, setHallCapacity] = useState(94);
@@ -101,10 +94,8 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
     "Standard cinema hall with 94 seats",
   );
 
-  // Cinema DB movies list
   const cinemaMovies = cinemaMoviesData?.content || [];
 
-  // 1. Real-Time Search as User Types (Debounced 300ms - No Enter Needed!)
   useEffect(() => {
     const trimmed = searchQuery.trim();
     if (!trimmed) return;
@@ -114,7 +105,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
     return () => clearTimeout(timer);
   }, [searchQuery, triggerSearch]);
 
-  // When modal opens or editingMovie changes
   useEffect(() => {
     if (editingMovie) {
       setActiveTab("schedule");
@@ -124,14 +114,12 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
     }
   }, [editingMovie, isOpen]);
 
-  // Set default hall when halls load
   useEffect(() => {
     if (halls.length > 0 && !selectedHallUuid) {
       setSelectedHallUuid(halls[0].uuid);
     }
   }, [halls, selectedHallUuid]);
 
-  // Set default movie for schedule tab if none selected
   useEffect(() => {
     if (cinemaMovies.length > 0 && !selectedMovieUuid) {
       setSelectedMovieUuid(cinemaMovies[0].uuid);
@@ -140,14 +128,12 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
 
   if (!isOpen) return null;
 
-  // Immediate search submit handler
   const handleSearchSubmit = (e) => {
     e?.preventDefault();
     if (!searchQuery.trim()) return;
     triggerSearch({ query: searchQuery.trim(), page: 1 });
   };
 
-  // Handle Importing Movie from TMDB to Teacher DB
   const handleImport = async (movie) => {
     try {
       await importMovieFromTmdb(movie.id).unwrap();
@@ -164,7 +150,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
     }
   };
 
-  // Handle Creating Showtime
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedMovieUuid) {
@@ -178,7 +163,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
       return;
     }
 
-    // Format showTime to HH:mm:ss if user entered HH:mm
     let formattedTime = showTime;
     if (formattedTime.length === 5) {
       formattedTime = `${formattedTime}:00`;
@@ -205,11 +189,9 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
     }
   };
 
-  // Helper to bulk generate seats for a single hall
   const generateSeatsForHall = async (hallUuid, capacity, type = hallType) => {
     const isVip = type === "VIP" || capacity <= 36;
     if (isVip) {
-      // VIP Hall: 6 Rows (F down to A) with 6 seats each = 36 Seats
       const rowLabels = ["F", "E", "D", "C", "B", "A"];
       const rowsPayload = rowLabels.map((label) => ({
         rowLabel: label,
@@ -221,7 +203,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
         rows: rowsPayload,
       }).unwrap();
     } else {
-      // Standard Hall: 7 Upper Rows (H down to B) with 12 seats (84 seats) + Row A with 10 seats = 94 Seats
       const rowLabels = ["H", "G", "F", "E", "D", "C", "B", "A"];
       const rowsPayload = rowLabels.map((label) => ({
         rowLabel: label,
@@ -235,7 +216,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
     }
   };
 
-  // Handle Single Hall Creation & Seat Bulk Generation
   const handleCreateHall = async (e) => {
     e?.preventDefault();
     if (!hallName.trim()) {
@@ -272,7 +252,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
     }
   };
 
-  // Determine movies to display in Tab 1
   const moviesToDisplay = searchQuery.trim()
     ? searchResults?.results || []
     : (Array.isArray(nowPlayingMovies) ? nowPlayingMovies : []).slice(0, 10);
@@ -286,7 +265,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs overflow-y-auto animate-fadeIn">
       <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-neutral-200 overflow-hidden my-8">
-        {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-200 bg-neutral-50/70">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-[#b90101] text-white shadow-xs">
@@ -310,7 +288,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
           </button>
         </div>
 
-        {/* Tab Navigation */}
         <div className="flex items-center gap-2 px-6 pt-4 border-b border-neutral-100 bg-white">
           <button
             type="button"
@@ -352,12 +329,9 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-6 max-h-[72vh] overflow-y-auto">
-          {/* TAB 1: REAL-TIME SEARCH & IMPORT FROM TMDB */}
           {activeTab === "import" && (
             <div className="space-y-6">
-              {/* Real-time Search Input (No Enter Needed!) */}
               <form onSubmit={handleSearchSubmit} className="flex gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -387,7 +361,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
                 </button>
               </form>
 
-              {/* Search Results / Now Playing */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
@@ -501,10 +474,8 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
             </div>
           )}
 
-          {/* TAB 2: SCHEDULE SHOWTIME (POST /showtimes) */}
           {activeTab === "schedule" && (
             <form onSubmit={handleScheduleSubmit} className="space-y-6">
-              {/* Selected Movie Preview Banner */}
               {selectedMovieObj && (
                 <div className="flex items-center gap-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-200">
                   <img
@@ -531,9 +502,7 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
                 </div>
               )}
 
-              {/* Form Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* 1. Select Movie */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
                     <Film className="w-3.5 h-3.5 text-[#b90101]" />
@@ -553,7 +522,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
                   </select>
                 </div>
 
-                {/* 2. Select Cinema Hall */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
@@ -600,7 +568,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
                   )}
                 </div>
 
-                {/* 3. Screening Date */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#b90101]" />
@@ -615,7 +582,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
                   />
                 </div>
 
-                {/* 4. Screening Time */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-[#b90101]" />
@@ -631,7 +597,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
                   />
                 </div>
 
-                {/* 5. Base Ticket Price */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#b90101]" />
@@ -654,7 +619,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100">
                 <button
                   type="button"
@@ -679,10 +643,8 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
             </form>
           )}
 
-          {/* TAB 3: MANAGE & CREATE CINEMA HALLS */}
           {activeTab === "halls" && (
             <div className="space-y-8">
-              {/* Form to Register Hall */}
               <form
                 onSubmit={handleCreateHall}
                 className="p-5 rounded-3xl bg-neutral-50 border border-neutral-200 space-y-4"
@@ -694,7 +656,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
                   </h3>
                 </div>
 
-                {/* 4 Auto-Presets Dropdown Selector */}
                 <div className="p-3.5 rounded-2xl bg-white border border-red-200 shadow-2xs">
                   <select
                     onChange={(e) => {
@@ -837,7 +798,6 @@ export default function MovieModal({ isOpen, onClose, editingMovie = null }) {
                 </div>
               </form>
 
-              {/* Existing Halls Table */}
               <div className="space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500">
                   Existing Cinema Halls in Database ({halls.length})

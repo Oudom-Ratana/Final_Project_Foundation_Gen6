@@ -1,6 +1,3 @@
-/**
- * Date generation utilities for cinema scheduling
- */
 
 const MONTH_NAMES = [
   "Jan",
@@ -18,9 +15,6 @@ const MONTH_NAMES = [
 ];
 const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-/**
- * Generate an array of structured date objects from a startDate and total days or endDate
- */
 export function generateDateList(
   startDateStr = "2026-08-25",
   totalDays = 7,
@@ -29,7 +23,6 @@ export function generateDateList(
   const dates = [];
   const start = new Date(startDateStr);
 
-  // If invalid date fallback
   if (isNaN(start.getTime())) {
     return [
       { full: "2026-08-25", month: "Aug", day: "25", weekday: "Tue" },
@@ -47,7 +40,6 @@ export function generateDateList(
     }
   }
 
-  // Cap at 60 days to keep performance snappy
   count = Math.min(count, 60);
 
   for (let i = 0; i < count; i++) {

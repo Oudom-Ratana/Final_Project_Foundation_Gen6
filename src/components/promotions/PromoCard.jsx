@@ -25,8 +25,6 @@ export default function PromoCard({ promo }) {
           : "var(--primary-color-5)",
       }}
     >
-      {/* Wrapper is NOT overflow-hidden, so the badge can float past the
-          image's top-left corner instead of getting clipped. */}
       <div className="relative">
         <div
           className={`overflow-hidden rounded-t-xl ${isWide ? "aspect-[16/9]" : "aspect-[4/3]"}`}
@@ -40,7 +38,6 @@ export default function PromoCard({ promo }) {
 
         {badge && (
           <span
-            // Slight counter-clockwise tilt to match the promo ticker's angle:
             className={`absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-10 uppercase font-extrabold text-[10px] sm:text-xs tracking-wide px-3 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-lg -rotate-6 origin-center ${
               BADGE_STYLES[badgeType] || BADGE_STYLES.discount
             }`}

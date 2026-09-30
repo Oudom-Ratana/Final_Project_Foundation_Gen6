@@ -8,13 +8,13 @@ const getFallbackSvg = (initials, bg = "#EAB308") =>
   )}"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="38" fill="%23ffffff">${initials}</text></svg>`;
 
 const MEMBER_COLORS = [
-  "10B981", // emerald
-  "6366F1", // indigo
-  "EC4899", // pink
-  "F59E0B", // amber
-  "3B82F6", // blue
-  "8B5CF6", // purple
-  "14B8A6", // teal
+  "10B981", 
+  "6366F1", 
+  "EC4899", 
+  "F59E0B", 
+  "3B82F6", 
+  "8B5CF6", 
+  "14B8A6", 
 ];
 
 const getMemberColor = (str = "") => {
@@ -65,7 +65,6 @@ export default function GroupSeatLegend({
     currentUser?.imageUrl ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=EAB308&color=fff&size=128&bold=true`;
 
-  // Filter out the current user to get friends
   const otherMembers = Array.isArray(members)
     ? members.filter(
         (m) =>
@@ -87,38 +86,30 @@ export default function GroupSeatLegend({
   return (
     <div className="w-full space-y-3 pt-2 select-none">
       <div className="flex flex-col md:flex-row items-stretch gap-4">
-        {/* Left Card: Legend + Your Seat / Friends Seat */}
         <div
           className="flex-1 rounded-2xl sm:rounded-3xl border p-5 sm:p-6 space-y-4 shadow-sm backdrop-blur-md transition-all"
           style={glassCardStyle}
         >
-          {/* Row 1: AVAILABLE / SELECTED / RESERVED Status Dots */}
           <div className="flex items-center justify-around text-xs sm:text-sm font-black tracking-wider">
-            {/* Available */}
             <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
               <span className="w-4 h-4 rounded-full bg-[#B5B0B0] shadow-xs" />
               <span className="uppercase">AVAILABLE</span>
             </div>
 
-            {/* Selected */}
             <div className="flex items-center gap-2 text-[#EAB308]">
               <span className="w-4 h-4 rounded-full bg-[#FFD700] shadow-xs" />
               <span className="uppercase">SELECTED</span>
             </div>
 
-            {/* Reserved */}
             <div className="flex items-center gap-2 text-[#B90101]">
               <span className="w-4 h-4 rounded-full bg-[#B90101] shadow-xs" />
               <span className="uppercase">RESERVED</span>
             </div>
           </div>
 
-          {/* Thin subtle divider */}
           <div className="border-t border-neutral-300/60 dark:border-(--border-dark-mode) my-2" />
 
-          {/* Row 2: YOUR SEAT / FRIENDS SEAT */}
           <div className="flex items-center justify-around pt-1">
-            {/* YOUR SEAT */}
             <div className="flex flex-col items-center gap-2">
               <div
                 className="w-12 h-12 rounded-full overflow-hidden border-[3px] shadow-md transition-transform hover:scale-105 flex items-center justify-center bg-amber-500/10 text-amber-500 font-bold"
@@ -142,7 +133,6 @@ export default function GroupSeatLegend({
               </span>
             </div>
 
-            {/* FRIENDS SEAT */}
             <div className="flex flex-col items-center gap-2">
               {otherMembers.length > 0 ? (
                 <div className="flex items-center -space-x-2.5">
@@ -191,7 +181,6 @@ export default function GroupSeatLegend({
           </div>
         </div>
 
-        {/* Right Card: LIVE PRESENCE */}
         <div
           className="w-full md:w-64 rounded-2xl sm:rounded-3xl border p-5 sm:p-6 shadow-sm backdrop-blur-md flex flex-col justify-between"
           style={glassCardStyle}
@@ -210,7 +199,6 @@ export default function GroupSeatLegend({
             </div>
 
             <div className="space-y-3">
-              {/* You */}
               <div className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 rounded-full overflow-hidden border-[2.5px] shadow-sm shrink-0 flex items-center justify-center bg-amber-500/10 text-amber-500 font-bold"
@@ -239,7 +227,6 @@ export default function GroupSeatLegend({
                 </div>
               </div>
 
-              {/* Real Friends List */}
               {otherMembers.length > 0 ? (
                 otherMembers.map((member, idx) => {
                   const mName = member.firstName
@@ -297,7 +284,6 @@ export default function GroupSeatLegend({
         </div>
       </div>
 
-      {/* Helper info pill */}
       <div
         className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs text-neutral-700 dark:text-neutral-300 backdrop-blur-md"
         style={glassCardStyle}

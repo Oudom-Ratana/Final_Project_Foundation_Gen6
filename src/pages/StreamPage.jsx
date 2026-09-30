@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import StreamCard from "../components/stream/StreamCard";
 
-// Official TMDB TV Genres
 const TV_GENRES = [
   { id: "all", label: "All Genres" },
   { id: "action", label: "Action & Adventure", genreId: 10759 },
@@ -34,7 +33,6 @@ const TV_GENRES = [
   { id: "documentary", label: "Documentary", genreId: 99 },
 ];
 
-// Official TMDB Movie Genres
 const MOVIE_GENRES = [
   { id: "all", label: "All Genres" },
   { id: "action", label: "Action", genreId: 28 },
@@ -89,7 +87,7 @@ export default function StreamPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get("q") || "";
   const pageParam = parseInt(searchParams.get("page") || "1", 10);
-  const categoryParam = searchParams.get("category") || "tv"; // 'tv' (default) | 'movie'
+  const categoryParam = searchParams.get("category") || "tv"; 
   const genreParam = searchParams.get("genre") || "all";
   const sortParam = searchParams.get("sort") || "popularity.desc";
 
@@ -98,7 +96,6 @@ export default function StreamPage() {
   const [sortBy, setSortBy] = useState(sortParam);
   const [currentPage, setCurrentPage] = useState(pageParam);
 
-  // Sync state with URL params
   useEffect(() => {
     setCurrentPage(pageParam);
   }, [pageParam]);
@@ -120,10 +117,8 @@ export default function StreamPage() {
   const currentGenreObj = activeGenreList.find((g) => g.id === selectedGenre);
   const activeWithGenres = currentGenreObj?.genreId;
 
-  // Sort key (popularity.desc or vote_average.desc)
   const resolvedSort = sortBy;
 
-  // TV Series queries (Default / Main stream content)
   const { data: discoverTVData, isLoading: isDiscoverTVLoading } =
     useDiscoverTVQuery(
       {
@@ -139,7 +134,6 @@ export default function StreamPage() {
     { skip: !queryParam || !isTV },
   );
 
-  // Movies queries (Alternative category)
   const { data: discoverMovieData, isLoading: isDiscoverMovieLoading } =
     useDiscoverMoviesQuery(
       {
@@ -184,14 +178,12 @@ export default function StreamPage() {
     isTV,
   }));
 
-  // Auto-reset currentPage if current page is out of bounds for the filtered results
   useEffect(() => {
     if (!isLoading && totalPages > 0 && currentPage > totalPages) {
       handlePageChange(1);
     }
   }, [currentPage, totalPages, isLoading]);
 
-  // Handlers
   const handleCategoryChange = (cat) => {
     if (cat === activeCategory) return;
     setActiveCategory(cat);
@@ -235,18 +227,15 @@ export default function StreamPage() {
     newParams.set("page", newPage.toString());
     setSearchParams(newParams, { preventScrollReset: true });
 
-    // Smooth scroll up to stream section
     window.scrollTo({ top: 460, behavior: "smooth" });
   };
 
   const [searchTerm, setSearchTerm] = useState(queryParam);
 
-  // Sync search input if URL queryParam changes externally
   useEffect(() => {
     setSearchTerm(queryParam);
   }, [queryParam]);
 
-  // Debounced auto-search (350ms)
   useEffect(() => {
     const trimmed = searchTerm.trim();
     if (trimmed === queryParam) return;
@@ -288,10 +277,8 @@ export default function StreamPage() {
 
   return (
     <div className="w-full space-y-10 pb-20 font-sans">
-      {/* 1. Featured Stream Hero Banner with Favourite Button */}
       <StreamHero />
 
-      {/* 2. Top Search Bar - Placed Above "Popular TV Series & Shows" Section */}
       <div className="flex justify-center w-full px-2">
         <form onSubmit={handleSearchSubmit} className="w-full max-w-xl">
           <div className="relative flex items-center">
@@ -319,9 +306,7 @@ export default function StreamPage() {
         </form>
       </div>
 
-      {/* 3. Stream Catalog Section */}
       <section className="space-y-6">
-        {/* Section Header with Red Bar & Controls (Category Switcher + Sort Selector) */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span
@@ -337,7 +322,6 @@ export default function StreamPage() {
             </h2>
           </div>
 
-          {/* Right Controls: Sort Selector + Category Switcher */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {queryParam && (
               <button
@@ -349,7 +333,6 @@ export default function StreamPage() {
               </button>
             )}
 
-            {/* Sort Options Bar (Popular, Top Rated, Newest) */}
             {!queryParam && (
               <div className="flex items-center p-1 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80 text-[18px] font-bold shadow-xs">
                 {SORT_OPTIONS.map((opt) => {
@@ -374,7 +357,6 @@ export default function StreamPage() {
               </div>
             )}
 
-            {/* Category Toggle Pills (TV Series vs Movies) */}
             <div className="flex items-center p-1 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80 text-[18px] font-bold shadow-xs">
               <button
                 type="button"
@@ -405,7 +387,6 @@ export default function StreamPage() {
           </div>
         </div>
 
-        {/* 3. Horizontal Genre Filter Pills Bar */}
         {!queryParam && (
           <div className="overflow-x-auto pb-2 pt-1 select-none scrollbar-none">
             <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80  text-[18px] font-bold shadow-xs">
@@ -430,7 +411,6 @@ export default function StreamPage() {
           </div>
         )}
 
-        {/* 4. 4-Column × 4-Row Responsive Grid (16 Cards, Loading Skeletons, or Empty State) */}
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 pt-2">
             {Array.from({ length: 16 }).map((_, index) => (
@@ -477,7 +457,6 @@ export default function StreamPage() {
           </div>
         )}
 
-        {/* 5. Dynamic Pagination Bar (< 1 2 3 ... N >) */}
         {!isLoading && totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 pt-8 select-none flex-wrap">
             <button

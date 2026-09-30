@@ -24,7 +24,6 @@ export default function BookingStepper({ currentStep = 2 }) {
       }}
     >
       <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
-        {/* Step 1: Showtime */}
         <div
           className={`flex items-center gap-2 ${
             isStep1Done
@@ -44,14 +43,12 @@ export default function BookingStepper({ currentStep = 2 }) {
           <span className="hidden xs:inline sm:inline">Show time</span>
         </div>
 
-        {/* Connecting line 1-2 */}
         <div
           className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
             isStep2Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-[var(--primary-color-30)]"
           }`}
         />
 
-        {/* Step 2: Choose seat */}
         <div
           className={`flex items-center gap-2 ${
             isStep2Done
@@ -71,14 +68,12 @@ export default function BookingStepper({ currentStep = 2 }) {
           <span>Choose seat</span>
         </div>
 
-        {/* Connecting line 2-3 */}
         <div
           className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
             isStep3Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-neutral-400"
           }`}
         />
 
-        {/* Step 3: Booking Details */}
         <div
           className={`flex items-center gap-2 ${
             isStep3Done
@@ -100,14 +95,12 @@ export default function BookingStepper({ currentStep = 2 }) {
           <span className="hidden sm:inline">Booking Details</span>
         </div>
 
-        {/* Connecting line 3-4 */}
         <div
           className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
             isStep4Done ? "bg-[#B90101]" : "bg-neutral-300 dark:bg-neutral-400"
           }`}
         />
 
-        {/* Step 4: Confirmed */}
         <div
           className={`flex items-center gap-2 ${
             isStep4Done

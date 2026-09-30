@@ -48,9 +48,7 @@ export default function StreamCard({ movie, activeGenreId }) {
     movie.number_of_seasons,
   );
 
-  // Comprehensive TMDB Genre Dictionary (TV + Movies)
   const TMDB_GENRE_MAP = {
-    // Shared
     16: "ANIMATION",
     35: "COMEDY",
     80: "CRIME",
@@ -59,7 +57,6 @@ export default function StreamCard({ movie, activeGenreId }) {
     10751: "FAMILY",
     9648: "MYSTERY",
     37: "WESTERN",
-    // Movie specific
     28: "ACTION",
     12: "ADVENTURE",
     14: "FANTASY",
@@ -71,7 +68,6 @@ export default function StreamCard({ movie, activeGenreId }) {
     10770: "TV MOVIE",
     53: "THRILLER",
     10752: "WAR",
-    // TV specific
     10759: "ACTION",
     10762: "KIDS",
     10763: "NEWS",
@@ -104,7 +100,6 @@ export default function StreamCard({ movie, activeGenreId }) {
     }
   }
 
-  // Handle poster path (TMDB vs full URL)
   const posterUrl = movie.poster_path
     ? movie.poster_path.startsWith("http")
       ? movie.poster_path
@@ -128,7 +123,6 @@ export default function StreamCard({ movie, activeGenreId }) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Users must have an account before they can add to favourites
     if (!isAuthenticated) {
       setShowLoginPrompt(true);
       return;
@@ -136,7 +130,6 @@ export default function StreamCard({ movie, activeGenreId }) {
 
     const nextFavState = !isFavourite;
 
-    // 1. Instant local/optimistic update in Redux
     if (isFavourite) {
       dispatch(removeFromFavourite(movie.id));
     } else {
@@ -154,7 +147,6 @@ export default function StreamCard({ movie, activeGenreId }) {
       );
     }
 
-    // 2. Sync to official TMDB Account Favorite API
     try {
       await addFavorite({
         mediaType: isTV ? "tv" : "movie",
@@ -168,7 +160,6 @@ export default function StreamCard({ movie, activeGenreId }) {
 
   return (
     <div className="group flex flex-col space-y-3 font-sans cursor-pointer">
-      {/* Poster Container with Top-Right Favorite Button */}
       <div className="relative">
         <Link
           to={targetUrl}
@@ -187,7 +178,6 @@ export default function StreamCard({ movie, activeGenreId }) {
             loading="lazy"
           />
 
-          {/* Dark Blur Hover Overlay with Description Pop-up (Active for both Light & Dark modes) */}
           <div className="absolute inset-0 bg-black/75 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-center p-4 sm:p-5 text-center">
             <div className="transform translate-y-3 mx-auto group-hover:translate-y-0 transition-transform duration-300 space-y-2">
               <span
@@ -206,7 +196,6 @@ export default function StreamCard({ movie, activeGenreId }) {
           </div>
         </Link>
 
-        {/* Favorite Heart Button: Positioned on the Card Top Right */}
         <button
           type="button"
           onClick={handleToggleFavorite}
@@ -232,7 +221,6 @@ export default function StreamCard({ movie, activeGenreId }) {
         </button>
       </div>
 
-      {/* Title & Metadata */}
       <div className="space-y-1 px-0.5 pt-0.5">
         <Link to={targetUrl}>
           <h3 className="font-black text-[21px] sm:text-[22px] text-neutral-900 dark:text-white leading-tight line-clamp-1 group-hover:text-[#B90101] transition-colors">
@@ -240,13 +228,11 @@ export default function StreamCard({ movie, activeGenreId }) {
           </h3>
         </Link>
 
-        {/* Time and Rating Row */}
         <div className="flex items-center justify-between pt-0.5">
           <p className="text-[18px] text-neutral-500 dark:text-neutral-400 font-semibold tracking-tight">
             {runtime} • {releaseYear}
           </p>
 
-          {/* Right Side: Rating */}
           <div className="flex items-center gap-1 text-[#C8961E]">
             <Star className="w-4 h-4 fill-[#C8961E] text-[#C8961E]" />
             <span className="text-[18px] font-black leading-none">
@@ -256,9 +242,6 @@ export default function StreamCard({ movie, activeGenreId }) {
         </div>
       </div>
 
-      {/* Login Required Popup - rendered via a portal to document.body so it always
-          displays centered in the middle of the page (like the detail page), and can
-          only be dismissed by clicking the X */}
       {showLoginPrompt &&
         createPortal(
           <div

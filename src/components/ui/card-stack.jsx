@@ -12,12 +12,10 @@ function wrapIndex(n, len) {
   return ((n % len) + len) % len;
 }
 
-/** Minimal signed offset from active index to i, with wrapping (for loop behavior). */
 function signedOffset(i, active, len, loop) {
   const raw = i - active;
   if (!loop || len <= 1) return raw;
 
-  // consider wrapped alternative
   const alt = raw > 0 ? raw - len : raw + len;
   return Math.abs(alt) < Math.abs(raw) ? alt : raw;
 }
@@ -73,7 +71,6 @@ export function CardStack({
     return () => window.removeEventListener("resize", updateWidth);
   }, []);
 
-  // Dynamically size cards for smaller screens while allowing large full-width cards on desktop
   const actualCardWidth = containerWidth
     ? Math.min(cardWidth, Math.max(280, Math.round(containerWidth * 0.78)))
     : cardWidth;
@@ -86,7 +83,6 @@ export function CardStack({
   );
   const [hovering, setHovering] = React.useState(false);
 
-  // keep active in bounds if items change
   React.useEffect(() => {
     setActive((a) => wrapIndex(a, len));
   }, [len]);
@@ -94,7 +90,6 @@ export function CardStack({
   React.useEffect(() => {
     if (!len) return;
     onChangeIndex?.(active, items[active]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   const maxOffset = Math.max(0, Math.floor(maxVisible / 2));
@@ -114,7 +109,6 @@ export function CardStack({
     setActive((a) => wrapIndex(a + 1, len));
   }, [canGoNext, len]);
 
-  // keyboard navigation (when container focused)
   const onKeyDown = (e) => {
     if (e.key === "ArrowLeft") prev();
     if (e.key === "ArrowRight") next();
@@ -125,7 +119,6 @@ export function CardStack({
 
   const [isInView, setIsInView] = React.useState(false);
 
-  // IntersectionObserver: automatically start autoplay whenever scrolled into view
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -139,7 +132,6 @@ export function CardStack({
     return () => observer.disconnect();
   }, [len]);
 
-  // autoplay forever when in view
   React.useEffect(() => {
     if (!autoAdvance || reduceMotion || !len || !isInView) return;
 
@@ -166,7 +158,6 @@ export function CardStack({
 
   const activeItem = items[active];
 
-  // Compute ample stage height so rotated 3D cards never get clipped at top
   const stageHeight = Math.max(440, actualCardHeight + 110);
 
   return (
@@ -176,7 +167,6 @@ export function CardStack({
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
-      {/* Stage - borderless, clean and unclipped */}
       <div
         className="relative w-full py-4 flex items-end justify-center outline-none focus:outline-none focus:ring-0"
         style={{ height: stageHeight }}
@@ -291,7 +281,6 @@ export function CardStack({
         </div>
       </div>
 
-      {/* Dots navigation */}
       {showDots ? (
         <div className="mt-6 flex items-center justify-center gap-3">
           <div className="flex items-center gap-2">
@@ -356,10 +345,8 @@ function DefaultFanCard({ item, active }) {
         </div>
       )}
 
-      {/* Gradient overlay */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
 
-      {/* Content */}
       <div className="relative z-10 flex h-full flex-col justify-end p-6">
         {item.tag && (
           <span className="inline-block self-start px-3 py-1 mb-2 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#B90101] text-white">

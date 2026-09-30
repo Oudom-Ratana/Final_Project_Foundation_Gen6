@@ -1,7 +1,3 @@
-/**
- * Hall Configurations and Date-Specific Schedule Architecture
- * 2 Hall Types (Standard, VIP) x 3 Screen Formats (2D, 3D, ScreenX) = 6 Configurations
- */
 
 export const HALL_CATEGORIES = {
   STANDARD: "standard",
@@ -21,7 +17,6 @@ export const HALL_TYPES = {
   VIP_2D: "vip_2d",
   VIP_3D: "vip_3d",
   VIP_SCREENX: "vip_screenx",
-  // Backward compatibility aliases
   LASER_3D: "standard_3d",
   SCREEN_X: "standard_screenx",
   GOLD_CLASS: "vip_2d",
@@ -35,7 +30,6 @@ export const AVAILABLE_BRANCHES = [
 ];
 
 export const HALL_CONFIGS = {
-  // 1. Standard Hall - 2D Screen
   standard_2d: {
     id: "standard_2d",
     hallCategory: "standard",
@@ -57,7 +51,6 @@ export const HALL_CONFIGS = {
     features: ["4K Crystal Clear Projection", "Dolby Surround 7.1"],
   },
 
-  // 2. Standard Hall - 3D RealD Laser
   standard_3d: {
     id: "standard_3d",
     hallCategory: "standard",
@@ -83,7 +76,6 @@ export const HALL_CONFIGS = {
     ],
   },
 
-  // 3. Standard Hall - ScreenX 270° Panoramic
   standard_screenx: {
     id: "standard_screenx",
     hallCategory: "standard",
@@ -105,7 +97,6 @@ export const HALL_CONFIGS = {
     features: ["270-Degree Tri-Screen Projections", "Immersive Surround Sound"],
   },
 
-  // 4. VIP Lounge Hall - 2D Recliner
   vip_2d: {
     id: "vip_2d",
     hallCategory: "vip",
@@ -129,7 +120,6 @@ export const HALL_CONFIGS = {
     ],
   },
 
-  // 5. VIP Lounge Hall - 3D RealD VIP
   vip_3d: {
     id: "vip_3d",
     hallCategory: "vip",
@@ -154,7 +144,6 @@ export const HALL_CONFIGS = {
     ],
   },
 
-  // 6. VIP Lounge Hall - ScreenX 270° VIP
   vip_screenx: {
     id: "vip_screenx",
     hallCategory: "vip",
@@ -180,14 +169,10 @@ export const HALL_CONFIGS = {
   },
 };
 
-// Aliases for backward compatibility with existing data
 HALL_CONFIGS.laser_3d = HALL_CONFIGS.standard_3d;
 HALL_CONFIGS.screen_x = HALL_CONFIGS.standard_screenx;
 HALL_CONFIGS.gold_class = HALL_CONFIGS.vip_2d;
 
-/**
- * Base template halls for a branch (Defaults with the 6 configurations)
- */
 export function getBaseHallsTemplate(branchName = "FilmZone SenSok") {
   return [
     {
@@ -259,9 +244,6 @@ export function getBaseHallsTemplate(branchName = "FilmZone SenSok") {
   ];
 }
 
-/**
- * Get halls and showtimes for a specific date from a branch (100% independent per date)
- */
 export function getHallsForDate(branch, dateStr) {
   if (!branch) return [];
 
@@ -276,9 +258,6 @@ export function getHallsForDate(branch, dateStr) {
   return getBaseHallsTemplate(branch.branchName);
 }
 
-/**
- * Helper to generate default branch schedules with independent day schedules
- */
 export function createDefaultBranchSchedules() {
   const baseSenSokHalls = getBaseHallsTemplate("FilmZone SenSok");
   const baseEdenHalls = [
@@ -326,17 +305,12 @@ export function createDefaultBranchSchedules() {
   ];
 }
 
-/**
- * Helper to get Hall Config by key
- */
 export function getHallConfig(typeKey) {
   if (!typeKey) return HALL_CONFIGS.standard_2d;
   const key = typeKey.toLowerCase().replace(/[\s-]/g, "_");
 
-  // Check direct key match
   if (HALL_CONFIGS[key]) return HALL_CONFIGS[key];
 
-  // VIP Hall variations
   if (key.includes("vip") || key.includes("gold")) {
     if (key.includes("screenx") || key.includes("screen_x"))
       return HALL_CONFIGS.vip_screenx;
@@ -345,7 +319,6 @@ export function getHallConfig(typeKey) {
     return HALL_CONFIGS.vip_2d;
   }
 
-  // Standard Hall variations
   if (key.includes("screenx") || key.includes("screen_x"))
     return HALL_CONFIGS.standard_screenx;
   if (key.includes("3d") || key.includes("reald") || key.includes("laser"))
@@ -354,9 +327,6 @@ export function getHallConfig(typeKey) {
   return HALL_CONFIGS.standard_2d;
 }
 
-/**
- * Generate Initial Seats Grid based on Hall Config
- */
 export function generateHallSeats(hallConfig) {
   const seats = [];
   const isVipHall =

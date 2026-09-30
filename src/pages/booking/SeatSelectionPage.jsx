@@ -28,7 +28,6 @@ import {
   useGetShowtimeByUuidQuery,
 } from "../../services/api/cinemaApi";
 
-// Modular Utilities & Subcomponents
 import { extractSeatLabels, buildGroupSeatAvatars } from "../../utils/seatUtils";
 import SeatSelectionHeader from "../../components/booking/SeatSelectionHeader";
 import ScreenCurve from "../../components/booking/ScreenCurve";
@@ -45,14 +44,12 @@ export default function SeatSelectionPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Query Parameters
   const movieId = searchParams.get("movie") ?? searchParams.get("movieId") ?? "558449";
   const time = searchParams.get("time") ?? "03:00 PM";
   const branch = searchParams.get("branch") ?? "FilmZone SenSok";
   const date = searchParams.get("date") ?? "Aug 26 Tue";
   const showtimeUuid = searchParams.get("showtimeUuid");
 
-  // Hall Mode: 'gold' (VIP hall) vs 'standard' (Standard hall)
   const hallParam = (
     searchParams.get("hall") ??
     searchParams.get("hallType") ??
@@ -62,7 +59,6 @@ export default function SeatSelectionPage() {
   const isGoldHall = hallParam.includes("gold") || hallParam.includes("vip");
   const hallType = isGoldHall ? "gold" : "standard";
 
-  // Booking Mode: 'standard' vs 'group'
   const bookingType = (searchParams.get("type") ?? "standard").toLowerCase() === "group" ? "group" : "standard";
   const rawScreenType = searchParams.get("screenType") ?? searchParams.get("format");
   const screenType = rawScreenType ?? (hallType === "gold" ? "GOLD" : "2D");
@@ -70,7 +66,6 @@ export default function SeatSelectionPage() {
   const booking = useSelector(selectBooking);
   const reduxMovie = booking?.movie;
 
-  // Fetch showtime to resolve movie UUID from Teacher API
   const { data: showtimeDetails } = useGetShowtimeByUuidQuery(showtimeUuid, {
     skip: !showtimeUuid,
   });
@@ -112,7 +107,6 @@ export default function SeatSelectionPage() {
 
   const activeGroupUuid = groupUuidParam ?? currentGroup?.uuid;
 
-  // Poll live group details & members every 3 seconds if activeGroupUuid exists
   const { data: groupBookingData } = useGetGroupBookingByUuidQuery(activeGroupUuid, {
     skip: !activeGroupUuid,
     pollingInterval: 3000,
@@ -123,7 +117,6 @@ export default function SeatSelectionPage() {
     pollingInterval: 3000,
   });
 
-  // Track each group member's resolved seats from Teacher API
   const [memberSeatsMap, setMemberSeatsMap] = useState({});
 
   useEffect(() => {
@@ -143,7 +136,6 @@ export default function SeatSelectionPage() {
         return;
       }
 
-      // If member has attached bookingUuid, resolve booking seats via RTK Query
       const bUuid = member.bookingUuid ?? member.booking?.uuid;
       if (bUuid) {
         dispatch(cinemaApi.endpoints.getBookingByUuid.initiate(bUuid))
@@ -167,7 +159,6 @@ export default function SeatSelectionPage() {
     };
   }, [activeGroupUuid, groupMembers, dispatch]);
 
-  // Real-time seat availability from Teacher API
   const {
     data: apiSeats = [],
     isLoading: isSeatsLoading,
@@ -178,7 +169,6 @@ export default function SeatSelectionPage() {
     pollingInterval: 3000,
   });
 
-  // Auto-detect if any locally selected seat was taken by another customer
   useEffect(() => {
     if (apiSeats.length > 0 && selectedSeats.length > 0) {
       const conflicting = selectedSeats.filter((s) => {
@@ -203,12 +193,10 @@ export default function SeatSelectionPage() {
     }
   }, [apiSeats, selectedSeats, dispatch]);
 
-  // Clear selected seats whenever showtime or hall changes
   useEffect(() => {
     dispatch(clearSeats());
   }, [movieId, time, date, hallType, bookingType, showtimeUuid, dispatch]);
 
-  // Group seat visualizer mapping
   const groupSeatAvatars = useMemo(() => {
     return buildGroupSeatAvatars({
       bookingType,
@@ -220,7 +208,6 @@ export default function SeatSelectionPage() {
     });
   }, [bookingType, selectedSeats, currentUser, activeGroupUuid, groupMembers, memberSeatsMap]);
 
-  // Switch Booking Type (Standard vs Group)
   const handleBookingTypeChange = async (newType) => {
     if (newType === "group") {
       if (!isAuthenticated) {
@@ -243,7 +230,6 @@ export default function SeatSelectionPage() {
     navigate(`/booking/seats?${params.toString()}`, { replace: true });
   };
 
-  // Callback when Host confirms squad name
   const handleCreateSquad = async (customName) => {
     if (!showtimeUuid) return;
     try {
@@ -269,7 +255,6 @@ export default function SeatSelectionPage() {
     }
   };
 
-  // Interactive Click Handler for Dynamic Seat Map
   const handleSeatClick = (seatsToToggle, isCouple) => {
     seatsToToggle.forEach((seat) => {
       const seatId = seat.seatLabel;
@@ -293,7 +278,6 @@ export default function SeatSelectionPage() {
   }, [selectedSeats]);
   const totalPrice = isGroupDiscount ? rawTotalPrice * 0.9 : rawTotalPrice;
 
-  // Proceed to Booking Details (hold seats with Teacher API)
   const handleProceed = async () => {
     if (selectedSeats.length === 0) {
       toast.warn("Please select at least one seat.");
@@ -416,7 +400,6 @@ export default function SeatSelectionPage() {
           };
           localStorage.setItem(groupSeatsKey, JSON.stringify(currentSquad));
         } catch {
-          // Ignore local storage error
         }
       }
 
@@ -471,13 +454,11 @@ export default function SeatSelectionPage() {
 
   return (
     <div className="relative min-h-screen w-full pb-28 font-sans select-none overflow-x-hidden">
-      {/* Deep Red Radial Glow Background for Dark Mode */}
       <div className="pointer-events-none absolute inset-0 -top-10 z-0 overflow-hidden">
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 space-y-8 pt-2">
-        {/* Modular Header */}
         <SeatSelectionHeader
           onBack={handleBackToMovie}
           movieTitle={movie?.title}
@@ -489,10 +470,8 @@ export default function SeatSelectionPage() {
           onBookingTypeChange={handleBookingTypeChange}
         />
 
-        {/* Curved Screen Arc */}
         <ScreenCurve />
 
-        {/* Main Seating Pod */}
         <div
           className="w-full rounded-2xl sm:rounded-3xl border p-6 sm:p-10 shadow-sm overflow-x-auto backdrop-blur-md min-h-[350px] flex items-center justify-center"
           style={{
@@ -531,10 +510,8 @@ export default function SeatSelectionPage() {
           )}
         </div>
 
-        {/* Pricing Cards */}
         <SeatPricingCards hallType={hallType} price={ticketPrice} />
 
-        {/* Legend */}
         {bookingType === "group" ? (
           <GroupSeatLegend
             mySeats={selectedSeats.map((s) => s.id)}
@@ -545,7 +522,6 @@ export default function SeatSelectionPage() {
           <SeatLegend />
         )}
 
-        {/* Floating Checkout Bar */}
         <BookingCheckoutBar
           selectedSeats={selectedSeats}
           totalPrice={totalPrice}
@@ -555,7 +531,6 @@ export default function SeatSelectionPage() {
           onProceed={handleProceed}
         />
 
-        {/* Group Booking Link Modal */}
         <GroupBookingLinkModal
           isOpen={isGroupModalOpen}
           onClose={() => setIsGroupModalOpen(false)}

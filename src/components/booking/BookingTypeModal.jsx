@@ -2,20 +2,14 @@ import { useEffect } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router";
 
-/**
- * BookingTypeModal
- * "How are you watching today?" Modal
- * Gives the user the choice between Standard Booking and Group Booking
- */
 export default function BookingTypeModal({
   isOpen,
   onClose,
-  session, // { movieId, movieTitle, branchName, date, time, screenType }
+  session, 
   onSelectBookingType,
 }) {
   const navigate = useNavigate();
 
-  // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
@@ -59,12 +53,10 @@ export default function BookingTypeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-(--primary-color-30) backdrop-blur-sm animate-fadeIn select-none font-sans">
-      {/* Modal Card */}
       <div
         className="relative w-full max-w-md rounded-3xl border border-[var(--border-light-mode)] bg-white dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-6 sm:p-8 shadow-2xl transition-all scale-100"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Red Close Button (Top Right) */}
         <button
           type="button"
           onClick={onClose}
@@ -74,7 +66,6 @@ export default function BookingTypeModal({
           <X className="w-5 h-5 stroke-[2.5]" />
         </button>
 
-        {/* Content */}
         <div className="space-y-6 pt-2 text-center">
           <div className="space-y-1.5">
             <h3 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
@@ -85,9 +76,7 @@ export default function BookingTypeModal({
             </p>
           </div>
 
-          {/* Action Buttons: Standard Booking & Group Booking */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            {/* Standard Booking Button */}
             <button
               type="button"
               onClick={() => handleBookingChoice("standard")}
@@ -97,7 +86,6 @@ export default function BookingTypeModal({
               Standard Booking
             </button>
 
-            {/* Group Booking Button */}
             <button
               type="button"
               onClick={() => handleBookingChoice("group")}

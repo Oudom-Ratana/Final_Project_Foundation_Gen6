@@ -2,14 +2,12 @@ import { baseApi } from "./baseApi";
 
 export const tvApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // 1. Trending TV Series (/trending/tv/{time_window})
     getTrendingTV: builder.query({
       query: (timeWindow = "day") => `/trending/tv/${timeWindow}`,
       transformResponse: (response) => response?.results || response,
       providesTags: [{ type: "TV", id: "TRENDING_TV" }],
     }),
 
-    // 2. Popular TV Series (/tv/popular)
     getPopularTV: builder.query({
       query: (page = 1) => `/tv/popular?page=${page}`,
       transformResponse: (response) => response?.results || response,
@@ -22,21 +20,18 @@ export const tvApi = baseApi.injectEndpoints({
           : [{ type: "TV", id: "POPULAR_TV" }],
     }),
 
-    // 3. Top Rated TV Series (/tv/top_rated)
     getTopRatedTV: builder.query({
       query: (page = 1) => `/tv/top_rated?page=${page}`,
       transformResponse: (response) => response?.results || response,
       providesTags: [{ type: "TV", id: "TOP_RATED_TV" }],
     }),
 
-    // 4. On The Air TV Series (/tv/on_the_air)
     getOnTheAirTV: builder.query({
       query: (page = 1) => `/tv/on_the_air?page=${page}`,
       transformResponse: (response) => response?.results || response,
       providesTags: [{ type: "TV", id: "ON_THE_AIR" }],
     }),
 
-    // 5. Discover TV Series (with optional filters: genre, sort, year)
     discoverTV: builder.query({
       query: (params = {}) => {
         const queryParams = new URLSearchParams();
@@ -62,15 +57,12 @@ export const tvApi = baseApi.injectEndpoints({
       providesTags: [{ type: "TV", id: "DISCOVER_TV" }],
     }),
 
-    // 6. TV Series Details (with seasons, videos & cast appended)
     getTVDetails: builder.query({
       query: (tvId) =>
         `/tv/${tvId}?append_to_response=videos,credits,similar,aggregate_credits`,
       providesTags: (result, error, tvId) => [{ type: "TV", id: tvId }],
     }),
 
-    // 7. TV Season Details (/tv/{tv_id}/season/{season_number})
-    // Returns full episode list for that season
     getTVSeasonDetails: builder.query({
       query: ({ tvId, seasonNumber }) =>
         `/tv/${tvId}/season/${seasonNumber}?append_to_response=videos,credits`,
@@ -79,7 +71,6 @@ export const tvApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 8. TV Episode Details (/tv/{tv_id}/season/{season_number}/episode/{episode_number})
     getTVEpisodeDetails: builder.query({
       query: ({ tvId, seasonNumber, episodeNumber }) =>
         `/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}?append_to_response=videos,credits,images`,
@@ -88,20 +79,17 @@ export const tvApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 9. TV Episode Videos (/tv/{tv_id}/season/{season_number}/episode/{episode_number}/videos)
     getTVEpisodeVideos: builder.query({
       query: ({ tvId, seasonNumber, episodeNumber }) =>
         `/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}/videos`,
       transformResponse: (response) => response?.results || [],
     }),
 
-    // 10. TV Genres (/genre/tv/list)
     getTVGenres: builder.query({
       query: () => "/genre/tv/list",
       transformResponse: (response) => response?.genres || [],
     }),
 
-    // 11. Search TV Series (/search/tv)
     searchTV: builder.query({
       query: ({ query, page = 1 }) =>
         `/search/tv?query=${encodeURIComponent(query)}&page=${page}`,
@@ -112,7 +100,6 @@ export const tvApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // 12. TV Series Videos & Trailers (/tv/{id}/videos)
     getTVTrailers: builder.query({
       query: (tvId) => `/tv/${tvId}/videos`,
       transformResponse: (response) => response?.results || [],

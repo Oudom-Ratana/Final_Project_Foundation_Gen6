@@ -7,9 +7,9 @@ import { TICKETS_PER_PAGE } from "../data/ticketData";
 import { useGetMyBookingsQuery, useGetCinemaMoviesQuery } from "../services/api/cinemaApi";
 import TicketCard from "../components/tickets/TicketCard";
 import TicketDetailModal from "../components/tickets/TicketDetailModal";
+import { getSafePosterUrl } from "../utils/downloadTicketPdf";
 import ScrollReveal from "../components/common/ScrollReveal";
 
-// Helper to reliably parse showtime timestamp into milliseconds
 function getShowtimeTimestamp(booking) {
   if (booking.startTime) {
     const d = new Date(booking.startTime);
@@ -44,7 +44,6 @@ export default function MyTicketsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
-  // Real-time clock: checks current time every 30 seconds
   const [currentTime, setCurrentTime] = useState(Date.now());
   useEffect(() => {
     const timer = setInterval(() => {
@@ -59,13 +58,11 @@ export default function MyTicketsPage() {
     }
   }, [tabParam]);
 
-  // Auth token: Strictly check if a user is logged in
   const token =
     useSelector((state) => state.auth?.accessToken || state.auth?.token) ||
     sessionStorage.getItem("accessToken") ||
     localStorage.getItem("accessToken");
 
-  // 1. RTK Query: Fetch live user bookings exclusively for the current authenticated user
   const {
     data: apiBookingsData,
     isLoading: isBookingsLoading,
@@ -75,7 +72,6 @@ export default function MyTicketsPage() {
     { skip: !token, refetchOnMountOrArgChange: true },
   );
 
-  // 2. Fetch cinema catalog to match real posters and metadata
   const { data: cinemaMoviesData } = useGetCinemaMoviesQuery();
   const catalogMovies = useMemo(() => {
     if (Array.isArray(cinemaMoviesData)) return cinemaMoviesData;
@@ -83,7 +79,6 @@ export default function MyTicketsPage() {
     return [];
   }, [cinemaMoviesData]);
 
-  // 3. Transform API bookings: Strictly from the backend API (zero mock, zero local storage)
   const allTickets = useMemo(() => {
     if (!token || !apiBookingsData?.content || !Array.isArray(apiBookingsData.content)) {
       return [];
@@ -92,9 +87,6 @@ export default function MyTicketsPage() {
     return apiBookingsData.content.map((booking) => {
       const showTimestamp = getShowtimeTimestamp(booking);
 
-      // REAL-TIME SHOWTIME CHECK:
-      // If showtime is in the future (> currentTime) and not cancelled -> UPCOMING
-      // When clock reaches showtime (e.g. 2:01 PM) -> smoothly moves to HISTORY
       const isPast = showTimestamp <= currentTime;
       const isCancelled = booking.status === "CANCELLED";
       const isUpcoming = !isPast && !isCancelled;
@@ -124,17 +116,18 @@ export default function MyTicketsPage() {
 
       const bookingRef = `FZ-${booking.uuid.slice(0, 8).toUpperCase()}`;
 
-      // Match movie from catalog to get authentic poster, runtime, genres
       const catalogMatch = catalogMovies.find(
         (m) =>
           m.title?.toLowerCase() === booking.movieTitle?.toLowerCase() ||
           (m.uuid && booking.movieUuid && m.uuid === booking.movieUuid),
       );
 
-      const posterUrl =
+      const rawPoster =
         catalogMatch?.posterUrl ||
         catalogMatch?.poster_path ||
-        "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80";
+        booking.posterUrl ||
+        booking.poster_path;
+      const posterUrl = getSafePosterUrl(rawPoster);
 
       const durationStr = catalogMatch?.duration
         ? `${Math.floor(catalogMatch.duration / 60)}h ${catalogMatch.duration % 60}m`
@@ -210,7 +203,6 @@ export default function MyTicketsPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // 4. When user is NOT logged in: Show clean login prompt (Zero tickets shown)
   if (!token) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center px-4 py-12 font-sans select-none">
@@ -244,11 +236,9 @@ export default function MyTicketsPage() {
     );
   }
 
-  // 5. When user IS logged in: Render live API tickets
   return (
     <div className="min-h-screen font-sans pb-16 pt-6 transition-colors duration-300 select-none">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* ── Tab Switcher ── */}
         <ScrollReveal delay={0} duration={600} distance="translate-y-4">
           <div className="flex items-center justify-center gap-4 mb-10">
             <button
@@ -265,7 +255,6 @@ export default function MyTicketsPage() {
               Upcoming
             </button>
 
-            {/* Divider */}
             <span
               className={`text-2xl sm:text-3xl font-light select-none ${isDark ? "text-neutral-600" : "text-neutral-300"}`}
             >
@@ -288,7 +277,6 @@ export default function MyTicketsPage() {
           </div>
         </ScrollReveal>
 
-        {/* ── Ticket List ── */}
         <div className="space-y-4">
           {isBookingsLoading || isBookingsFetching ? (
             <div className="text-center py-20 flex flex-col items-center justify-center space-y-3">
@@ -326,11 +314,9 @@ export default function MyTicketsPage() {
           )}
         </div>
 
-        {/* ── Pagination ── */}
         {!isBookingsLoading && !isBookingsFetching && totalPages > 1 && (
           <ScrollReveal delay={200} duration={600} distance="translate-y-4">
             <div className="flex items-center justify-center gap-2 mt-10 select-none">
-              {/* Prev Button */}
               <button
                 type="button"
                 onClick={() => handlePageChange(currentPage - 1)}
@@ -345,7 +331,6 @@ export default function MyTicketsPage() {
                 <ChevronLeft className="w-4 h-4" />
               </button>
 
-              {/* Page Number Pills */}
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                 (page) => (
                   <button
@@ -367,7 +352,6 @@ export default function MyTicketsPage() {
                 ),
               )}
 
-              {/* Next Button */}
               <button
                 type="button"
                 onClick={() => handlePageChange(currentPage + 1)}
@@ -383,7 +367,6 @@ export default function MyTicketsPage() {
               </button>
             </div>
 
-            {/* Page Info */}
             <p
               className={`text-center text-[13px] mt-3 ${isDark ? "text-neutral-500" : "text-neutral-400"}`}
             >
@@ -394,7 +377,6 @@ export default function MyTicketsPage() {
         )}
       </div>
 
-      {/* ── Ticket Detail Pop-up Modal ── */}
       {selectedTicket && (
         <TicketDetailModal
           ticket={selectedTicket}

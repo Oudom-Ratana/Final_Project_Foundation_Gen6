@@ -1,8 +1,5 @@
-// Mock ticket data for My Tickets page
-// Replace with real API data from bookingApi when booking process is complete
 
 export const MOCK_TICKETS = [
-  // ─── UPCOMING ────────────────────────────────────────────
   {
     id: "TKT-001",
     status: "upcoming",
@@ -136,7 +133,6 @@ export const MOCK_TICKETS = [
     totalPrice: 5.0,
   },
 
-  // ─── HISTORY ─────────────────────────────────────────────
   {
     id: "TKT-H001",
     status: "completed",

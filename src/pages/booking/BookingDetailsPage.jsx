@@ -43,13 +43,11 @@ export default function BookingDetailsPage() {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
-  // Glassmorphic tokens
   const glassCardStyle = {
     backgroundColor: isDark ? "var(--primary-color-30)" : "white",
     borderColor: isDark ? "var(--border-dark-mode)" : "var(--border-light-mode)",
   };
 
-  // URL & Redux State
   const movieId = searchParams.get("movie") ?? searchParams.get("movieId");
   const hallType = (searchParams.get("hall") ?? "standard").toLowerCase();
   const time = searchParams.get("time") ?? "06:30 PM";
@@ -59,7 +57,6 @@ export default function BookingDetailsPage() {
   const booking = useSelector(selectBooking);
   const reduxMovie = booking?.movie;
 
-  // Real Cinema Movie Query from Teacher API
   const isUuid = Boolean(movieId && movieId.includes("-"));
   const { data: cinemaMovie } = useGetCinemaMovieByUuidQuery(movieId, {
     skip: !movieId || !isUuid,
@@ -95,7 +92,6 @@ export default function BookingDetailsPage() {
   const reduxSelectedSeats = useSelector(selectSelectedSeats);
   const seatsParam = searchParams.get("seats");
 
-  // Read selected seats from Redux or parse from URL parameters
   const selectedSeats = useMemo(() => {
     if (reduxSelectedSeats && reduxSelectedSeats.length > 0) {
       return reduxSelectedSeats;
@@ -135,12 +131,10 @@ export default function BookingDetailsPage() {
   const hallNumber = hallType.includes("gold") ? "Hall 4" : "Hall 3";
   const hallName = `${resolvedScreenType} ${hallNumber}`;
 
-  // Totals
   const ticketsTotal = selectedSeats.reduce((acc, s) => acc + (s.price ?? 4.0), 0);
   const concessionsTotal = concessions.reduce((acc, c) => acc + c.price * c.quantity, 0);
   const totalPaid = ticketsTotal + concessionsTotal;
 
-  // Countdown timer for 5-minute seat hold
   const showtimeUuid = searchParams.get("showtimeUuid") ?? booking.showtime?.showtimeUuid;
   const holdId = searchParams.get("holdId") ?? location.state?.holdId ?? booking.showtime?.holdId;
   const initialExpiresIn = parseInt(searchParams.get("expiresIn"), 10) || location.state?.expiresInSeconds || 300;
@@ -211,7 +205,6 @@ export default function BookingDetailsPage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Group Booking State & Hooks
   const groupUuid = searchParams.get("groupUuid");
   const isGroupMode = (searchParams.get("type") || "").toLowerCase() === "group" || Boolean(groupUuid);
   const currentUser = useSelector((state) => state.auth?.user);
@@ -372,7 +365,6 @@ export default function BookingDetailsPage() {
           try {
             await removeBookingConcessionOrder(bookingUuid).unwrap();
           } catch {
-            // Safe fallback
           }
         }
 
@@ -462,16 +454,13 @@ export default function BookingDetailsPage() {
 
   return (
     <div className="relative min-h-[calc(100vh-70px)] w-full font-sans select-none overflow-x-hidden py-1 sm:py-2 pb-3">
-      {/* Deep Red Radial Glow Background for Dark Mode */}
       <div className="pointer-events-none absolute inset-0 -top-10 z-0 overflow-hidden">
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-3 sm:px-6 space-y-2 sm:space-y-3">
-        {/* Stepper Bar */}
         <BookingStepper currentStep={3} />
 
-        {/* Sub-header: Food & Drinks + Live Timer */}
         <div className="flex items-center justify-between">
           <h2 className="text-lg sm:text-xl font-black text-neutral-900 dark:text-white tracking-tight">
             Food & Drinks
@@ -483,15 +472,12 @@ export default function BookingDetailsPage() {
           </div>
         </div>
 
-        {/* Main 2-Column Responsive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* LEFT: Food & Drinks Grid */}
           <BookingFoodDrinksSelector
             concessions={concessions}
             glassCardStyle={glassCardStyle}
           />
 
-          {/* RIGHT: Booking Detail Summary Card */}
           <div className="lg:col-span-6 flex flex-col justify-between space-y-3 sm:space-y-3.5">
             <BookingSummaryCard
               movie={movie}
@@ -506,7 +492,6 @@ export default function BookingDetailsPage() {
               glassCardStyle={glassCardStyle}
             />
 
-            {/* Squad Lobby for Group Booking */}
             {isGroupMode && (
               <BookingSquadLobbyCard
                 groupBooking={groupBooking}
@@ -521,7 +506,6 @@ export default function BookingDetailsPage() {
               />
             )}
 
-            {/* Total Paid Card */}
             <div
               className="w-full rounded-2xl sm:rounded-3xl border px-5 py-3 flex items-center justify-between shadow-sm backdrop-blur-md"
               style={glassCardStyle}
@@ -534,7 +518,6 @@ export default function BookingDetailsPage() {
               </span>
             </div>
 
-            {/* Action Buttons: Back & Continue / Ready / Lock */}
             <div className="flex items-center gap-3.5 pt-0.5">
               <button
                 type="button"
@@ -592,7 +575,6 @@ export default function BookingDetailsPage() {
         </div>
       </div>
 
-      {/* Bakong KHQR Payment Modal */}
       <PaymentKhqrModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}

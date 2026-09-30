@@ -24,14 +24,12 @@ export default function HeroMiniSlider({
 
   if (len === 0) return null;
 
-  // Mini card dimensions
   const cardWidth = 175;
   const cardHeight = 240;
-  const maxOffset = 2; // shows 5 cards max in fan
+  const maxOffset = 2; 
 
   return (
     <div className="flex flex-col items-center select-none">
-      {/* 3D Fan Stage (Frameless, Borderless) */}
       <div
         className="relative w-[340px] sm:w-[380px] h-[260px] flex items-end justify-center"
         style={{ perspective: "900px" }}
@@ -103,7 +101,6 @@ export default function HeroMiniSlider({
                     transformStyle: "preserve-3d",
                   }}
                 >
-                  {/* Card Artwork */}
                   <img
                     src={posterImg}
                     alt={slide.title}
@@ -112,10 +109,8 @@ export default function HeroMiniSlider({
                     loading="eager"
                   />
 
-                  {/* Gradient Overlay */}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent" />
 
-                  {/* Content */}
                   <div className="absolute inset-x-0 bottom-0 p-3 z-10 flex flex-col justify-end space-y-1">
                     <span className="self-start px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-[#B90101] text-white shadow-sm">
                       {slide.genre || "NOW SHOWING"}

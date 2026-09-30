@@ -30,7 +30,6 @@ import {
   useUploadImageMutation,
 } from "../services/api/cinemaApi";
 
-// Helper to resolve full URL from relative backend path
 const resolveAvatarUrl = (url) => {
   if (!url || typeof url !== "string") return "";
   if (
@@ -48,15 +47,12 @@ export default function ProfilePage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Authentication token
   const token =
     useSelector((state) => state.auth?.accessToken || state.auth?.token) ||
     sessionStorage.getItem("accessToken");
 
-  // Redux cached user
   const cachedUser = useSelector(selectCurrentUser);
 
-  // 1. RTK Query: Live current user profile
   const {
     data: liveUser,
     isLoading: isUserLoading,
@@ -66,7 +62,6 @@ export default function ProfilePage() {
     refetchOnMountOrArgChange: true,
   });
 
-  // 2. RTK Query: Stats from Teacher's API
   const { data: favoriteCountData } = useGetMyFavoriteCountQuery(undefined, {
     skip: !token,
   });
@@ -75,17 +70,14 @@ export default function ProfilePage() {
     { skip: !token },
   );
 
-  // 3. RTK Query Mutations
   const [updateUserApi, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [uploadImageApi, { isLoading: isUploadingAvatar }] =
     useUploadImageMutation();
   const [deleteUserApi, { isLoading: isDeleting }] = useDeleteUserMutation();
   const [logoutApi] = useLogoutApiMutation();
 
-  // Consolidated user object
   const activeUser = liveUser || cachedUser || {};
 
-  // Form states matching Teacher's UpdateUserRequest schema
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -96,7 +88,6 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Sync server data & stored avatar into form fields
   useEffect(() => {
     if (activeUser && Object.keys(activeUser).length > 0) {
       const userUuid = activeUser.uuid || activeUser.id;
@@ -106,7 +97,6 @@ export default function ProfilePage() {
       setEmail(activeUser.email || "");
       setPhone(activeUser.phone || "");
 
-      // Check stored avatar by user UUID first, then user.avatar
       const storedAvatar = userUuid
         ? localStorage.getItem(`user_avatar_${userUuid}`)
         : null;
@@ -124,7 +114,6 @@ export default function ProfilePage() {
     activeUser.avatar,
   ]);
 
-  // Points & Counts calculation
   const memberYear = activeUser.createdAt
     ? new Date(activeUser.createdAt).getFullYear()
     : "2026";
@@ -134,7 +123,6 @@ export default function ProfilePage() {
     ticketsData?.totalElements ?? ticketsData?.content?.length ?? 0;
   const earnedPoints = Math.round(userPoints / 20) || 0;
 
-  // Booking history items from Teacher's API
   const displayBookings = (ticketsData?.content || [])
     .slice(0, 3)
     .map((ticket) => ({
@@ -145,7 +133,6 @@ export default function ProfilePage() {
         : "Upcoming Show",
     }));
 
-  // Cancel editing and revert to current saved profile
   const handleCancelEdit = () => {
     setFirstName(activeUser.firstName || "");
     setLastName(activeUser.lastName || "");
@@ -155,7 +142,6 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  // Handle Save Profile Changes via RTK Query
   const handleSaveChange = async (e) => {
     e?.preventDefault();
 
@@ -184,7 +170,6 @@ export default function ProfilePage() {
         userData: payload,
       }).unwrap();
 
-      // Sync into Redux store so Navbar and Header reflect immediately
       const displayName =
         `${result.firstName || ""} ${result.lastName || ""}`.trim() ||
         result.username ||
@@ -211,7 +196,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Handle Avatar Upload via RTK Query (POST /api/v1/files/images)
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -221,7 +205,6 @@ export default function ProfilePage() {
       return;
     }
 
-    // 1. Instant local preview
     const previewUrl = URL.createObjectURL(file);
     setAvatarUrl(previewUrl);
 
@@ -231,20 +214,16 @@ export default function ProfilePage() {
     const userUuid = activeUser.uuid || activeUser.id;
 
     try {
-      // 2. Upload to Teacher's Cinema API (POST /api/v1/files/images)
       const uploadRes = await uploadImageApi(formData).unwrap();
       const rawUrl = uploadRes?.url || uploadRes?.imageUrl;
       if (rawUrl) {
-        // 3. Resolve Full URL (Prepend teacher domain if relative)
         const fullUrl = resolveAvatarUrl(rawUrl);
         setAvatarUrl(fullUrl);
 
-        // 4. Persist per User in localStorage
         if (userUuid) {
           localStorage.setItem(`user_avatar_${userUuid}`, fullUrl);
         }
 
-        // 5. Update Redux store so Navbar reflects the new avatar
         dispatch(updateReduxUser({ avatar: fullUrl }));
         toast.success("Avatar uploaded and saved successfully!");
       }
@@ -254,7 +233,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Handle Logout
   const handleLogout = async () => {
     const refreshToken = (
       sessionStorage.getItem("refreshToken") ||
@@ -276,7 +254,6 @@ export default function ProfilePage() {
     navigate("/");
   };
 
-  // Handle Delete Account via RTK Query
   const handleDeleteAccount = async () => {
     const targetUuid = activeUser.uuid || activeUser.id;
     if (!targetUuid) return;
@@ -292,7 +269,6 @@ export default function ProfilePage() {
     }
   };
 
-  // State: Unauthenticated
   if (!token) {
     return (
       <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
@@ -318,7 +294,6 @@ export default function ProfilePage() {
     );
   }
 
-  // State: Loading User Profile
   if (isUserLoading && !activeUser.uuid && !activeUser.id) {
     return (
       <div className="w-full py-28 flex flex-col items-center justify-center text-center space-y-4 font-sans">
@@ -338,7 +313,6 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full min-h-screen py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto font-sans">
-      {/* 1. Page Header: Profile | Information */}
       <div className="mb-8 flex items-center">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
           <span className="text-[#B90101] dark:text-white">Profile</span>
@@ -347,12 +321,9 @@ export default function ProfilePage() {
         </h1>
       </div>
 
-      {/* 2. Main Profile Card */}
       <div className="relative rounded-[32px] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white/90  backdrop-blur-xl shadow-xl overflow-hidden p-6 sm:p-10 mb-8 transition-all">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left Column: Avatar, Name, Email, Points, Logout */}
           <div className="lg:col-span-4 flex flex-col items-center text-center relative">
-            {/* Avatar Container with Upload Camera Overlay */}
             <div className="relative group">
               <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center border-4 border-white dark:border-neutral-700 shadow-md">
                 {avatarUrl ? (
@@ -367,7 +338,6 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              {/* Camera Upload Trigger */}
               <label
                 htmlFor="avatar-upload-input"
                 className="absolute bottom-1 right-1 p-2 rounded-full bg-[#B90101] text-white hover:brightness-110 active:scale-95 transition shadow-lg cursor-pointer"
@@ -388,29 +358,24 @@ export default function ProfilePage() {
               </label>
             </div>
 
-            {/* User Full Name */}
             <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white mt-4 tracking-tight">
               {fullName}
             </h2>
 
-            {/* Email with Verified Badge */}
             <div className="flex items-center justify-center gap-1.5 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
               <span>{email || "member@filmzone.com"}</span>
               <CheckCircle2 className="w-3.5 h-3.5 text-[#B90101] shrink-0" />
             </div>
 
-            {/* Member since */}
             <p className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 mt-2">
               Member since {memberYear}
             </p>
 
-            {/* Points Badge */}
             <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-500 dark:text-amber-400 mt-1.5">
               <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
               <span>{userPoints} Points</span>
             </div>
 
-            {/* Left Column Bottom Action Buttons */}
             <div className="flex items-center gap-4 mt-8 pt-4 w-full justify-center">
               <button
                 type="button"
@@ -430,13 +395,10 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Vertical Divider in Desktop View */}
           <div className="hidden lg:block absolute left-[36%] top-10 bottom-10 w-px bg-gradient-to-b from-transparent via-[#B90101]/40 to-transparent" />
 
-          {/* Right Column: Editable Profile Fields */}
           <div className="lg:col-span-8 lg:pl-6">
             <form onSubmit={handleSaveChange} className="space-y-4">
-              {/* Row 1: First Name & Last Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
@@ -474,7 +436,6 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Row 2: Username */}
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
                   Username <span className="text-[#B90101]">*</span>
@@ -495,7 +456,6 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {/* Row 3: Email Address */}
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
                   Email Address
@@ -514,7 +474,6 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {/* Row 4: Phone Number */}
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
                   Phone Number
@@ -533,7 +492,6 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {/* Action Buttons: Edit Profile or Cancel / Save Changes */}
               <div className="flex justify-end pt-3">
                 {!isEditing ? (
                   <button
@@ -576,20 +534,15 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 3. Bottom Row: My Activity & Booking History Cards */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8">
-        {/* Card 1: My Activity (md:col-span-5) */}
         <div className="md:col-span-5 rounded-[28px] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white/90 backdrop-blur-xl p-6 sm:p-7 shadow-xl flex flex-col justify-between">
           <div>
             <h3 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white">
               My Activity
             </h3>
-            {/* Red Underline Indicator */}
             <div className="h-0.5 w-full bg-gradient-to-r from-[#B90101] via-[#B90101]/40 to-transparent mt-3 mb-6" />
 
-            {/* 3 Columns Stats */}
             <div className="flex items-center justify-around py-4">
-              {/* Column 1: Favourite */}
               <Link
                 to="/favourite"
                 className="flex flex-col items-center group cursor-pointer"
@@ -603,10 +556,8 @@ export default function ProfilePage() {
                 </span>
               </Link>
 
-              {/* Vertical Divider */}
               <div className="w-px h-10 bg-neutral-200 dark:border-(--border-dark-mode)" />
 
-              {/* Column 2: Ticket Booked */}
               <Link
                 to="/my-tickets"
                 className="flex flex-col items-center group cursor-pointer"
@@ -620,10 +571,8 @@ export default function ProfilePage() {
                 </span>
               </Link>
 
-              {/* Vertical Divider */}
               <div className="w-px h-10 bg-neutral-200 dark:border-(--border-dark-mode)" />
 
-              {/* Column 3: Point Earned */}
               <div className="flex flex-col items-center">
                 <Star className="w-5 h-5 text-[#B90101] fill-[#B90101]" />
                 <span className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white mt-1.5">
@@ -637,7 +586,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Card 2: Booking History (md:col-span-7) */}
         <div className="md:col-span-7 rounded-[28px] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white/90 backdrop-blur-xl p-6 sm:p-7 shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
@@ -652,10 +600,8 @@ export default function ProfilePage() {
               </Link>
             </div>
 
-            {/* Red Underline Indicator */}
             <div className="h-0.5 w-full bg-gradient-to-r from-[#B90101] via-[#B90101]/40 to-transparent mt-3 mb-4" />
 
-            {/* Bookings List */}
             <div className="space-y-2.5">
               {displayBookings.length > 0 ? (
                 displayBookings.map((item, idx) => (
@@ -684,7 +630,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] rounded-3xl border border-neutral-200 p-6 sm:p-8 max-w-sm w-full space-y-4 shadow-2xl">

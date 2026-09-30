@@ -56,7 +56,6 @@ export default function SeatPricingCards({
 
   return (
     <div className="flex items-center justify-center gap-5 sm:gap-8 pt-2 select-none">
-      {/* Single Seat Card */}
       <div
         className="w-40 sm:w-48 rounded-3xl border p-5 sm:p-6 text-center flex flex-col items-center justify-center space-y-2.5 shadow-sm backdrop-blur-md transition-all hover:scale-102"
         style={glassCardStyle}
@@ -72,7 +71,6 @@ export default function SeatPricingCards({
         </div>
       </div>
 
-      {/* Couple Seat Card */}
       <div
         className="w-40 sm:w-48 rounded-3xl border p-5 sm:p-6 text-center flex flex-col items-center justify-center space-y-2.5 shadow-sm backdrop-blur-md transition-all hover:scale-102"
         style={glassCardStyle}

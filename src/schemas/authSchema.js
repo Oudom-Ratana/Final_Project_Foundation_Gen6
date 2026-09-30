@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// 1. Login Validation Schema (identifier can be email or username)
 export const loginSchema = z.object({
   email: z
     .string()
@@ -11,7 +10,6 @@ export const loginSchema = z.object({
     .min(1, "Password is required"),
 });
 
-// 2. Register Validation Schema (Teacher's Movie Booking API)
 export const registerSchema = z.object({
   firstName: z
     .string()
@@ -53,7 +51,6 @@ export const registerSchema = z.object({
     ),
 });
 
-// 3. Forgot Password Validation Schema
 export const forgotPasswordSchema = z.object({
   email: z
     .string()

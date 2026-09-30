@@ -35,7 +35,6 @@ export default function MovieLibraryRow({
     ? Number(item.vote_average.toFixed(1))
     : 8.0;
 
-  // Format managed date range & duration tag cleanly into 2 lines
   const scheduleInfo = (() => {
     const rawDate = item.date || "20-25/09/2026";
     if (rawDate.includes(" to ")) {
@@ -57,7 +56,6 @@ export default function MovieLibraryRow({
 
   return (
     <tr className="hover:bg-neutral-50/80 transition-colors">
-      {/* Column 1: Poster & Title */}
       <td className="py-3 px-3 sm:px-4">
         <div className="flex items-center gap-3 min-w-0">
           <img
@@ -89,7 +87,6 @@ export default function MovieLibraryRow({
         </div>
       </td>
 
-      {/* Column 2: Date */}
       <td className="py-3 px-3 sm:px-4 font-medium text-neutral-700">
         <span
           className="font-bold text-neutral-900 text-[18px] block truncate"
@@ -99,7 +96,6 @@ export default function MovieLibraryRow({
         </span>
       </td>
 
-      {/* Column 3: Rating */}
       <td className="py-3 px-2 sm:px-4 whitespace-nowrap">
         <div className="flex items-center gap-1.5">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-black text-[17px] xl:text-[18px] shadow-xs">
@@ -114,7 +110,6 @@ export default function MovieLibraryRow({
         </div>
       </td>
 
-      {/* Column 4: Genres */}
       <td
         className="py-3 px-3 sm:px-4 font-medium text-[18px] text-neutral-700 truncate"
         title={genresStr}
@@ -122,7 +117,6 @@ export default function MovieLibraryRow({
         {genresStr}
       </td>
 
-      {/* Column 5: Cinema Status (Managed Catalog only) */}
       {isManagedItem && (
         <td className="py-3 px-2 sm:px-3 text-center whitespace-nowrap">
           <span
@@ -142,7 +136,6 @@ export default function MovieLibraryRow({
         </td>
       )}
 
-      {/* Column 6 (or Column 5 in TMDB): Action Buttons */}
       <td className="py-3 px-2 sm:px-3 text-center whitespace-nowrap">
         {isManagedItem ? (
           <div className="flex items-center justify-center gap-2">

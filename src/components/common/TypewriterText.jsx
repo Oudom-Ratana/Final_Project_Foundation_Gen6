@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-/**
- * TypewriterText - Smooth typewriter animation with blinking cursor.
- */
 export default function TypewriterText({
   phrases = [
     "Experience IMAX Precision",

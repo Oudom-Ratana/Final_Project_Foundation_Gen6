@@ -41,7 +41,6 @@ const SignUpComponent = () => {
     setErrorMsg("");
 
     try {
-      // 1. Send registration payload to Cinema API
       await registerMutation({
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
@@ -53,7 +52,6 @@ const SignUpComponent = () => {
 
       toast.success("Account created successfully! Please log in with your credentials.");
 
-      // 2. Redirect directly to Login page with registered email
       const targetLogin =
         redirectUrl !== "/"
           ? `/login?redirect=${encodeURIComponent(redirectUrl)}&email=${encodeURIComponent(data.email.trim())}`
@@ -75,7 +73,6 @@ const SignUpComponent = () => {
 
         return (
     <div className="relative flex h-full w-full">
-      {/* Back to Home - top-left corner on the image side (like the Stream Movie Detail page) */}
       <Link
         to="/"
         aria-label="Back to Home"
@@ -84,7 +81,6 @@ const SignUpComponent = () => {
         <ArrowLeft className="w-5 h-5" />
       </Link>
 
-      {/* Left Hero Section */}
       <div className="relative hidden w-1/2 md:block h-full">
         <img
           src={heroImage}
@@ -106,10 +102,8 @@ const SignUpComponent = () => {
         </div>
       </div>
 
-      {/* Right Form Section */}
       <div className="flex w-full md:w-1/2 items-center justify-center px-4 sm:px-6 lg:px-8 py-2 sm:py-4 h-full overflow-y-auto">
         <div className="w-full max-w-md sm:max-w-lg my-auto py-1 sm:py-2">
-          {/* Tabs */}
           <div className="mb-4 sm:mb-5 flex items-center gap-3 sm:gap-4">
             <Link
               to="/login"
@@ -134,7 +128,6 @@ const SignUpComponent = () => {
             noValidate
             className="space-y-3 sm:space-y-3.5"
           >
-            {/* First Name & Last Name */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label
@@ -187,7 +180,6 @@ const SignUpComponent = () => {
               </div>
             </div>
 
-            {/* Username & Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label
@@ -240,7 +232,6 @@ const SignUpComponent = () => {
               </div>
             </div>
 
-            {/* Email Address */}
             <div>
               <label
                 htmlFor="email"
@@ -266,7 +257,6 @@ const SignUpComponent = () => {
               )}
             </div>
 
-            {/* Password */}
             <div>
               <label
                 htmlFor="password"

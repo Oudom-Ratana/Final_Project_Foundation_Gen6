@@ -27,9 +27,7 @@ export default function PromoTicker() {
         `}</style>
 
         <div className="flex w-max promo-ticker-track">
-          {/* Real, screen-reader-visible copy */}
           <TickerHalf ariaHidden={false} />
-          {/* Duplicate copy purely for the seamless visual loop */}
           <TickerHalf ariaHidden />
         </div>
       </section>
@@ -38,7 +36,6 @@ export default function PromoTicker() {
 }
 
 function TickerHalf({ ariaHidden }) {
-  // Repeat items 4 times so one half is ~3,500px wide, eliminating any viewport gaps
   const items = [
     ...TICKER_ITEMS,
     ...TICKER_ITEMS,

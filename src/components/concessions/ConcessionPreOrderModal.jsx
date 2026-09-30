@@ -15,7 +15,7 @@ export default function ConcessionPreOrderModal({
   cartItems = [],
   onClearCart,
 }) {
-  const [step, setStep] = useState("confirm"); // "confirm" | "paying" | "pickup_pass"
+  const [step, setStep] = useState("confirm"); 
   const [concessionOrderUuid, setConcessionOrderUuid] = useState(null);
   const [paymentUuid, setPaymentUuid] = useState(null);
   const [qrPayload, setQrPayload] = useState(null);
@@ -25,7 +25,6 @@ export default function ConcessionPreOrderModal({
   const [createPayment, { isLoading: isCreatingPayment }] = useCreateConcessionPaymentMutation();
   const [verifyPayment, { isLoading: isVerifying }] = useVerifyConcessionPaymentMutation();
 
-  // Invoice Query: loads once order is paid
   const { data: invoice } = useGetConcessionInvoiceQuery(concessionOrderUuid, {
     skip: !concessionOrderUuid || step !== "pickup_pass",
     pollingInterval: 3000,
@@ -33,7 +32,6 @@ export default function ConcessionPreOrderModal({
 
   const cartTotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  // Auto-poll verification during "paying" step
   useEffect(() => {
     if (step !== "paying" || !paymentUuid) return;
 
@@ -48,7 +46,6 @@ export default function ConcessionPreOrderModal({
           if (onClearCart) onClearCart();
         }
       } catch {
-        // Continue polling
       }
     }, 2500);
 
@@ -68,7 +65,6 @@ export default function ConcessionPreOrderModal({
     }
 
     try {
-      // 1. Create Post-Booking Concession Order
       const itemsPayload = cartItems.map((c) => ({
         concessionItemUuid: c.uuid ?? c.id,
         quantity: c.quantity,
@@ -82,7 +78,6 @@ export default function ConcessionPreOrderModal({
       const orderUuid = orderRes?.uuid ?? orderRes?.concessionOrderUuid ?? orderRes?.data?.uuid;
       setConcessionOrderUuid(orderUuid);
 
-      // 2. Generate Snack Bakong KHQR
       const payRes = await createPayment(orderUuid).unwrap();
       const pUuid = payRes?.paymentUuid ?? payRes?.uuid ?? payRes?.data?.paymentUuid;
       const qr = payRes?.qrPayload ?? payRes?.qrCode ?? payRes?.data?.qrPayload;
@@ -124,7 +119,6 @@ export default function ConcessionPreOrderModal({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#12161A] border border-neutral-200 dark:border-white/10 shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#B90101]" />
@@ -140,7 +134,6 @@ export default function ConcessionPreOrderModal({
           </button>
         </div>
 
-        {/* STEP 1: CONFIRM CART */}
         {step === "confirm" && (
           <div className="space-y-4">
             <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
@@ -182,7 +175,6 @@ export default function ConcessionPreOrderModal({
           </div>
         )}
 
-        {/* STEP 2: BAKONG KHQR PAYMENT */}
         {step === "paying" && (
           <div className="space-y-4 text-center">
             <div className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 inline-block shadow-inner mx-auto">
@@ -215,7 +207,6 @@ export default function ConcessionPreOrderModal({
           </div>
         )}
 
-        {/* STEP 3: SNACK PICKUP PASS */}
         {step === "pickup_pass" && (
           <div className="space-y-4 text-center">
             <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 mx-auto flex items-center justify-center">

@@ -9,7 +9,6 @@ const CINEMA_API_BASE =
   "https://cinema-booking-api.eunglyzhia.com/api/v1";
 
 
-// Checks if the endpoint belongs to the Teacher's Cinema Booking API
 const isCinemaApiEndpoint = (url) => {
   if (typeof url !== "string") return false;
   return (
@@ -31,7 +30,6 @@ const isCinemaApiEndpoint = (url) => {
   );
 };
 
-// Base query for TMDB API (Streaming & Trailers)
 const tmdbBaseQuery = fetchBaseQuery({
   baseUrl: TMDB_API_BASE,
   prepareHeaders: (headers) => {
@@ -43,7 +41,6 @@ const tmdbBaseQuery = fetchBaseQuery({
   },
 });
 
-// Teacher's Base Query: prepareHeaders reading accessToken from Redux State or sessionStorage
 const cinemaBaseQuery = fetchBaseQuery({
   baseUrl: CINEMA_API_BASE,
   prepareHeaders: (header, { getState }) => {
@@ -56,19 +53,15 @@ const cinemaBaseQuery = fetchBaseQuery({
   },
 });
 
-// Teacher's exact baseQueryWithReAuth
 const baseQueryWithReAuth = async (args, api, extraOptions) => {
   const url = typeof args === "string" ? args : args?.url || "";
 
-  // 1. If TMDB endpoint, route to TMDB
   if (!isCinemaApiEndpoint(url)) {
     return tmdbBaseQuery(args, api, extraOptions);
   }
 
-  // 2. Execute request with Teacher's cinema baseQuery
   let result = await cinemaBaseQuery(args, api, extraOptions);
 
-  // 3. If 401 Unauthorized, use Teacher's exact fetch refresh logic
   if (result?.error?.status === 401) {
     const refreshToken = sessionStorage.getItem("refreshToken");
 
@@ -87,7 +80,6 @@ const baseQueryWithReAuth = async (args, api, extraOptions) => {
         const data = await res.json();
         console.log("==> new accessToken:", data?.accessToken);
 
-        // Store new accessToken in Redux and sessionStorage
         api.dispatch(setAccessToken(data?.accessToken));
         sessionStorage.setItem("accessToken", data?.accessToken);
 
@@ -95,10 +87,8 @@ const baseQueryWithReAuth = async (args, api, extraOptions) => {
           sessionStorage.setItem("refreshToken", data.refreshToken);
         }
 
-        // Automatically retry original query with the new token
         result = await cinemaBaseQuery(args, api, extraOptions);
       } else {
-        // Only log out if refresh token is genuinely invalid or expired on server
         api.dispatch(logout());
       }
     }

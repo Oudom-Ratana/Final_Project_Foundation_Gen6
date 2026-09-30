@@ -20,7 +20,6 @@ export default function StandardHallSeatMap({
 
   return (
     <div className="min-w-[660px] max-w-3xl mx-auto space-y-3 sm:space-y-3.5 select-none">
-      {/* Column Numbers Header: 1-2, 3-10, 11-12 (Aligned with seats) */}
       <div className="flex items-center justify-between gap-2 text-xs font-bold text-neutral-600 dark:text-neutral-400">
         <span className="w-6 sm:w-8" />
         <div className="flex items-center gap-3.5 sm:gap-6">
@@ -41,19 +40,16 @@ export default function StandardHallSeatMap({
         <span className="w-6 sm:w-8" />
       </div>
 
-      {/* Upper Rows: H down to B */}
       <div className="space-y-3 sm:space-y-3.5">
         {STANDARD_ROWS.filter((r) => r !== "A").map((rowLetter) => (
           <div
             key={rowLetter}
             className="flex items-center justify-between gap-2"
           >
-            {/* Left Row Letter */}
             <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
               {rowLetter}
             </span>
 
-            {/* Columns: Left (1-2), Center (3-10), Right (11-12) */}
             <div className="flex items-center gap-3.5 sm:gap-6">
               {STANDARD_COL_GROUPS.map((group, gIdx) => (
                 <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
@@ -68,7 +64,6 @@ export default function StandardHallSeatMap({
                         ? "selected"
                         : "available";
 
-                    // If seat has a member avatar assigned (You or Friend)
                     if (avatarInfo) {
                       return (
                         <button
@@ -129,7 +124,6 @@ export default function StandardHallSeatMap({
               ))}
             </div>
 
-            {/* Right Row Letter */}
             <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
               {rowLetter}
             </span>
@@ -137,20 +131,16 @@ export default function StandardHallSeatMap({
         ))}
       </div>
 
-      {/* Bottom Row A: Couple Seat Pairs */}
       <div className="pt-5 sm:pt-6">
         <div className="flex items-center justify-between gap-2">
-          {/* Left Row Letter */}
           <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
             A
           </span>
 
-          {/* Column Groups */}
           <div className="flex items-center gap-3.5 sm:gap-6">
             {STANDARD_COL_GROUPS.map((group, gIdx) => (
               <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
                 {group.map((col) => {
-                  // User requested: Remove A5 and A8 to create spacing, making A6 and A7 couple seat
                   if (col === 5 || col === 8) {
                     return (
                       <div
@@ -240,7 +230,6 @@ export default function StandardHallSeatMap({
             ))}
           </div>
 
-          {/* Right Row Letter */}
           <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
             A
           </span>

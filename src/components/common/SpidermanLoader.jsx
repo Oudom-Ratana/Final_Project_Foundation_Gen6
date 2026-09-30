@@ -2,7 +2,6 @@ import React from "react";
 import popcornBucketImg from "../../assets/loader/popcorn-bucket1.png";
 import popcornKernelImg from "../../assets/loader/popcorn-kernel.png";
 
-// Real popped popcorn piece (isolated transparent PNG)
 const PopcornKernel = ({ className = "", style = {} }) => (
   <img
     src={popcornKernelImg}
@@ -13,148 +12,20 @@ const PopcornKernel = ({ className = "", style = {} }) => (
   />
 );
 
-// Authentic 35mm Filmstrip Ribbon (Orbiting Behind the Popcorn Bucket)
-// const FilmstripRibbon = ({ className = "" }) => {
-//   const numFrames = 14;
-//   const cx = 150;
-//   const cy = 150;
-//   const rWindowOuter = 133;
-//   const rWindowInner = 113;
-//   const rSprocketOuter = 138;
-//   const rSprocketInner = 108;
 
-//   const frames = useMemo(() => {
-//     const list = [];
-//     for (let i = 0; i < numFrames; i++) {
-//       const angleStart = (i * 360) / numFrames + 1.2;
-//       const angleEnd = ((i + 1) * 360) / numFrames - 1.2;
-//       const radStart = (angleStart * Math.PI) / 180;
-//       const radEnd = (angleEnd * Math.PI) / 180;
 
-//       const x1 = cx + rWindowOuter * Math.cos(radStart);
-//       const y1 = cy + rWindowOuter * Math.sin(radStart);
-//       const x2 = cx + rWindowOuter * Math.cos(radEnd);
-//       const y2 = cy + rWindowOuter * Math.sin(radEnd);
-//       const x3 = cx + rWindowInner * Math.cos(radEnd);
-//       const y3 = cy + rWindowInner * Math.sin(radEnd);
-//       const x4 = cx + rWindowInner * Math.cos(radStart);
-//       const y4 = cy + rWindowInner * Math.sin(radStart);
 
-//       const sprockets = [];
-//       for (let s = 0; s < 3; s++) {
-//         const sprocketAngle =
-//           angleStart + ((angleEnd - angleStart) * (s + 0.5)) / 3;
-//         const sRad = (sprocketAngle * Math.PI) / 180;
-//         const ox = cx + rSprocketOuter * Math.cos(sRad);
-//         const oy = cy + rSprocketOuter * Math.sin(sRad);
-//         const ix = cx + rSprocketInner * Math.cos(sRad);
-//         const iy = cy + rSprocketInner * Math.sin(sRad);
-//         sprockets.push({ ox, oy, ix, iy, angle: sprocketAngle + 90 });
-//       }
 
-//       list.push({
-//         windowPath: `M ${x1} ${y1} A ${rWindowOuter} ${rWindowOuter} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${rWindowInner} ${rWindowInner} 0 0 0 ${x4} ${y4} Z`,
-//         sprockets,
-//       });
-//     }
-//     return list;
-//   }, [numFrames]);
 
-//   return (
-//     <svg
-//       viewBox="0 0 300 300"
-//       className={`w-full h-full drop-shadow-[0_10px_25px_rgba(0,0,0,0.85)] ${className}`}
-//       fill="none"
-//       xmlns="http://www.w3.org/2000/svg"
-//     >
-//       <defs>
-//         <linearGradient id="filmFrameGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-//           <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
-//           <stop offset="30%" stopColor="#E2E8F0" stopOpacity="0.9" />
-//           <stop offset="70%" stopColor="#CBD5E1" stopOpacity="0.85" />
-//           <stop offset="100%" stopColor="#94A3B8" stopOpacity="0.9" />
-//         </linearGradient>
 
-//         <linearGradient id="filmBaseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-//           <stop offset="0%" stopColor="#0B0B0E" />
-//           <stop offset="50%" stopColor="#18181B" />
-//           <stop offset="100%" stopColor="#09090B" />
-//         </linearGradient>
 
-//         <linearGradient id="filmRailGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-//           <stop offset="0%" stopColor="#27272A" />
-//           <stop offset="50%" stopColor="#52525B" />
-//           <stop offset="100%" stopColor="#18181B" />
-//         </linearGradient>
-//       </defs>
 
-//       {/* Black Filmstrip Outer & Inner Body */}
-//       <path
-//         d="M 150 8 A 142 142 0 1 0 150 292 A 142 142 0 1 0 150 8 Z M 150 46 A 104 104 0 1 1 150 254 A 104 104 0 1 1 150 46 Z"
-//         fill="url(#filmBaseGrad)"
-//         fillRule="evenodd"
-//       />
 
-//       {/* Outer and Inner Metallic Edges */}
-//       <circle
-//         cx="150"
-//         cy="150"
-//         r="142"
-//         stroke="url(#filmRailGrad)"
-//         strokeWidth="1.5"
-//       />
-//       <circle
-//         cx="150"
-//         cy="150"
-//         r="104"
-//         stroke="url(#filmRailGrad)"
-//         strokeWidth="1.5"
-//       />
 
-//       {/* Frames & Sprocket Perforations */}
-//       {frames.map((f, i) => (
-//         <g key={i}>
-//           <path
-//             d={f.windowPath}
-//             fill="url(#filmFrameGrad)"
-//             stroke="#475569"
-//             strokeWidth="1.2"
-//           />
-//           {f.sprockets.map((sp, idx) => (
-//             <g key={idx}>
-//               <rect
-//                 x={sp.ox - 2.8}
-//                 y={sp.oy - 1.8}
-//                 width="5.6"
-//                 height="3.6"
-//                 rx="0.9"
-//                 fill="#000000"
-//                 stroke="#64748B"
-//                 strokeWidth="0.6"
-//                 transform={`rotate(${sp.angle} ${sp.ox} ${sp.oy})`}
-//               />
-//               <rect
-//                 x={sp.ix - 2.8}
-//                 y={sp.iy - 1.8}
-//                 width="5.6"
-//                 height="3.6"
-//                 rx="0.9"
-//                 fill="#000000"
-//                 stroke="#64748B"
-//                 strokeWidth="0.6"
-//                 transform={`rotate(${sp.angle} ${sp.ix} ${sp.iy})`}
-//               />
-//             </g>
-//           ))}
-//         </g>
-//       ))}
-//     </svg>
-//   );
-// };
 
 export default function SpidermanLoader({
   fullScreen = false,
-  size = "md", // 'sm' | 'md' | 'lg'
+  size = "md", 
   text = "LOADING...",
 }) {
   const sizeMap = {
@@ -185,48 +56,14 @@ export default function SpidermanLoader({
 
   const loaderContent = (
     <div className="flex flex-col items-center justify-center gap-6 select-none font-sans">
-      {/* 1. Outer Container */}
       <div
         className={`relative ${currentSize.container} flex items-center justify-center`}
       >
-        {/* Cinema Warm Glow Auras */}
         <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#B90101]/30 via-amber-500/20 to-transparent animate-pulse opacity-80 filter blur-md" />
         <div className="absolute -inset-3 rounded-full bg-radial from-[#B90101]/25 via-transparent to-transparent animate-ping duration-1000 opacity-40" />
 
-        {/* 2. 35mm Filmstrip Ribbon (Commented Out) */}
-        {/*
-        <div
-          className={`absolute ${currentSize.ribbonWrap} pointer-events-none flex items-center justify-center z-10`}
-          style={{
-            perspective: "850px",
-            transformStyle: "preserve-3d",
-          }}
-        >
-          <div
-            className="w-full h-full"
-            style={{
-              animation: "filmstrip3DOrbit 12s linear infinite",
-              transformStyle: "preserve-3d",
-            }}
-          >
-            <FilmstripRibbon />
-          </div>
 
-          <div
-            className="absolute w-[82%] h-[82%] opacity-60"
-            style={{
-              animation: "filmstrip3DCounter 16s linear infinite",
-              transformStyle: "preserve-3d",
-            }}
-          >
-            <FilmstripRibbon />
-          </div>
-        </div>
-        */}
-
-        {/* 3. POPPING POPCORN SVG KERNELS (Popping Upward Out of the Bucket) */}
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-30">
-          {/* Popcorn 1: Pops Center-Left Upward */}
           <PopcornKernel
             className={currentSize.popcornSize}
             style={{
@@ -235,7 +72,6 @@ export default function SpidermanLoader({
               animationDelay: "0s",
             }}
           />
-          {/* Popcorn 2: Pops Center-Right Upward */}
           <PopcornKernel
             className={currentSize.popcornSize}
             style={{
@@ -244,7 +80,6 @@ export default function SpidermanLoader({
               animationDelay: "0.35s",
             }}
           />
-          {/* Popcorn 3: Pops High Straight Up */}
           <PopcornKernel
             className={currentSize.popcornSize}
             style={{
@@ -253,7 +88,6 @@ export default function SpidermanLoader({
               animationDelay: "0.7s",
             }}
           />
-          {/* Popcorn 4: Bursts Far Left with Parabolic Arc */}
           <PopcornKernel
             className={currentSize.popcornSize}
             style={{
@@ -262,7 +96,6 @@ export default function SpidermanLoader({
               animationDelay: "1.05s",
             }}
           />
-          {/* Popcorn 5: Bursts Far Right with Parabolic Arc */}
           <PopcornKernel
             className={currentSize.popcornSize}
             style={{
@@ -271,7 +104,6 @@ export default function SpidermanLoader({
               animationDelay: "1.4s",
             }}
           />
-          {/* Popcorn 6: Quick Extra Pop Center */}
           <PopcornKernel
             className={currentSize.popcornSize}
             style={{
@@ -282,7 +114,6 @@ export default function SpidermanLoader({
           />
         </div>
 
-        {/* 4. CINEMA POPCORN BUCKET (With Transparent Background) */}
         <div
           className={`relative z-20 flex items-center justify-center ${currentSize.bucketSize}`}
           style={{
@@ -298,7 +129,6 @@ export default function SpidermanLoader({
         </div>
       </div>
 
-      {/* 5. FilmZone Cinema Loading Text & Bar */}
       <div className="flex flex-col items-center text-center gap-2">
         <div className="flex items-center gap-2">
           <p
@@ -308,7 +138,6 @@ export default function SpidermanLoader({
           </p>
         </div>
 
-        {/* Cinema Golden-Red Shimmer Bar with #C8961E */}
         <div className="w-40 sm:w-52 h-1.5 bg-neutral-800/80 rounded-full overflow-hidden relative shadow-inner border border-white/5">
           <div
             className="h-full bg-gradient-to-r from-[#B90101] via-[#C8961E] to-[#B90101] w-1/3 rounded-full"
@@ -319,7 +148,6 @@ export default function SpidermanLoader({
         </div>
       </div>
 
-      {/* Keyframes for 3D Filmstrip Ribbon Orbit, Popping Popcorn Upward & Bucket Jiggle */}
       <style>{`
         @keyframes filmstrip3DOrbit {
           0% {

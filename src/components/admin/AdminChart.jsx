@@ -36,25 +36,21 @@ export default function AdminChart({
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
 
-  // Generate Y axis levels
   const yLevels = [];
   for (let val = 0; val <= yMax; val += yStep) {
     yLevels.push(val);
   }
 
-  // Filter valid points up to September (index 8)
   const validPoints = data
     .map((val, idx) => ({ val, idx }))
     .filter((p) => p.val !== null && p.val !== undefined);
 
-  // Compute coordinates
   const coords = validPoints.map((p) => {
     const x = paddingLeft + (p.idx / (labels.length - 1)) * chartWidth;
     const y = paddingTop + chartHeight - (p.val / yMax) * chartHeight;
     return { x, y, val: p.val, label: labels[p.idx], idx: p.idx };
   });
 
-  // Generate smooth cubic bezier curve
   const createSmoothPath = (points) => {
     if (points.length === 0) return "";
     let path = `M ${points[0].x} ${points[0].y}`;
@@ -84,7 +80,6 @@ export default function AdminChart({
 
   return (
     <div className="bg-white rounded-3xl p-6 md:p-8 border border-neutral-200/80 shadow-xs space-y-4 font-sans">
-      {/* Header with Title and Date Badges */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-bold text-[#b90101] tracking-tight">
@@ -104,16 +99,13 @@ export default function AdminChart({
         </div>
       </div>
 
-      {/* SVG Chart Viewport */}
       <div className="relative w-full overflow-x-auto">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-auto min-w-[550px] overflow-visible"
         >
-          {/* Area Fill: #FDF3F1 */}
           <path d={areaPath} fill="#FDF3F1" />
 
-          {/* Horizontal Gridlines & Y Labels */}
           {yLevels.map((yVal) => {
             const yPos = paddingTop + chartHeight - (yVal / yMax) * chartHeight;
             return (
@@ -138,7 +130,6 @@ export default function AdminChart({
             );
           })}
 
-          {/* Line Curve */}
           <path
             d={linePath}
             fill="none"
@@ -148,11 +139,10 @@ export default function AdminChart({
             strokeLinejoin="round"
           />
 
-          {/* X Axis Labels */}
           {labels.map((label, idx) => {
             const xPos = paddingLeft + (idx / (labels.length - 1)) * chartWidth;
             const yPos = height - 12;
-            const isRed = idx <= 8; // Jan - Sep are red in screenshot
+            const isRed = idx <= 8; 
             return (
               <text
                 key={label}
@@ -166,7 +156,6 @@ export default function AdminChart({
             );
           })}
 
-          {/* Interactive Data Points */}
           {coords.map((pt, i) => (
             <g key={i}>
               <circle
@@ -181,7 +170,6 @@ export default function AdminChart({
           ))}
         </svg>
 
-        {/* Hover Tooltip */}
         {hoveredPoint && (
           <div
             className="absolute px-2.5 py-1 rounded-lg bg-neutral-900 text-white text-xs font-bold shadow-lg pointer-events-none transform -translate-x-1/2 -translate-y-8"

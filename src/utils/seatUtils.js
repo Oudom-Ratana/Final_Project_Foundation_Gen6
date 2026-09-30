@@ -1,4 +1,3 @@
-﻿// Clean extraction of seat labels from member or booking payload
 export const extractSeatLabels = (target) => {
   if (!target) return [];
   if (Array.isArray(target)) {
@@ -25,7 +24,6 @@ export const extractSeatLabels = (target) => {
   return [];
 };
 
-// Builds avatar and presence mapping for group booking seat visualizer
 export const buildGroupSeatAvatars = ({
   bookingType,
   selectedSeats = [],
@@ -55,7 +53,6 @@ export const buildGroupSeatAvatars = ({
   const currentUserId = currentUser?.uuid ?? currentUser?.id ?? "me";
   const palette = ["#10B981", "#6366F1", "#EC4899", "#F59E0B", "#3B82F6", "#8B5CF6", "#14B8A6"];
 
-  // 1. Map squad members from server
   if (activeGroupUuid && Array.isArray(groupMembers) && groupMembers.length > 0) {
     groupMembers.forEach((member, index) => {
       const mUserUuid = member.userUuid ?? member.uuid;
@@ -89,7 +86,6 @@ export const buildGroupSeatAvatars = ({
     });
   }
 
-  // 2. Map localStorage squad data for instant multi-tab sync
   if (activeGroupUuid) {
     try {
       const groupSeatsKey = `group_seats_${activeGroupUuid}`;
@@ -119,11 +115,9 @@ export const buildGroupSeatAvatars = ({
         }
       });
     } catch {
-      // Safe fallback
     }
   }
 
-  // 3. Current user selected seats get the gold ring avatar
   selectedSeats.forEach((seat) => {
     map[seat.id] = {
       avatar: userAvatar,

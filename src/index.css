@@ -52,7 +52,7 @@
   --text-light: #828282;
   --text-black: rgba(255, 255, 255, 0.7);
 
-  /* Typography */
+
   --font-sans: "Google Sans", sans-serif;
 
   --text-h1: 96px;
@@ -61,7 +61,7 @@
   --text-h4: 20px;
   --text-btn: 24px;
 
-  /* for card */
+
   --card-detail-title: 48px;
   --card-title: 28px;
   --card-description: 18px;
@@ -76,19 +76,19 @@
     --primary-red: #b90101;
     --accent-gold: #c8961e;
     --bg-light: #f6f7f9;
-    --bg-pop-up-light-mode: rgba(39, 42, 48, 0.25); /*[#272A30]/25*/
-    --bg-pop-up-dark-mode: rgba(26, 31, 37, 0.4); /*[#1A1F25]/40*/
+    --bg-pop-up-light-mode: rgba(39, 42, 48, 0.25);
+    --bg-pop-up-dark-mode: rgba(26, 31, 37, 0.4);
 
-    /* Glassmorphism - Light Mode */
+
     --primary-color-5: rgba(39, 42, 48, 0.05);
-    --border-light-mode: rgba(39, 42, 48, 0.05); /*[#272A30]/5*/
+    --border-light-mode: rgba(39, 42, 48, 0.05);
 
-    /* Glassmorphism - dark Mode */
+
     --primary-color-30: rgba(39, 42, 48, 0.4);
     --primary-color-40: rgba(1, 2, 4, 0.3);
     --border-dark-mode: rgba(255, 255, 255, 0.2);
 
-    /* Figma Dark Mode Background: 2 layers (Front: Radial gradient, Behind: Pure black) */
+
     --bg-dark-mode:
       radial-gradient(
         ellipse at 50% 50%,
@@ -97,7 +97,7 @@
       ),
       #000000;
 
-    /* FilmZone Light Mode Background: Vibrant cinematic red ambient gradient mesh */
+
     --bg-light-mode:
       radial-gradient(
         ellipse 80% 50% at 50% -8%,
@@ -125,7 +125,7 @@
       );
   }
 
-  /* Responsive Fluid Root Typography */
+
   html {
     font-size: clamp(15px, 1.1vw, 18px);
     font-family: "Google Sans", sans-serif !important;
@@ -135,7 +135,7 @@
     overflow-x: hidden;
   }
 
-  /* Hardware-accelerated fixed background layer (0 repaints on scroll) */
+
   body::before {
     content: "";
     position: fixed;
@@ -169,7 +169,7 @@
     color: #ffffff;
   }
 
-  /* Global Media Auto-Responsiveness: keeps media from breaking out of cards/columns */
+
   img,
   video,
   canvas,
@@ -179,7 +179,7 @@
     height: auto;
   }
 
-  /* Wrap long text safely across all screen sizes */
+
   p,
   h1,
   h2,
@@ -216,7 +216,7 @@
   }
 }
 
-/* Glassmorphism - Light Mode */
+
 .glass {
   background: var(--primary-color-5);
   backdrop-filter: blur(12px);
@@ -225,7 +225,7 @@
   box-shadow: 0 8px 32px rgba(39, 42, 48, 0.08);
 }
 
-/* Custom Utilities for Project Colors & Theme */
+
 .bg-primary-red {
   background-color: #b90101 !important;
 }
@@ -254,7 +254,7 @@
   fill: #c8961e !important;
 }
 
-/* Standard description typography utility */
+
 .card-description,
 .description-text {
   font-size: clamp(15px, 1vw, 18px) !important;
@@ -272,24 +272,24 @@
   background: var(--bg-dark-mode);
 }
 
-/* Hide scrollbars globally (scrolling stays functional, bar is invisible) */
+
 * {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Legacy Edge / IE */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* Hide scrollbars while preserving scrolling functionality */
+
 ::-webkit-scrollbar {
   display: none;
 }
 
 html,
 body {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Custom scrollbar utility for internal scroll panels (e.g. Food & Drinks 2x2 box) */
+
 .custom-scrollbar {
   scrollbar-width: thin !important;
   scrollbar-color: rgba(185, 1, 1, 0.45) transparent !important;
@@ -314,9 +314,7 @@ body {
   background-color: rgba(185, 1, 1, 0.75) !important;
 }
 
-/* ========================================================
-   Cinema 404 Animations & Visual Utilities
-   ======================================================== */
+
 
 @keyframes cinema-float {
   0%,
@@ -453,9 +451,7 @@ body {
     0 0 60px rgba(185, 1, 1, 0.35);
 }
 
-/* ==========================================================================
-   Circular Theme Transition (View Transitions API)
-   ========================================================================== */
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
@@ -482,9 +478,7 @@ body {
   }
 }
 
-/* ==========================================================================
-   Continuous Card Marquee (Left-to-Right)
-   ========================================================================== */
+
 @keyframes scroll-loop-ltr {
   0% {
     transform: translateX(-50%);
@@ -503,9 +497,7 @@ body {
   animation-play-state: paused;
 }
 
-/* ==========================================================================
-   Snake Border Beam (Runs Around the Entire Card Border on Hover)
-   ========================================================================== */
+
 @keyframes snake-border-around {
   from {
     stroke-dashoffset: 0;
@@ -520,9 +512,7 @@ body {
   will-change: stroke-dashoffset;
 }
 
-/* ==========================================================================
-   Cinema Card Hanging Shirt Swing on Reaching Card (Auto Scroll Trigger)
-   ========================================================================== */
+
 @keyframes card-hang-swing {
   0% {
     transform: rotate(0deg);
@@ -553,9 +543,7 @@ body {
   will-change: transform;
 }
 
-/* ==========================================================================
-   Timeline Spine & Node Subtle Animations (Matching Prototype)
-   ========================================================================== */
+
 @keyframes timeline-ripple {
   0% {
     transform: scale(0.95);
@@ -597,7 +585,7 @@ body {
   will-change: transform, box-shadow;
 }
 
-/* Hide navbar when KHQR payment modal popup is open */
+
 body.payment-modal-open header {
   display: none !important;
 }

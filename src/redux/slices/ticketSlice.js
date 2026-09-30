@@ -1,9 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-// MOCK_TICKETS removed to use only real API data
 
 const STORAGE_KEY = "filmzone_booked_tickets";
 
-// Load user-booked tickets from localStorage
 const loadInitialTickets = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -25,7 +23,6 @@ export const ticketSlice = createSlice({
       const newTicket = action.payload;
       if (!newTicket || !newTicket.id) return;
 
-      // Prevent duplicate entry by ticket ID
       const exists = state.userTickets.some((t) => t.id === newTicket.id);
       if (!exists) {
         state.userTickets.unshift(newTicket);

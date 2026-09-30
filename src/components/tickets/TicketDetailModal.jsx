@@ -1,14 +1,17 @@
-import { useEffect } from "react";
-import { ArrowLeft, Ticket, QrCode } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Ticket, Download, Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
+import { downloadTicketPdf, getSafePosterUrl, DEFAULT_POSTER_FALLBACK } from "../../utils/downloadTicketPdf";
 import { useSelector } from "react-redux";
 import { useGetBookingQrCodeQuery } from "../../services/api/cinemaApi";
 import { selectTheme } from "../../redux/slices/uiSlice";
 
 export default function TicketDetailModal({ ticket, onClose }) {
+  const ticketRef = useRef(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
-  // Close on Escape key press
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
@@ -16,7 +19,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    // Lock body scroll while modal is open
     document.body.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
@@ -64,8 +66,18 @@ export default function TicketDetailModal({ ticket, onClose }) {
   const hasConcessions = Array.isArray(concessions) && concessions.length > 0;
   const ticketCostOnly = Number(pricePerSeat * seatCount);
 
-  const handleDownloadPdf = () => {
-    window.print();
+  const handleDownloadPdf = async () => {
+    if (!ticketRef.current) return;
+    try {
+      setIsDownloading(true);
+      await downloadTicketPdf(ticketRef.current, bookingRef);
+      toast.success("Ticket PDF downloaded successfully!");
+    } catch (err) {
+      console.error("PDF download failed:", err);
+      toast.error("Failed to download ticket. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -75,7 +87,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Compact Modal Container with Glassmorphism */}
       <div
         className={`relative w-full max-w-[800px] max-h-[96vh] overflow-y-auto rounded-3xl p-3.5 sm:p-4 shadow-2xl backdrop-blur-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] transition-all ${
           isDark ? "text-white" : "text-neutral-900"
@@ -89,7 +100,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
             : "var(--border-light-mode)",
         }}
       >
-        {/* Top-Left Back Button */}
         <div className="mb-2 sm:mb-2.5">
           <button
             type="button"
@@ -102,9 +112,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
           </button>
         </div>
 
-        {/* ── Two Ticket Cards Side-by-Side (Matching Glassmorphism Styling) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 items-stretch justify-center max-w-[580px] mx-auto">
-          {/* ──────────────── LEFT CARD: Movie Ticket ──────────────── */}
+        <div ref={ticketRef} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 items-stretch justify-center max-w-[580px] mx-auto">
           <div
             className="w-full rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md shadow-md overflow-hidden flex flex-col justify-between"
             style={{
@@ -116,23 +124,20 @@ export default function TicketDetailModal({ ticket, onClose }) {
                 : "var(--border-light-mode)",
             }}
           >
-            {/* Top Red Header */}
             <div className="bg-[#B90101] text-white py-2 text-center font-extrabold text-xs sm:text-sm tracking-wide shrink-0">
               Movie Ticket
             </div>
 
-            {/* Card Body */}
             <div className="p-3 sm:p-3.5 flex-1 flex flex-col justify-between gap-2">
               <div>
-                {/* Movie Poster & Title & Date/Time */}
                 <div className="flex items-start gap-2.5">
                   <img
-                    src={
-                      movie.poster ||
-                      movie.poster_path ||
-                      "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80"
-                    }
-                    alt={movie.title}
+                    src={getSafePosterUrl(movie.poster || movie.poster_path)}
+                    alt={movie.title || "Movie Poster"}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = DEFAULT_POSTER_FALLBACK;
+                    }}
                     className="w-12 h-16 sm:w-14 sm:h-18 rounded-xl object-cover shadow-xs shrink-0 border border-neutral-200 dark:border-white/10"
                   />
                   <div className="min-w-0 space-y-0.5">
@@ -154,7 +159,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
                   </div>
                 </div>
 
-                {/* Perforated Ticket Tear Line with Notches */}
                 <div className="relative flex items-center justify-center my-2">
                   <div
                     className="absolute -left-5 sm:-left-5.5 w-4 h-4 rounded-full border-r border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
@@ -175,7 +179,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
                   />
                 </div>
 
-                {/* 2-Column Metadata Grid */}
                 <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5 text-[10px] sm:text-[11px]">
                   <div>
                     <span className="font-bold text-neutral-400 uppercase tracking-wider block text-[9px]">
@@ -232,7 +235,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
                   </div>
                 </div>
 
-                {/* Food & Drinks Breakdown (if present) */}
                 {hasConcessions && (
                   <div className="pt-1.5 mt-1.5 border-t border-dashed border-neutral-200 dark:border-(--border-dark-mode) space-y-0.5 text-[10px]">
                     <span className="font-bold text-[#B90101] uppercase tracking-wider text-[9px] block">
@@ -261,7 +263,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
                 )}
               </div>
 
-              {/* Barcode SVG */}
               <div className="flex flex-col items-center justify-center space-y-0.5 pt-0.5">
                 <svg
                   className="h-6 sm:h-7 w-32 sm:w-36 text-neutral-900 dark:text-neutral-100"
@@ -307,7 +308,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
               </div>
             </div>
 
-            {/* Bottom Red Footer */}
             <div className="bg-[#B90101] text-white py-1.5 sm:py-2 px-3 flex items-center justify-center gap-1.5 shrink-0">
               <div className="w-5 h-5 rounded-full bg-white text-[#B90101] flex items-center justify-center shrink-0 shadow-xs">
                 <Ticket className="w-3 h-3 text-[#B90101]" />
@@ -323,7 +323,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
             </div>
           </div>
 
-          {/* ──────────────── RIGHT CARD: QR Ticket Pass ──────────────── */}
           <div
             className="w-full rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md shadow-md overflow-hidden flex flex-col justify-between"
             style={{
@@ -335,7 +334,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
                 : "var(--border-light-mode)",
             }}
           >
-            {/* Top 3 Red Badges */}
             <div className="p-3 pb-1 shrink-0">
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-[#B90101] text-white py-1 px-1 rounded-lg text-center shadow-xs">
@@ -367,7 +365,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
               </div>
             </div>
 
-            {/* Perforated Ticket Tear Line with Notches */}
             <div className="relative flex items-center justify-center my-1.5 shrink-0">
               <div
                 className="absolute -left-2 w-4 h-4 rounded-full border-r border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
@@ -388,13 +385,11 @@ export default function TicketDetailModal({ ticket, onClose }) {
               />
             </div>
 
-            {/* Card Body: QR Code matching Booking Successful card */}
             <div className="p-3 pt-1 pb-3 flex flex-col items-center justify-center text-center space-y-2 flex-1">
               <span className="text-[9px] sm:text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">
                 Scan at the cinema entrance
               </span>
 
-              {/* Real QR matching Booking Successful page */}
               <div className="p-2 sm:p-2.5 bg-white rounded-2xl shadow-xs border border-[var(--border-light-mode)] text-neutral-900 flex items-center justify-center min-h-[120px] min-w-[120px]">
                 {isTicketQrLoading ? (
                   <div className="flex flex-col items-center justify-center space-y-1 text-neutral-400">
@@ -419,7 +414,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
               </div>
             </div>
 
-            {/* Bottom Red Footer: Total Money */}
             <div className="bg-[#B90101] text-white py-1.5 sm:py-2 px-3 flex items-center justify-between shrink-0">
               <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-white/90">
                 Total Amount
@@ -431,14 +425,24 @@ export default function TicketDetailModal({ ticket, onClose }) {
           </div>
         </div>
 
-        {/* Bottom Centered Download Button */}
         <div className="mt-3 sm:mt-3.5 flex justify-center">
           <button
             type="button"
             onClick={handleDownloadPdf}
-            className="py-2 px-8 rounded-full bg-[#B90101] hover:bg-[#8B0101] text-white font-bold text-xs sm:text-sm tracking-wide shadow-md transition active:scale-95 cursor-pointer"
+            disabled={isDownloading}
+            className="py-2.5 px-8 rounded-full bg-[#B90101] hover:bg-[#8B0101] disabled:opacity-75 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm tracking-wide shadow-md transition active:scale-95 cursor-pointer flex items-center justify-center gap-2"
           >
-            Download Tickets [PDF]
+            {isDownloading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Generating PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                <span>Download Tickets [PDF]</span>
+              </>
+            )}
           </button>
         </div>
       </div>

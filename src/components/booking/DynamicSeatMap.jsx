@@ -4,7 +4,6 @@ import SeatIcon from "./SeatIcon";
 const getFallbackSvg = (initials, bg) =>
   `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="30" fill="${encodeURIComponent(bg)}"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="24" fill="%23ffffff">${initials}</text></svg>`;
 
-// Standard Row A Couple Seat Pairs
 const STANDARD_ROW_A_PAIRS = [
   [1, 2],
   [3, 4],
@@ -24,7 +23,6 @@ export default function DynamicSeatMap({
 
   const isGold = hallType === "gold";
 
-  // Group seats by rowLabel and sort rows descending (e.g. H -> A, or F -> A)
   const { sortedRows, maxCols, seatsByRow, coupleGroups } = useMemo(() => {
     if (!Array.isArray(seats) || seats.length === 0) {
       return { sortedRows: [], maxCols: 0, seatsByRow: {}, coupleGroups: {} };
@@ -53,17 +51,14 @@ export default function DynamicSeatMap({
       }
     });
 
-    // Ensure at least 12 columns for standard halls
     if (!isGold && max < 12) {
       max = 12;
     }
 
-    // Sort seats in each row by seatNumber ascending
     Object.keys(rowMap).forEach((r) => {
       rowMap[r].sort((a, b) => a.seatNumber - b.seatNumber);
     });
 
-    // Sort rows descending so highest letter (H, G, F...) is near the top and A at bottom
     const sorted = Object.keys(rowMap).sort((a, b) => b.localeCompare(a));
 
     return {
@@ -74,7 +69,6 @@ export default function DynamicSeatMap({
     };
   }, [seats, isGold]);
 
-  // Define Column Groups with Aisles (e.g. [1, 2], [3..10], [11, 12] for standard halls)
   const colGroups = useMemo(() => {
     if (isGold) {
       return [
@@ -107,14 +101,11 @@ export default function DynamicSeatMap({
 
   const isReserved = (seat) => seat.availability !== "AVAILABLE";
 
-  // Helper to find partner in a couple seat
   const getCouplePartnerSeats = (seat, rowLetter, col) => {
-    // 1. If backend groupUuid is set
     if (seat.groupUuid && coupleGroups[seat.groupUuid]?.length > 1) {
       return coupleGroups[seat.groupUuid];
     }
 
-    // 2. In Row A for standard halls
     if (rowLetter === "A") {
       const pairNumbers = STANDARD_ROW_A_PAIRS.find((p) => p.includes(col));
       if (pairNumbers) {
@@ -131,13 +122,10 @@ export default function DynamicSeatMap({
     return [seat];
   };
 
-  // Helper to resolve seat for a column number (with fallback for 10-seat consecutive Row A)
   const findSeatForCol = (rowSeats, rowLetter, col) => {
-    // Direct match by seatNumber
     const direct = rowSeats.find((s) => s.seatNumber === col);
     if (direct) return direct;
 
-    // In Row A: if seats in DB were created 1..10 without gaps, map to couple slots
     if (rowLetter === "A" && rowSeats.length === 10) {
       const coupleSlots = [1, 2, 3, 4, 6, 7, 9, 10, 11, 12];
       const slotIdx = coupleSlots.indexOf(col);
@@ -155,7 +143,6 @@ export default function DynamicSeatMap({
     const partnerSeats = getCouplePartnerSeats(seat, rowLetter, col);
     const isCouple = partnerSeats.length > 1;
 
-    // If any seat in couple is reserved, block
     if (partnerSeats.some(isReserved)) return;
 
     const bothSelected = partnerSeats.every(isSelected);
@@ -174,7 +161,6 @@ export default function DynamicSeatMap({
 
   return (
     <div className="w-full flex flex-col items-center justify-center space-y-3 sm:space-y-4 select-none overflow-x-auto py-2">
-      {/* Column Numbers Header with Aisles */}
       <div className="flex items-center justify-between gap-2 sm:gap-4 text-xs font-bold text-neutral-500 dark:text-neutral-400 w-fit">
         <span className="w-6 sm:w-8" />
         <div className="flex items-center gap-3.5 sm:gap-6">
@@ -203,7 +189,6 @@ export default function DynamicSeatMap({
         <span className="w-6 sm:w-8" />
       </div>
 
-      {/* Rows */}
       <div className="space-y-2.5 sm:space-y-3.5 w-fit">
         {sortedRows.map((rowLetter) => {
           const rowSeats = seatsByRow[rowLetter] ?? [];
@@ -216,12 +201,10 @@ export default function DynamicSeatMap({
                 isRowA ? "pt-3 sm:pt-4" : ""
               }`}
             >
-              {/* Left Row Letter */}
               <span className="w-6 sm:w-8 text-center font-black text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
                 {rowLetter}
               </span>
 
-              {/* Column Groups with Aisles */}
               <div className="flex items-center gap-3.5 sm:gap-6">
                 {colGroups.map((group, gIdx) => (
                   <div
@@ -231,7 +214,6 @@ export default function DynamicSeatMap({
                     }`}
                   >
                     {group.map((col) => {
-                      // Spacer gaps in Row A (Columns 5 and 8 are walkways)
                       if (isRowA && (col === 5 || col === 8)) {
                         return (
                           <div
@@ -248,7 +230,6 @@ export default function DynamicSeatMap({
 
                       const seat = findSeatForCol(rowSeats, rowLetter, col);
 
-                      // If column has no seat
                       if (!seat) {
                         return (
                           <div
@@ -267,7 +248,6 @@ export default function DynamicSeatMap({
                       const reserved = isReserved(seat);
                       const selected = isSelected(seat);
 
-                      // Determine couple pair information
                       const couplePair = isRowA
                         ? STANDARD_ROW_A_PAIRS.find((p) => p.includes(col))
                         : null;
@@ -287,7 +267,6 @@ export default function DynamicSeatMap({
                           ? "selected"
                           : "available";
 
-                      // Group Booking Member Avatar
                       if (avatarInfo) {
                         return (
                           <button
@@ -366,7 +345,6 @@ export default function DynamicSeatMap({
                 ))}
               </div>
 
-              {/* Right Row Letter */}
               <span className="w-6 sm:w-8 text-center font-black text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
                 {rowLetter}
               </span>

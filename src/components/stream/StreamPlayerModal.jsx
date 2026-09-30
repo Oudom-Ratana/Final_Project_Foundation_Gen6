@@ -10,11 +10,6 @@ import {
 } from "lucide-react";
 import filmZoneLogo from "../../assets/logo/FilmZoneLogo.png";
 
-/**
- * Multi-Server Streaming Engine
- * Automatically fails over silently from Server 1 -> Server 2 -> Server 3 -> Server 4
- * without requiring the user to manually click any server buttons.
- */
 const STREAM_SERVERS = [
   {
     id: "vidlink",
@@ -25,28 +20,52 @@ const STREAM_SERVERS = [
         : `https://vidlink.pro/movie/${id}?primaryColor=b90101`,
   },
   {
-    id: "vidsrc_cc",
+    id: "vidsrc_to",
     name: "Server 2",
     getUrl: (id, isTV, s, ep) =>
       isTV
-        ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${ep}`
-        : `https://vidsrc.cc/v2/embed/movie/${id}`,
+        ? `https://vidsrc.to/embed/tv/${id}/${s}/${ep}`
+        : `https://vidsrc.to/embed/movie/${id}`,
+  },
+  {
+    id: "vidsrc_me",
+    name: "Server 3",
+    getUrl: (id, isTV, s, ep) =>
+      isTV
+        ? `https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${ep}`
+        : `https://vidsrc.me/embed/movie?tmdb=${id}`,
   },
   {
     id: "multiembed",
-    name: "Server 3",
+    name: "Server 4",
     getUrl: (id, isTV, s, ep) =>
       isTV
         ? `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${ep}`
         : `https://multiembed.mov/?video_id=${id}&tmdb=1`,
   },
   {
-    id: "autoembed",
-    name: "Server 4",
+    id: "smashystream",
+    name: "Server 5",
     getUrl: (id, isTV, s, ep) =>
       isTV
-        ? `https://player.autoembed.cc/embed/tv/${id}/${s}/${ep}`
-        : `https://player.autoembed.cc/embed/movie/${id}`,
+        ? `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${s}&episode=${ep}`
+        : `https://embed.smashystream.com/playere.php?tmdb=${id}`,
+  },
+  {
+    id: "autoembed",
+    name: "Server 6",
+    getUrl: (id, isTV, s, ep) =>
+      isTV
+        ? `https://autoembed.co/tv/tmdb/${id}-${s}-${ep}`
+        : `https://autoembed.co/movie/tmdb/${id}`,
+  },
+  {
+    id: "twoembed",
+    name: "Server 7",
+    getUrl: (id, isTV, s, ep) =>
+      isTV
+        ? `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${ep}`
+        : `https://www.2embed.cc/embed/${id}`,
   },
 ];
 
@@ -54,10 +73,10 @@ export default function StreamPlayerModal({
   isOpen,
   onClose,
   tmdbId,
-  mediaType = "movie", // 'movie' | 'tv'
+  mediaType = "movie", 
   title = "Movie Player",
   trailerKey,
-  initialMode = "full_movie", // 'full_movie' | 'trailer'
+  initialMode = "full_movie", 
   season = 1,
   episode = 1,
   totalEpisodes = 8,
@@ -67,7 +86,6 @@ export default function StreamPlayerModal({
   const [currentSeason, setCurrentSeason] = useState(season);
   const [currentEpisode, setCurrentEpisode] = useState(episode);
 
-  // Auto-failover state (Zero manual server buttons)
   const [serverIndex, setServerIndex] = useState(0);
   const [isLoadingStream, setIsLoadingStream] = useState(true);
   const [hasAllServersFailed, setHasAllServersFailed] = useState(false);
@@ -75,7 +93,6 @@ export default function StreamPlayerModal({
 
   const isTV = mediaType === "tv";
 
-  // Silent automatic failover to next server
   const tryNextServer = useCallback(() => {
     setServerIndex((prev) => {
       if (prev < STREAM_SERVERS.length - 1) {
@@ -89,7 +106,6 @@ export default function StreamPlayerModal({
     });
   }, []);
 
-  // Reset states when movie, episode, mode or modal changes
   useEffect(() => {
     setActiveMode(initialMode);
   }, [initialMode]);
@@ -107,26 +123,27 @@ export default function StreamPlayerModal({
     }
   }, [isOpen, tmdbId, currentSeason, currentEpisode, activeMode]);
 
-  // Listen for cross-origin postMessage errors from stream providers
   useEffect(() => {
     const handleMessage = (e) => {
       if (!e.data) return;
-      const dataStr =
-        typeof e.data === "string" ? e.data : JSON.stringify(e.data);
-      if (
-        dataStr.includes("error") ||
-        dataStr.includes("not_found") ||
-        dataStr.includes("PLAYER_ERROR") ||
-        dataStr.includes("MEDIA_NOT_FOUND")
-      ) {
-        tryNextServer();
+      try {
+        const dataStr =
+          typeof e.data === "string" ? e.data : JSON.stringify(e.data);
+        if (
+          dataStr.includes("PLAYER_ERROR") ||
+          dataStr.includes("MEDIA_NOT_FOUND") ||
+          dataStr.includes('"type":"not_found"')
+        ) {
+          tryNextServer();
+        }
+      } catch {
+        // ignore
       }
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, [tryNextServer]);
 
-  // Safety auto-failover timer: If an iframe hangs or fails to complete within 6s, silently switch
   useEffect(() => {
     if (!isOpen || activeMode !== "full_movie" || hasAllServersFailed) return;
 
@@ -135,7 +152,7 @@ export default function StreamPlayerModal({
       if (isLoadingStream) {
         tryNextServer();
       }
-    }, 6500);
+    }, 4000);
 
     return () => clearTimeout(failoverTimeoutRef.current);
   }, [
@@ -147,7 +164,6 @@ export default function StreamPlayerModal({
     tryNextServer,
   ]);
 
-  // Handle ESC key to close
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
@@ -155,16 +171,27 @@ export default function StreamPlayerModal({
     if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
+
+      const originalOpen = window.open;
+      window.open = () => null;
+
+      const handleBeforeUnload = (e) => {
+        e.preventDefault();
+        return (e.returnValue = "");
+      };
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        window.open = originalOpen;
+        document.body.style.overflow = "unset";
+      };
     }
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "unset";
-    };
   }, [isOpen, onClose]);
 
   if (!isOpen || !tmdbId) return null;
 
-  // Active video URL resolution
   const currentServer = STREAM_SERVERS[serverIndex] || STREAM_SERVERS[0];
   const fullMovieUrl = currentServer.getUrl(
     tmdbId,
@@ -195,7 +222,6 @@ export default function StreamPlayerModal({
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] w-screen h-screen bg-black flex flex-col animate-fadeIn select-none">
-      {/* 1. Modal Top Bar */}
       <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-white/10 bg-neutral-950">
         <div className="flex items-center gap-3 min-w-0">
           <img
@@ -215,9 +241,7 @@ export default function StreamPlayerModal({
           </div>
         </div>
 
-        {/* Controls: Mode Switcher (Full Movie / Trailer) & Close */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Mode Switcher Pills */}
           <div className="flex items-center p-1 rounded-full bg-neutral-900 border border-white/10 text-xs font-bold">
             <button
               type="button"
@@ -248,7 +272,6 @@ export default function StreamPlayerModal({
             )}
           </div>
 
-          {/* Close Button */}
           <button
             type="button"
             onClick={onClose}
@@ -260,9 +283,7 @@ export default function StreamPlayerModal({
         </div>
       </div>
 
-      {/* 2. Fullscreen Video Player Viewport */}
       <div className="relative flex-1 w-full bg-black flex items-center justify-center overflow-hidden">
-        {/* A. Stream Unavailable Fallback Card (When all servers return empty) */}
         {activeMode === "full_movie" && hasAllServersFailed ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-10 text-center bg-gradient-to-b from-neutral-900 to-neutral-950 text-white animate-fadeIn">
             <div className="w-16 h-16 rounded-full bg-[#B90101]/15 border border-[#B90101]/30 flex items-center justify-center mb-4 text-[#B90101]">
@@ -297,7 +318,6 @@ export default function StreamPlayerModal({
             </div>
           </div>
         ) : activeMode === "trailer" && !youtubeUrl ? (
-          /* B. Trailer Not Found Fallback Card */
           <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-10 text-center bg-gradient-to-b from-neutral-900 to-neutral-950 text-white animate-fadeIn">
             <div className="w-16 h-16 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-4 text-amber-500">
               <AlertCircle className="w-8 h-8" />
@@ -319,7 +339,6 @@ export default function StreamPlayerModal({
             </button>
           </div>
         ) : (
-          /* C. Active Working Video Player */
           <>
             {isLoadingStream && activeMode === "full_movie" && (
               <div className="absolute inset-0 bg-neutral-950/85 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-20 pointer-events-none transition-opacity duration-300">
@@ -330,7 +349,6 @@ export default function StreamPlayerModal({
               </div>
             )}
 
-            {/* FilmZone Branding Badge (Always visible watermark) */}
             {activeMode === "full_movie" && (
               <div className="absolute top-4 right-6 z-30 pointer-events-none flex items-center px-3 py-1.5 rounded-lg bg-black/95 border border-white/20 select-none shadow-lg">
                 <img
@@ -355,7 +373,6 @@ export default function StreamPlayerModal({
         )}
       </div>
 
-      {/* 3. TV Series Episode Navigator (if TV Show & Full Movie mode) */}
       {mediaType === "tv" &&
         activeMode === "full_movie" &&
         totalEpisodes > 1 && (

@@ -23,7 +23,7 @@ export async function searchLiveTmdb(query, page = 1) {
   if (!query || !query.trim()) return { results: [], total_results: 0 };
 
   const key = getTmdbApiKey();
-  const isBearer = key.length > 50; // TMDB v4 Read Access Tokens are long JWT strings
+  const isBearer = key.length > 50; 
 
   const url = isBearer
     ? `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&page=${page}&include_adult=false`
@@ -69,9 +69,6 @@ export async function searchLiveTmdb(query, page = 1) {
   }
 }
 
-/**
- * Fetch Full Movie Details (including exact duration runtime and genre names)
- */
 export async function fetchLiveTmdbDetails(tmdbId) {
   const key = getTmdbApiKey();
   const isBearer = key.length > 50;

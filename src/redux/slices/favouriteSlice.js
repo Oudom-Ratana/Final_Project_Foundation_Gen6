@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { logout } from "./authSlice";
 
-// Load favourites persisted in localStorage (if any)
 const loadInitialMovies = () => {
   try {
     const stored = localStorage.getItem("favouriteMovies");
@@ -94,7 +93,6 @@ export const favouriteSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Whenever user logs out or logs into a new account, completely wipe favourite state & localStorage
     builder.addMatcher(
       (action) =>
         action.type === "auth/logout" || action.type === "auth/setCredentials",

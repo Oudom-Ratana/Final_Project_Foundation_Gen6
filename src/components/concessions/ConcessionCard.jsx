@@ -26,8 +26,6 @@ export default function ConcessionCard({ item }) {
           : "var(--primary-color-5)",
       }}
     >
-      {/* Wrapper is NOT overflow-hidden, so the badge can float past the
-          image's top-left corner instead of getting clipped. */}
       <div className="relative">
         <div className="overflow-hidden rounded-t-xl aspect-[4/3]">
           <img

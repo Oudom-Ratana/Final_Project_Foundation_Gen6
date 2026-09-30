@@ -9,9 +9,7 @@ import {
   Tv,
 } from "lucide-react";
 
-// Definition of all TMDB and Managed Panels
 export const PANELS = [
-  // 1. Managed Cinema Catalog
   {
     id: "MANAGED",
     group: "MANAGED",
@@ -25,7 +23,6 @@ export const PANELS = [
     mediaType: "movie",
   },
 
-  // 2. TMDB Movie Panels
   {
     id: "TMDB_UPCOMING",
     group: "MOVIES",
@@ -96,7 +93,6 @@ export const PANELS = [
     mediaType: "movie",
   },
 
-  // 3. TMDB TV Panels
   {
     id: "TMDB_TRENDING_TV",
     group: "TV",

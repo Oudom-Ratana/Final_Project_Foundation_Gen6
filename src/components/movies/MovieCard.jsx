@@ -28,7 +28,6 @@ export default function MovieCard({ movie }) {
 
   return (
     <div className="group flex flex-col space-y-3">
-      {/* Poster Image Container */}
       <div
         onClick={handleClick}
         className="relative aspect-[2/3] w-full rounded-2xl overflow-hidden bg-neutral-900 shadow-xl border border-white/10 cursor-pointer transition-all"
@@ -40,7 +39,6 @@ export default function MovieCard({ movie }) {
           loading="lazy"
         />
 
-        {/* Top-Right Star Rating Badge with #C8961E */}
         <div
           className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[18px] font-bold border border-[#C8961E]/40 shadow-lg"
           style={{ color: "#C8961E" }}
@@ -53,7 +51,6 @@ export default function MovieCard({ movie }) {
         </div>
       </div>
 
-      {/* Card Info & Button */}
       <div className="space-y-2 px-1">
         <Link to={`/movies/${movie.id}`}>
           <h4 className="font-bold text-white text-[20px] leading-snug line-clamp-1 hover:text-[#B90101] transition">
@@ -62,7 +59,6 @@ export default function MovieCard({ movie }) {
         </Link>
         <p className="text-[18px] font-medium text-neutral-400">{genreText}</p>
 
-        {/* Primary Red Button #B90101 */}
         <button
           onClick={handleClick}
           className="inline-flex items-center justify-center px-5 py-2 rounded-full text-white font-black text-[16px] uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition"

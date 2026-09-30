@@ -8,7 +8,6 @@ import { CONCESSIONS } from "../../data/concessionsData";
 export default function BookingFoodDrinksSelector({ concessions = [], glassCardStyle = {} }) {
   const dispatch = useDispatch();
 
-  // Fetch live concessions menu from Teacher API via RTK Query
   const { data: apiConcessions, isLoading: isConcessionsLoading } =
     useGetAllConcessionsQuery(undefined, { refetchOnMountOrArgChange: true });
 
@@ -72,7 +71,6 @@ export default function BookingFoodDrinksSelector({ concessions = [], glassCardS
                       key={itemId}
                       className="flex flex-col justify-between space-y-2 p-1.5 rounded-2xl transition hover:scale-[1.01]"
                     >
-                      {/* Image */}
                       <div className="w-full aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden shadow-sm bg-neutral-200 dark:bg-neutral-800">
                         <img
                           src={item.image}
@@ -82,7 +80,6 @@ export default function BookingFoodDrinksSelector({ concessions = [], glassCardS
                         />
                       </div>
 
-                      {/* Info Row: Name & Price */}
                       <div className="flex items-center justify-between gap-2 pt-0.5">
                         <h3 className="font-extrabold text-xs sm:text-sm text-neutral-900 dark:text-white line-clamp-1">
                           {item.name}
@@ -92,7 +89,6 @@ export default function BookingFoodDrinksSelector({ concessions = [], glassCardS
                         </span>
                       </div>
 
-                      {/* Action Row: Add/Quantity Buttons */}
                       <div className="flex items-center justify-end">
                         {qty === 0 ? (
                           <button

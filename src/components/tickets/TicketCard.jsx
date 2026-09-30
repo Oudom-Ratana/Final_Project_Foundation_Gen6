@@ -52,7 +52,6 @@ export default function TicketCard({ ticket, onViewTicket }) {
           : "var(--border-light-mode)",
       }}
     >
-      {/* Left: Movie Poster */}
       <div className="shrink-0 w-[110px] sm:w-[145px] rounded-xl overflow-hidden aspect-[3/4] bg-neutral-900">
         <img
           src={movie.poster}
@@ -62,9 +61,7 @@ export default function TicketCard({ ticket, onViewTicket }) {
         />
       </div>
 
-      {/* Right: Ticket Details */}
       <div className="flex-1 min-w-0 flex flex-col gap-2">
-        {/* Title Row + Status Badge */}
         <div className="flex items-start justify-between gap-2">
           <h3
             className={`font-black text-lg sm:text-xl leading-tight ${
@@ -74,7 +71,6 @@ export default function TicketCard({ ticket, onViewTicket }) {
             {movie.title}
           </h3>
 
-          {/* Status Badge */}
           {isUpcoming ? (
             <span
               className="shrink-0 text-[13px] font-bold whitespace-nowrap text-amber-500"
@@ -96,7 +92,6 @@ export default function TicketCard({ ticket, onViewTicket }) {
           )}
         </div>
 
-        {/* Subtitle: Duration • Date • Time */}
         <p
           className="text-[13px] sm:text-[14px] font-semibold"
           style={{ color: "#B90101" }}
@@ -104,7 +99,6 @@ export default function TicketCard({ ticket, onViewTicket }) {
           {movie.duration} &bull; {showtime.date} &bull; {showtime.time}
         </p>
 
-        {/* Genre Pills */}
         <div className="flex flex-wrap items-center gap-2">
           {movie.genres.map((genre) => (
             <span
@@ -117,10 +111,8 @@ export default function TicketCard({ ticket, onViewTicket }) {
           ))}
         </div>
 
-        {/* Details Grid & Action: 2 Rows × 3 Balanced Columns */}
         <div className="flex items-end justify-between gap-4 mt-2">
           <div className="grid grid-cols-3 gap-x-6 sm:gap-x-8 gap-y-3 flex-1">
-            {/* Column 1: FORMAT & SEAT */}
             <div>
               <p
                 className={`text-[11px] sm:text-[12px] font-semibold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-neutral-400"}`}
@@ -134,7 +126,6 @@ export default function TicketCard({ ticket, onViewTicket }) {
               </p>
             </div>
 
-            {/* Column 2: HALL & PRICE/SEAT */}
             <div>
               <p
                 className={`text-[11px] sm:text-[12px] font-semibold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-neutral-400"}`}
@@ -148,7 +139,6 @@ export default function TicketCard({ ticket, onViewTicket }) {
               </p>
             </div>
 
-            {/* Column 3: LOCATION & TOTAL */}
             <div>
               <p
                 className={`text-[11px] sm:text-[12px] font-semibold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-neutral-400"}`}
@@ -162,7 +152,6 @@ export default function TicketCard({ ticket, onViewTicket }) {
               </p>
             </div>
 
-            {/* Row 2 - Column 1: SEAT */}
             <div>
               <p
                 className={`text-[11px] sm:text-[12px] font-semibold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-neutral-400"}`}
@@ -176,7 +165,6 @@ export default function TicketCard({ ticket, onViewTicket }) {
               </p>
             </div>
 
-            {/* Row 2 - Column 2: PRICE/SEAT */}
             <div>
               <p
                 className={`text-[11px] sm:text-[12px] font-semibold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-neutral-400"}`}
@@ -190,7 +178,6 @@ export default function TicketCard({ ticket, onViewTicket }) {
               </p>
             </div>
 
-            {/* Row 2 - Column 3: TOTAL */}
             <div>
               <p
                 className={`text-[11px] sm:text-[12px] font-semibold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-neutral-400"}`}
@@ -205,16 +192,13 @@ export default function TicketCard({ ticket, onViewTicket }) {
             </div>
           </div>
 
-          {/* View Ticket Button — aligned on the right */}
-          {isUpcoming && (
-            <button
-              type="button"
-              onClick={handleViewTicket}
-              className="shrink-0 pb-0.5 text-[14px] font-black text-[#B90101] hover:opacity-80 active:scale-95 transition cursor-pointer"
-            >
-              View Ticket
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleViewTicket}
+            className="shrink-0 pb-0.5 text-[14px] font-black text-[#B90101] hover:opacity-80 active:scale-95 transition cursor-pointer"
+          >
+            View Ticket
+          </button>
         </div>
       </div>
     </div>

@@ -34,22 +34,16 @@ export default function RootLayout() {
         minHeight: "100dvh",
       }}
     >
-      {/* ── Ambient Cinema Red Light Mesh in Light Mode (Responsive Scaling) ── */}
       {!isDark && !isAuthPage && (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          {/* Top Center FilmZone Red Spotlight */}
           <div className="absolute -top-24 sm:-top-32 left-1/2 -translate-x-1/2 w-[85vw] max-w-[900px] h-[350px] sm:h-[550px] bg-[radial-gradient(ellipse_at_center,rgba(185,1,1,0.18)_0%,rgba(185,1,1,0.06)_50%,transparent_75%)] rounded-full blur-2xl sm:blur-3xl" />
-          {/* Right Side Cinema Warm Red Accent */}
           <div className="absolute top-1/4 -right-16 sm:-right-28 w-[60vw] max-w-[550px] h-[350px] sm:h-[550px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.13)_0%,rgba(200,150,30,0.05)_45%,transparent_70%)] rounded-full blur-2xl sm:blur-3xl" />
-          {/* Lower Left Soft Crimson Bloom */}
           <div className="absolute bottom-1/4 -left-16 sm:-left-28 w-[60vw] max-w-[550px] h-[350px] sm:h-[550px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.11)_0%,transparent_70%)] rounded-full blur-2xl sm:blur-3xl" />
         </div>
       )}
 
-      {/* Navigation */}
       {!isAuthPage && !isConcessionDetail && <Navbar />}
 
-      {/* Main Page Content Wrapper */}
       <main
         className={`flex-1 w-full relative z-10 transition-all duration-200 ${
           isHomePage
@@ -62,10 +56,8 @@ export default function RootLayout() {
         <Outlet />
       </main>
 
-      {/* Footer */}
       {!isAuthPage && <Footer />}
 
-      {/* Scroll Management */}
       <ScrollRestoration
         getKey={(loc) => {
           if (loc.pathname.startsWith("/deals")) return "/deals";

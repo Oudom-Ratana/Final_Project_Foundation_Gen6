@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-/**
- * ScrollReveal Component
- * Smoothly floats and fades in children when scrolled into view.
- */
 export default function ScrollReveal({
   children,
   delay = 0,

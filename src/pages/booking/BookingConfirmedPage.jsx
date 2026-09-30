@@ -1,7 +1,9 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, Link } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
-import { CheckCircle2, QrCode, Ticket } from "lucide-react";
+import { CheckCircle2, Ticket, Download, Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
+import { downloadTicketPdf, getSafePosterUrl, DEFAULT_POSTER_FALLBACK } from "../../utils/downloadTicketPdf";
 import {
   selectSelectedSeats,
   selectBooking,
@@ -21,7 +23,6 @@ import { BRANCH_SHOWTIMES } from "../../data/cinemaShowtimeData";
 export default function BookingConfirmedPage() {
   const [searchParams] = useSearchParams();
 
-  // URL & Redux State
   const movieId =
     searchParams.get("movie") || searchParams.get("movieId") || "558449";
   const hallType = (searchParams.get("hall") || "standard").toLowerCase();
@@ -37,7 +38,6 @@ export default function BookingConfirmedPage() {
       ? rawBookingUuid
       : null;
 
-  // Check booking confirmation status first so we don't trigger 400 "QR code is only available for confirmed bookings"
   const { data: bookingData } = useGetBookingByUuidQuery(bookingUuid, {
     skip: !bookingUuid,
   });
@@ -62,7 +62,6 @@ export default function BookingConfirmedPage() {
       reduxMovie?.first_air_date || (reduxMovie?.name && !reduxMovie?.title),
     );
 
-  // Check if movieId is a Teacher API UUID
   const isUuid = Boolean(movieId && movieId.includes("-"));
   const { data: cinemaMovie } = useGetCinemaMovieByUuidQuery(movieId, {
     skip: !movieId || !isUuid,
@@ -154,17 +153,6 @@ export default function BookingConfirmedPage() {
       poster_path: cinemaMovie?.posterUrl || null,
     };
 
-  const displayPoster =
-    cinemaMovie?.posterUrl ||
-    movie?.posterUrl ||
-    (movie?.poster_path
-      ? movie.poster_path.startsWith("http")
-        ? movie.poster_path
-        : `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-      : null) ||
-    movie?.backdropUrl ||
-    "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80";
-
   const rawScreenType =
     searchParams.get("screenType") || searchParams.get("format");
 
@@ -242,7 +230,6 @@ export default function BookingConfirmedPage() {
 
   const dispatch = useDispatch();
 
-  // Persist confirmed booking into user tickets / booking history
   useEffect(() => {
     if (!bookingRef) return;
 
@@ -302,52 +289,70 @@ export default function BookingConfirmedPage() {
     totalPaid,
     concessions,
     dispatch,
+    posterSrc,
   ]);
 
-  const handleDownloadPdf = () => {
-    window.print();
+  const ticketRef = useRef(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!ticketRef.current) return;
+    try {
+      setIsDownloading(true);
+      await downloadTicketPdf(ticketRef.current, bookingRef);
+      toast.success("Ticket PDF downloaded successfully!");
+    } catch (err) {
+      console.error("PDF download failed:", err);
+      toast.error("Failed to download ticket. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
     <div className="relative min-h-screen w-full pb-24 font-sans select-none overflow-x-hidden">
-      {/* Deep Red Radial Glow Background for Dark Mode */}
       <div className="pointer-events-none absolute inset-0 -top-10 z-0 overflow-hidden">
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
-        {/* 1. Stepper Bar (Step 4: Confirmed) */}
         <BookingStepper currentStep={4} />
 
-        {/* 2. Payment Success Notification Badge */}
         <div className="flex items-center justify-center gap-2.5 py-2 px-6 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs sm:text-sm w-fit mx-auto shadow-xs animate-fadeIn">
           <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
           <span>Payment Successful! Your booking is confirmed.</span>
         </div>
 
-        {/* 3. Main Ticket Area: 2 Cards Side-by-Side matching Figma media_1789310597338.png */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-stretch pt-2">
-          {/* ──────────────── LEFT CARD: Booking Summary ──────────────── */}
-          <div className="flex flex-col items-center h-full space-y-4">
-            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight text-center">
+        <div className="space-y-6 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 text-center max-w-4xl mx-auto">
+            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
               Booking Summary
             </h2>
+            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight hidden md:block">
+              Booking Successful
+            </h2>
+          </div>
 
-            {/* Ticket Card */}
-            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white shadow-xl overflow-hidden flex flex-col justify-between flex-1">
-              {/* Top Red Header */}
+          <div
+            ref={ticketRef}
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-stretch justify-center max-w-4xl mx-auto"
+          >
+            <div className="flex justify-center h-full">
+              <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white shadow-xl overflow-hidden flex flex-col justify-between flex-1">
               <div className="bg-[#B90101] text-white py-3.5 text-center font-extrabold text-base sm:text-lg tracking-wider shrink-0">
                 Movie Ticket
               </div>
 
-              {/* Card Body */}
               <div className="p-6 space-y-5 flex-1 flex flex-col justify-between">
                 <div>
-                  {/* Movie Poster & Title & Date/Time */}
                   <div className="flex items-start gap-4">
                     <img
-                      src={posterSrc}
+                      src={getSafePosterUrl(posterSrc)}
                       alt={movieTitle}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = DEFAULT_POSTER_FALLBACK;
+                      }}
                       className="w-18 h-24 rounded-2xl object-cover shadow-md shrink-0 border border-neutral-200 dark:border-(--border-dark-mode)"
                     />
                     <div className="min-w-0 space-y-1">
@@ -365,14 +370,12 @@ export default function BookingConfirmedPage() {
                     </div>
                   </div>
 
-                  {/* Perforated Ticket Tear Line with Notches */}
                   <div className="relative flex items-center justify-center my-4">
                     <div className="absolute -left-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-r border-neutral-200 " />
                     <div className="w-full border-b-2 border-dashed border-neutral-300 dark:border-neutral-700" />
                     <div className="absolute -right-9 w-6 h-6 rounded-full bg-[#F6F7F9] dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-l border-neutral-200 " />
                   </div>
 
-                  {/* 2-Column Metadata Grid */}
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 text-xs">
                     <div>
                       <span className="font-bold text-neutral-400 uppercase tracking-wider block text-[11px]">
@@ -426,7 +429,6 @@ export default function BookingConfirmedPage() {
                     </div>
                   </div>
 
-                  {/* Food & Drinks breakdown (if selected) */}
                   {concessions.length > 0 && (
                     <div className="pt-3 border-t border-dashed border-neutral-200 dark:border-(--border-dark-mode) space-y-1.5 text-xs">
                       <span className="font-bold text-[#B90101] uppercase tracking-wider text-[11px] block">
@@ -455,7 +457,6 @@ export default function BookingConfirmedPage() {
                   )}
                 </div>
 
-                {/* Barcode SVG */}
                 <div className="flex flex-col items-center justify-center space-y-1 pt-2">
                   <svg
                     className="h-10 w-44 text-neutral-900 dark:text-neutral-100"
@@ -501,7 +502,6 @@ export default function BookingConfirmedPage() {
                 </div>
               </div>
 
-              {/* Bottom Red Footer */}
               <div className="bg-[#B90101] text-white py-3 px-6 flex items-center justify-center gap-2.5 shrink-0">
                 <div className="w-6 h-6 rounded-full bg-white text-[#B90101] flex items-center justify-center shrink-0 shadow-xs">
                   <Ticket className="w-3.5 h-3.5 text-[#B90101]" />
@@ -516,28 +516,10 @@ export default function BookingConfirmedPage() {
                 </div>
               </div>
             </div>
-
-            {/* Go to My Tickets Button Container */}
-            <div className="w-full max-w-sm pt-2 flex justify-center">
-              <Link
-                to="/my-tickets"
-                className="w-full max-w-xs py-3 px-8 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm text-center uppercase tracking-wider transition active:scale-95 shadow-md border border-white/20 flex items-center justify-center gap-2"
-              >
-                <Ticket className="w-4 h-4" />
-                <span>Go to My Tickets</span>
-              </Link>
             </div>
-          </div>
 
-          {/* ──────────────── RIGHT CARD: Booking Successful ──────────────── */}
-          <div className="flex flex-col items-center h-full space-y-4">
-            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight text-center">
-              Booking successful
-            </h2>
-
-            {/* Ticket Card */}
-            <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white  shadow-xl overflow-hidden flex flex-col justify-between flex-1">
-              {/* Top 3 Red Badges */}
+            <div className="flex justify-center h-full">
+              <div className="w-full max-w-sm rounded-[2rem] border border-neutral-200 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] bg-white  shadow-xl overflow-hidden flex flex-col justify-between flex-1">
               <div className="p-5 pb-3 shrink-0">
                 <div className="grid grid-cols-3 gap-2.5">
                   <div className="bg-[#B90101] text-white py-2 px-2 rounded-xl text-center shadow-xs">
@@ -569,20 +551,17 @@ export default function BookingConfirmedPage() {
                 </div>
               </div>
 
-              {/* Perforated Ticket Tear Line with Notches */}
               <div className="relative flex items-center justify-center my-2 shrink-0">
                 <div className="absolute -left-3.5 w-6 h-6 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-r border-neutral-200 " />
                 <div className="w-full border-b-2 border-dashed border-neutral-300 dark:border-neutral-700" />
                 <div className="absolute -right-3.5 w-6 h-6 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border-l border-neutral-200 " />
               </div>
 
-              {/* Card Body: QR Code vertically centered */}
               <div className="p-6 pt-2 pb-6 flex flex-col items-center justify-center text-center space-y-4 flex-1">
                 <span className="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
                   Scan at the cinema entrance
                 </span>
 
-                {/* Giant Centered Scannable QR Code */}
                 <div className="p-4 bg-white rounded-3xl shadow-sm border border-neutral-200/80 text-neutral-900 flex items-center justify-center min-h-[210px] min-w-[210px]">
                   {isTicketQrLoading ? (
                     <div className="flex flex-col items-center justify-center space-y-2 text-neutral-400">
@@ -607,7 +586,6 @@ export default function BookingConfirmedPage() {
                 </div>
               </div>
 
-              {/* Bottom Red Footer: Total Money */}
               <div className="bg-[#B90101] text-white py-3 px-6 flex items-center justify-between shrink-0">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-white/90">
                   Total Amount
@@ -617,17 +595,36 @@ export default function BookingConfirmedPage() {
                 </span>
               </div>
             </div>
-
-            {/* Download Tickets [PDF] Button Container */}
-            <div className="w-full max-w-sm pt-2 flex justify-center">
-              <button
-                type="button"
-                onClick={handleDownloadPdf}
-                className="w-full max-w-xs py-3 px-8 rounded-full bg-[#B90101] hover:bg-[#9E0000] text-white font-extrabold text-sm text-center uppercase tracking-wider transition active:scale-95 shadow-md border border-white/20 block"
-              >
-                Download Tickets [PDF]
-              </button>
             </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+            <Link
+              to="/my-tickets"
+              className="w-full sm:w-auto min-w-[200px] py-3.5 px-8 rounded-full bg-neutral-800 hover:bg-neutral-900 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-white font-extrabold text-sm text-center uppercase tracking-wider transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Ticket className="w-4 h-4" />
+              <span>Go to My Tickets</span>
+            </Link>
+
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              className="w-full sm:w-auto min-w-[240px] py-3.5 px-8 rounded-full bg-[#B90101] hover:bg-[#9E0000] disabled:opacity-75 disabled:cursor-not-allowed text-white font-extrabold text-sm text-center uppercase tracking-wider transition active:scale-95 shadow-md border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Generating PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  <span>Download Tickets [PDF]</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>

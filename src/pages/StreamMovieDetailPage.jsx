@@ -42,14 +42,12 @@ export default function StreamMovieDetailPage() {
   const typeParam = searchParams.get("type");
   const isExplicitTV = typeParam === "tv";
 
-  // If explicitly TV series, skip movie details to prevent numeric ID collisions
   const {
     data: movieData,
     isLoading: isMovieLoading,
     isError: isMovieError,
   } = useGetMovieDetailsQuery(id, { skip: isExplicitTV });
 
-  // Fetch TV details if explicitly TV or if movie details failed
   const {
     data: tvData,
     isLoading: isTVLoading,
@@ -76,7 +74,7 @@ export default function StreamMovieDetailPage() {
 
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
-  const [playerMode, setPlayerMode] = useState("full_movie"); // 'full_movie' | 'trailer'
+  const [playerMode, setPlayerMode] = useState("full_movie"); 
 
   const data = isExplicitTV ? tvData : movieData || tvData;
   const isTV = Boolean(
@@ -91,12 +89,10 @@ export default function StreamMovieDetailPage() {
 
   const isActuallyError = isExplicitTV ? isTVError : isMovieError && isTVError;
 
-  // While fetching data or if data is not yet ready, always render the loading skeleton!
   if (isInitialLoading || (!data && !isActuallyError)) {
     return <MovieDetailSkeleton />;
   }
 
-  // Only show error screen if all queries have genuinely completed and returned an error
   if (isActuallyError || !data) {
     return (
       <div className="w-full py-20 text-center space-y-4 font-sans">
@@ -114,7 +110,6 @@ export default function StreamMovieDetailPage() {
     );
   }
 
-  // Extract movie/TV metadata
   const title = data.title || data.name || "Untitled";
   const genres =
     data.genres?.map((g) => g.name).join(", ") || "Action, Adventure, Drama";
@@ -170,7 +165,6 @@ export default function StreamMovieDetailPage() {
     allVideos.find((v) => v.site === "YouTube" && v.type === "Trailer")?.key ||
     allVideos.find((v) => v.site === "YouTube")?.key;
 
-  // Extract Cast & Crew (Writers, Producers, Directors)
   const crewList = data.credits?.crew || [];
   const castList = data.credits?.cast || [];
 
@@ -210,7 +204,6 @@ export default function StreamMovieDetailPage() {
     setIsPlayerOpen(true);
   };
 
-  // Build a standalone record so the Favourite page can render without refetching
   const favouritePayload = {
     id,
     title,
@@ -223,7 +216,6 @@ export default function StreamMovieDetailPage() {
   };
 
   const toggleFavourite = async () => {
-    // Users must have an account before they can add to favourites
     if (!isAuthenticated) {
       setShowLoginPrompt(true);
       return;
@@ -231,14 +223,12 @@ export default function StreamMovieDetailPage() {
 
     const nextFavState = !isFavourite;
 
-    // 1. Instant local/optimistic update
     if (isFavourite) {
       dispatch(removeFromFavourite(id));
     } else {
       dispatch(addToFavourite(favouritePayload));
     }
 
-    // 2. Sync to official TMDB Account Favorite API
     try {
       await addFavorite({
         mediaType: isTV ? "tv" : "movie",
@@ -252,7 +242,6 @@ export default function StreamMovieDetailPage() {
 
   return (
     <div className="relative w-full -mt-6 sm:-mt-8 pb-20 font-sans select-none">
-      {/* 1. Full-Width + Full-Height Backdrop (absolute + page-contained; -bottom-12 covers main's pb-12 so it reaches the footer) */}
       <div className="absolute -top-24 -bottom-12 left-1/2 -translate-x-1/2 w-screen z-0 pointer-events-none overflow-hidden">
         {backdropUrl && (
           <img
@@ -266,7 +255,6 @@ export default function StreamMovieDetailPage() {
       </div>
 
       <div className="relative z-10 space-y-12 pt-6">
-        {/* 2. Top Navigation (Back Button) */}
         <div className="flex items-center">
           <button
             type="button"
@@ -278,9 +266,7 @@ export default function StreamMovieDetailPage() {
           </button>
         </div>
 
-        {/* 3. Main Detail Grid (Poster on Left + Metadata & Controls on Right) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
-          {/* Left: Large Movie Poster Card */}
           <div className="md:col-span-5 lg:col-span-4 flex justify-center md:justify-start">
             <div className="relative aspect-[2/3] w-full max-w-[340px] rounded-[25px] overflow-hidden bg-neutral-900 border border-neutral-200/80 dark:border-white/15">
               <img
@@ -291,14 +277,11 @@ export default function StreamMovieDetailPage() {
             </div>
           </div>
 
-          {/* Right: Title, Metadata, Action Buttons & Episode Picker */}
           <div className="md:col-span-7 lg:col-span-8 space-y-6">
-            {/* Title */}
             <h1 className="text-3xl sm:text-5xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">
               {title}
             </h1>
 
-            {/* Metadata List with Red Outline Icons */}
             <div className="space-y-3 pt-1 text-sm sm:text-base font-semibold text-neutral-700 dark:text-neutral-200">
               <div className="flex items-center gap-3">
                 <FileText className="w-5 h-5 text-[#B90101] shrink-0" />
@@ -340,7 +323,6 @@ export default function StreamMovieDetailPage() {
                 </span>
               </div>
 
-              {/* Clickable Favourite Button */}
               <button
                 type="button"
                 onClick={toggleFavourite}
@@ -359,9 +341,7 @@ export default function StreamMovieDetailPage() {
               </button>
             </div>
 
-            {/* Action Buttons: Watch Trailer & Full Movie */}
             <div className="flex flex-wrap items-center gap-4 pt-3">
-              {/* Watch Trailer Button (White Pill if available, disabled notice if not) */}
               {trailerKey ? (
                 <button
                   type="button"
@@ -385,7 +365,6 @@ export default function StreamMovieDetailPage() {
                 </button>
               )}
 
-              {/* Full Movie / Watch Series Button (Red Pill) */}
               <button
                 type="button"
                 onClick={() => handleOpenFullMovie(selectedEpisode)}
@@ -399,7 +378,6 @@ export default function StreamMovieDetailPage() {
               </button>
             </div>
 
-            {/* Episode Selector - STRICTLY ONLY rendered for TV Series / Multiple Episodes */}
             {isTV && totalEpisodes > 1 && (
               <div className="pt-2 space-y-3">
                 <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-neutral-400">
@@ -441,7 +419,6 @@ export default function StreamMovieDetailPage() {
           </div>
         </div>
 
-        {/* 4. Bottom Row: 5 Glassmorphic Cast & Crew Cards */}
         <div className="pt-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {crewCards.map((crew, index) => {
@@ -451,11 +428,9 @@ export default function StreamMovieDetailPage() {
                   key={index}
                   className="rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-white dark:bg-[var(--primary-color-30)] backdrop-blur-md p-4 sm:p-5 text-center flex flex-col items-center justify-center gap-2 shadow-sm dark:shadow-xl hover:scale-105 transition-transform"
                 >
-                  {/* Red Circle Icon */}
                   <div className="w-10 h-10 rounded-full bg-[#B90101] flex items-center justify-center text-white shadow-md">
                     <IconComp className="w-5 h-5" />
                   </div>
-                  {/* Name & Role */}
                   <div className="space-y-0.5">
                     <h4 className="font-black text-sm sm:text-base text-neutral-900 dark:text-white line-clamp-1">
                       {crew.name}
@@ -471,7 +446,6 @@ export default function StreamMovieDetailPage() {
         </div>
       </div>
 
-      {/* 5. Stream Video Player Modal (VidSrc + TMDB YouTube Trailer) */}
       <StreamPlayerModal
         isOpen={isPlayerOpen}
         onClose={() => setIsPlayerOpen(false)}
@@ -486,7 +460,6 @@ export default function StreamMovieDetailPage() {
         onEpisodeChange={(ep) => setSelectedEpisode(ep)}
       />
 
-      {/* Login Required Popup - shown center of the page, can only be dismissed via the X */}
       {showLoginPrompt && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"

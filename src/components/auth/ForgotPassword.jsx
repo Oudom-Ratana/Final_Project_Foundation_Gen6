@@ -43,7 +43,6 @@ const ForgotPassword = () => {
 
   return (
     <div className="relative flex h-full w-full">
-      {/* Back to Home - top-left corner on the image side (like the Stream Movie Detail page) */}
       <Link
         to="/"
         aria-label="Back to Home"
@@ -52,7 +51,6 @@ const ForgotPassword = () => {
         <ArrowLeft className="w-5 h-5" />
       </Link>
 
-      {/* Left Hero Section */}
       <div className="relative hidden w-1/2 md:block h-full">
         <img
           src={heroImage}
@@ -74,10 +72,8 @@ const ForgotPassword = () => {
         </div>
       </div>
 
-      {/* Right Form Section */}
       <div className="flex w-full md:w-1/2 items-center justify-center px-4 sm:px-6 lg:px-8 py-2 sm:py-4 h-full overflow-y-auto">
         <div className="w-full max-w-md sm:max-w-lg my-auto py-1 sm:py-2">
-          {/* Tabs */}
           <div className="mb-5 sm:mb-6 flex items-center gap-3 sm:gap-4">
             <Link
               to="/login"
@@ -92,7 +88,6 @@ const ForgotPassword = () => {
           </div>
 
           {isSuccess ? (
-            /* Success Card State */
             <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-6 text-center space-y-4 animate-in fade-in duration-300">
               <div className="w-14 h-14 mx-auto rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
                 <CheckCircle2 className="w-8 h-8" />
@@ -127,7 +122,6 @@ const ForgotPassword = () => {
               </div>
             </div>
           ) : (
-            /* Normal Reset Form */
             <>
               <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">
                 Reset Your Password

@@ -81,9 +81,7 @@ export default function MovieDetailPage() {
 
   return (
     <div className="relative w-full pb-24 font-sans select-none space-y-12">
-      {/* 1. Cinematic Hero Banner */}
       <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-neutral-950 border border-neutral-800/80 shadow-2xl min-h-[460px] md:min-h-[500px]">
-        {/* Layer 1: Atmospheric Backdrop Image (1.5s smooth fade transition) */}
         {backdropUrl && (
           <div
             className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-[1500ms] ease-out ${
@@ -100,7 +98,6 @@ export default function MovieDetailPage() {
           </div>
         )}
 
-        {/* Layer 2: Full Auto-Playing Trailer Video Layer (1.5s smooth ease-out transition) */}
         <div
           className={`absolute inset-0 z-20 bg-black transition-opacity duration-[1500ms] ease-out ${
             isPlayingTrailer
@@ -110,7 +107,6 @@ export default function MovieDetailPage() {
         >
           {isPlayingTrailer && (
             <>
-              {/* Back Arrow Button to stop trailer and return */}
               <button
                 type="button"
                 onClick={() => setIsPlayingTrailer(false)}
@@ -147,7 +143,6 @@ export default function MovieDetailPage() {
           )}
         </div>
 
-        {/* Layer 3: Movie Details Info (Fades out / morphs with 1.5s ease-out transition) */}
         <div
           className={`relative z-10 p-6 sm:p-10 lg:p-12 transition-all duration-[1500ms] ease-out ${
             isPlayingTrailer
@@ -156,7 +151,6 @@ export default function MovieDetailPage() {
           }`}
         >
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
-            {/* Left: Movie Poster with Rounded 25px Corners */}
             <div className="md:col-span-5 lg:col-span-4 flex justify-center md:justify-start">
               <div className="relative aspect-[2/3] w-full max-w-[280px] sm:max-w-[320px] rounded-[25px] overflow-hidden shadow-2xl bg-neutral-900 border border-white/10">
                 <img
@@ -167,7 +161,6 @@ export default function MovieDetailPage() {
               </div>
             </div>
 
-            {/* Right: Details & Trailer Button */}
             <div className="md:col-span-7 lg:col-span-8 space-y-5 pt-2">
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#B90101]/20 text-[#B90101] border border-[#B90101]/30">
@@ -206,7 +199,6 @@ export default function MovieDetailPage() {
                 </div>
               </div>
 
-              {/* Watch Trailer Button (Primary Color Red with White Text) */}
               {trailerKey && (
                 <div className="pt-2">
                   <button
@@ -234,7 +226,6 @@ export default function MovieDetailPage() {
         </div>
       </div>
 
-      {/* 2. Live Showtime Section */}
       <div className="max-w-6xl mx-auto px-2 sm:px-4">
         <ShowtimeSection
           movieId={movie.uuid || id}

@@ -6,7 +6,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { store } from "./redux/store";
 import "./index.css";
 
-// Layout & Pages
 
 import AboutUsPage from "./pages/AboutUsPage";
 import ForgotPassword from "./components/auth/ForgotPassword";
@@ -105,7 +104,6 @@ const router = createBrowserRouter([
         ],
       },
       {
-        // Redirect old /promo links to /deals
         path: "/promo",
         element: <ConcessionPage />,
         children: [

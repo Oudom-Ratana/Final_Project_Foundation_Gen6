@@ -17,6 +17,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/cinema-api/, ""),
       },
+      "/tmdb-proxy": {
+        target: "https://image.tmdb.org",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/tmdb-proxy/, ""),
+      },
       "/uploads": {
         target: "https://cinema-booking-api.eunglyzhia.com",
         changeOrigin: true,

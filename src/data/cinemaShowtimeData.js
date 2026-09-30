@@ -1,8 +1,3 @@
-/**
- * cinemaShowtimeData.js
- * Cinema branches and showtime schedules for ticket booking.
- * Each branch can have multiple halls — each hall routes to a different seat map.
- */
 
 export const LOCATIONS = [
   "All Locations",
@@ -21,15 +16,6 @@ export const DATES = [
   { id: "2026-08-29", month: "Aug", day: "29", weekday: "Thu" },
 ];
 
-/**
- * BRANCH_SHOWTIMES
- *
- * Each entry is a cinema branch.
- * A branch has a `halls` array — each hall has its own screen type & times.
- *
- * goldClass: true  → routes to /booking/seats?hall=gold
- * goldClass: false → routes to /booking/seats?hall=standard
- */
 export const BRANCH_SHOWTIMES = [
   {
     id: "sensok",

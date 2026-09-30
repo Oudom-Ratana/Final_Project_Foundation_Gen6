@@ -1,4 +1,3 @@
-// Mock data for promotions matching the Figma design
 
 export const HERO_SLIDES = [
   {
@@ -66,7 +65,7 @@ export const ACTIVE_PROMOTIONS = [
     badgeType: "discount",
     image:
       "https://i.pinimg.com/736x/80/fe/53/80fe536edbe5f558f2b16af90a94cc6f.jpg",
-    type: "standard", // 3-col card
+    type: "standard", 
     dateRange: "From 1 Sep to 30 Sep",
     location: "All branches",
   },
@@ -79,7 +78,7 @@ export const ACTIVE_PROMOTIONS = [
     badgeType: "discount",
     image:
       "https://i.pinimg.com/736x/80/fe/53/80fe536edbe5f558f2b16af90a94cc6f.jpg",
-    type: "standard", // 3-col card
+    type: "standard", 
     dateRange: "From 1 Sep to 30 Sep",
     location: "All branches",
   },
@@ -92,7 +91,7 @@ export const ACTIVE_PROMOTIONS = [
     badgeType: "discount",
     image:
       "https://i.pinimg.com/736x/80/fe/53/80fe536edbe5f558f2b16af90a94cc6f.jpg",
-    type: "standard", // 3-col card
+    type: "standard", 
     dateRange: "From 1 Sep to 30 Sep",
     location: "All branches",
   },
@@ -104,7 +103,7 @@ export const ACTIVE_PROMOTIONS = [
     badgeType: "discount",
     image:
       "https://i.pinimg.com/1200x/79/b9/d6/79b9d6163b33996efe0795ade5f6fe13.jpg",
-    type: "wide", // 2-col card
+    type: "wide", 
     dateRange: "From 1 Sep to 30 Sep",
     location: "All branches",
   },
@@ -116,7 +115,7 @@ export const ACTIVE_PROMOTIONS = [
     badgeType: "event",
     image:
       "https://i.pinimg.com/1200x/ab/53/8c/ab538c38f2162d030d224403af1813ee.jpg",
-    type: "wide", // 2-col card
+    type: "wide", 
     dateRange: "From 12 Sep to 14 Sep",
     location: "Toul Kork branch only",
   },

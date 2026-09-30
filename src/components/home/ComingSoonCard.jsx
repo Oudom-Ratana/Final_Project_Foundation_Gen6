@@ -5,7 +5,6 @@ export default function ComingSoonCard({ item }) {
 
   const title = item.title || item.name || "Coming Soon";
 
-  // Format release date to 'Month Day, Year'
   const formatReleaseDate = (dateStr) => {
     if (!dateStr) return "Coming Soon";
     if (/^[A-Za-z]+\s+\d{1,2},\s+\d{4}$/.test(dateStr)) return dateStr;
@@ -37,7 +36,6 @@ export default function ComingSoonCard({ item }) {
       to={item.id ? `/movies/${item.id}` : "#"}
       className="group block cursor-pointer space-y-3 font-sans select-none"
     >
-      {/* Landscape Banner with smooth rounded corners */}
       <div className="relative aspect-[16/10] w-full rounded-[22px] overflow-hidden bg-neutral-900 shadow-sm group-hover:shadow-lg transition-all duration-300">
         <img
           src={bannerUrl}
@@ -47,7 +45,6 @@ export default function ComingSoonCard({ item }) {
         />
       </div>
 
-      {/* Title & Release Date */}
       <div className="space-y-1 pt-0.5">
         <h3
           className="font-black text-[21px] sm:text-[22px] leading-snug tracking-tight group-hover:brightness-110 transition line-clamp-1"

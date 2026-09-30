@@ -54,14 +54,12 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8 font-sans">
-      {/* 6 Top Metric Cards Grid (Matching Exact Screenshot) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {metricCards.map((card, idx) => (
           <div
             key={idx}
             className="bg-white rounded-3xl p-6 border border-neutral-200/80 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
           >
-            {/* Top Row: Icon badge + Title + 3-dots */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-lg bg-[#b90101] shadow-xs flex items-center justify-center">
@@ -79,7 +77,6 @@ export default function AdminDashboardPage() {
               </button>
             </div>
 
-            {/* Bottom Row: Big Value + Percentage pill */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl sm:text-4xl font-black text-neutral-900 tracking-tight">
                 {card.value}
@@ -94,7 +91,6 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      {/* Chart 1: Tickets (monthly) */}
       <section>
         <AdminChart
           title="Tickets (monthly)"
@@ -121,7 +117,6 @@ export default function AdminDashboardPage() {
         />
       </section>
 
-      {/* Chart 2: Total Profit (monthly) */}
       <section>
         <AdminChart
           title="Total Profit (monthly)"

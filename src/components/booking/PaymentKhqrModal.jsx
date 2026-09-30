@@ -24,7 +24,6 @@ export default function PaymentKhqrModal({
 }) {
   const [isPaid, setIsPaid] = useState(false);
 
-  // 1. Live Bakong KHQR image from Teacher API
   const { data: standardQrBlob, isLoading: isStdQrLoading } = useGetPaymentQrQuery(paymentUuid, {
     skip: !paymentUuid || !isOpen || isGroupPayment,
   });
@@ -36,7 +35,6 @@ export default function PaymentKhqrModal({
   const qrBlobUrl = isGroupPayment ? groupQrBlob : standardQrBlob;
   const isQrLoading = isGroupPayment ? isGrpQrLoading : isStdQrLoading;
 
-  // 2. RTK Query Auto-Polling: checks payment status every 2.5s
   const { data: standardPayment } = useGetPaymentByUuidQuery(paymentUuid, {
     skip: !paymentUuid || !isOpen || isGroupPayment || isPaid,
     pollingInterval: 2500,
@@ -49,7 +47,6 @@ export default function PaymentKhqrModal({
 
   const activePayment = isGroupPayment ? groupPayment : standardPayment;
 
-  // 3. Auto-redirect on Bakong Payment Confirmation
   useEffect(() => {
     const rawStatus = activePayment?.status ?? activePayment?.data?.status ?? activePayment?.paymentStatus;
     const status = typeof rawStatus === "string" ? rawStatus.toUpperCase() : "";
@@ -68,7 +65,6 @@ export default function PaymentKhqrModal({
 
   if (!isOpen) return null;
 
-  // Done button handler
   const handleDone = async () => {
     if (paymentUuid) {
       try {
@@ -87,7 +83,6 @@ export default function PaymentKhqrModal({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-sans">
       <div className="relative w-full max-w-sm rounded-[2rem] overflow-hidden bg-white dark:bg-[#161A20] border border-neutral-200 dark:border-white/10 shadow-2xl transition-all">
-        {/* Header */}
         <div className="bg-[#B90101] text-white p-5 text-center relative shrink-0">
           <button
             type="button"
@@ -101,9 +96,7 @@ export default function PaymentKhqrModal({
           <p className="text-xs font-semibold text-white/90 mt-1">Scan with Bakong or Any Banking App</p>
         </div>
 
-        {/* Body */}
         <div className="p-6 space-y-4 text-center">
-          {/* Movie Details */}
           <div className="space-y-1">
             <h3 className="font-extrabold text-base text-neutral-900 dark:text-white truncate">
               {movieTitle ?? "FilmZone Cinema"}
@@ -113,7 +106,6 @@ export default function PaymentKhqrModal({
             </p>
           </div>
 
-          {/* Amount */}
           <div className="py-2 px-4 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 w-fit mx-auto">
             <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400 mr-1.5 uppercase tracking-wider">
               Total Amount
@@ -123,7 +115,6 @@ export default function PaymentKhqrModal({
             </span>
           </div>
 
-          {/* QR Code */}
           <div className="relative mx-auto w-56 h-56 p-3 bg-white rounded-2xl border-2 border-dashed border-neutral-300 shadow-inner flex items-center justify-center overflow-hidden">
             {isPaid ? (
               <div className="flex flex-col items-center justify-center space-y-2 text-emerald-600 animate-scaleUp">
@@ -148,13 +139,11 @@ export default function PaymentKhqrModal({
             )}
           </div>
 
-          {/* Supported Banks */}
           <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
             <span>Supported by ABA, ACLEDA, Wing, Canadia & Bakong</span>
           </div>
 
-          {/* Action Button: Prominent Done Button with Bigger Font */}
           <div className="pt-2">
             <button
               type="button"

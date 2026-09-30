@@ -39,7 +39,6 @@ export default function FavouriteMovieCard({
       return;
     }
 
-    // Default removal logic if onDelete prop is not provided
     dispatch(removeFromFavourite(id));
 
     if (isCinemaMovie) {
@@ -63,7 +62,6 @@ export default function FavouriteMovieCard({
 
   return (
     <div className="flex flex-col sm:flex-row w-full gap-5 border border-[var(--border-light-mode)] rounded-2xl bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-5 transition-all duration-300 hover:border-[#B90101]/40">
-      {/* Poster Image */}
       <Link
         to={detailUrl}
         className="h-64 sm:h-56 w-full sm:w-40 shrink-0 overflow-hidden rounded-xl block cursor-pointer bg-neutral-900/40 relative group"
@@ -82,7 +80,6 @@ export default function FavouriteMovieCard({
         )}
       </Link>
 
-      {/* Details */}
       <div className="flex min-w-0 flex-1 flex-col justify-between">
         <div>
           <div className="flex items-start justify-between gap-3">
@@ -92,7 +89,6 @@ export default function FavouriteMovieCard({
               </h2>
             </Link>
 
-            {/* Favorite / Delete Actions */}
             <div className="flex shrink-0 items-center gap-3 text-sm">
               <button
                 type="button"
@@ -143,7 +139,6 @@ export default function FavouriteMovieCard({
           )}
         </div>
 
-        {/* Action Button */}
         <div className="mt-4 pt-2">
           <button
             type="button"

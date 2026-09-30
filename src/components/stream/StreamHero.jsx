@@ -6,7 +6,6 @@ import { useGetTrendingTVQuery } from "../../services/api/tvApi";
 export default function StreamHero() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Fetch trending TV series for featured streaming banner
   const { data: trendingTV, isLoading } = useGetTrendingTVQuery("day");
 
   const bannerSlides =
@@ -42,9 +41,7 @@ export default function StreamHero() {
 
   return (
     <div className="w-full space-y-6 font-sans">
-      {/* 1. Main Featured Banner Container with Rounded Corners */}
       <div className="relative w-full aspect-[21/9] min-h-[320px] sm:min-h-[380px] md:min-h-[440px] rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 dark:border-white/10 select-none flex flex-col justify-end p-6 sm:p-8">
-        {/* Background Images with Cross-Fade */}
         <div className="absolute inset-0 z-0 bg-black">
           {bannerSlides.map((slide, index) => {
             const isActive = index === currentIndex;
@@ -73,7 +70,6 @@ export default function StreamHero() {
           })}
         </div>
 
-        {/* 3. Left & Right Navigation Chevrons */}
         <button
           type="button"
           onClick={handlePrev}
@@ -94,7 +90,6 @@ export default function StreamHero() {
           <ChevronRight className="w-6 h-6" />
         </button>
 
-        {/* 4. Bottom Slide Indicator / Title Preview */}
         <div className="relative z-20 flex items-end justify-between gap-4">
           <Link
             to={`/stream/${activeMovie.id}?type=tv`}
@@ -114,7 +109,6 @@ export default function StreamHero() {
             </div>
           </Link>
 
-          {/* Dots */}
           <div className="flex items-center gap-1.5 mb-2">
             {bannerSlides.map((_, dotIdx) => (
               <button
@@ -132,11 +126,9 @@ export default function StreamHero() {
         </div>
       </div>
 
-      {/* 5. Centered "Favourite Movies →" Button (Figma Spec) */}
       <div className="flex justify-center">
         <Link
           to="/favourite"
-          // to="/stream?filter=favourite"
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-white font-bold text-[18px] shadow-lg hover:brightness-110 active:scale-95 transition"
           style={{ backgroundColor: "#B90101" }}
         >

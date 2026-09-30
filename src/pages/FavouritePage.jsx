@@ -17,12 +17,10 @@ import { useGetCinemaMoviesQuery } from "../services/api/cinemaApi";
 
 export default function FavouritePage() {
   const dispatch = useDispatch();
-  // Authentication check: Read JWT token
   const token =
     useSelector((state) => state.auth?.accessToken || state.auth?.token) ||
     sessionStorage.getItem("accessToken");
 
-  // 1. Fetch Teacher's API Favorites (always refetch fresh for current user)
   const {
     data: teacherFavoritesData,
     isLoading: isFavoritesLoading,
@@ -32,14 +30,11 @@ export default function FavouritePage() {
     { skip: !token, refetchOnMountOrArgChange: true },
   );
 
-  // 2. Fetch Cinema Movies to enrich details (overview, runtime, genre, etc.)
   const { data: cinemaMoviesData, isLoading: isCinemaLoading } =
     useGetCinemaMoviesQuery({ page: 0, size: 100 });
 
-  // 3. Teacher's Toggle Mutation (PATCH /api/v1/users/me/favorites/{movieUuid})
   const [toggleFavorite] = useToggleFavoriteMutation();
 
-  // Cinema lookup map by UUID
   const cinemaMap = useMemo(() => {
     const map = new Map();
     if (cinemaMoviesData?.content && Array.isArray(cinemaMoviesData.content)) {
@@ -50,7 +45,6 @@ export default function FavouritePage() {
     return map;
   }, [cinemaMoviesData]);
 
-  // Combine and format Teacher's Favorites
   const formattedFavorites = useMemo(() => {
     if (!token) return [];
 
@@ -60,7 +54,6 @@ export default function FavouritePage() {
     return rawList.map((fav) => {
       const cinemaMovie = cinemaMap.get(fav.movieUuid) || {};
 
-      // Determine poster image
       let posterUrl =
         fav.posterPath ||
         cinemaMovie.posterUrl ||
@@ -70,17 +63,14 @@ export default function FavouritePage() {
         posterUrl = `https://image.tmdb.org/t/p/w500${posterUrl}`;
       }
 
-      // Format duration
       const runtimeMinutes = cinemaMovie.runtimeMinutes || cinemaMovie.runtime;
       const duration = runtimeMinutes
         ? `${Math.floor(runtimeMinutes / 60)}h ${runtimeMinutes % 60}m`
         : "2h 00m";
 
-      // Format release year
       const releaseDate = fav.releaseDate || cinemaMovie.releaseDate || "";
       const year = releaseDate ? releaseDate.slice(0, 4) : "2026";
 
-      // Genre resolution
       const genre =
         cinemaMovie.genres?.[0]?.name || cinemaMovie.genre || "Cinema";
 
@@ -102,14 +92,12 @@ export default function FavouritePage() {
     });
   }, [teacherFavoritesData, cinemaMap, token]);
 
-  // Sync Teacher's API favorites into Redux so that Navbar badges stay synchronized
   useEffect(() => {
     if (token && Array.isArray(teacherFavoritesData?.content)) {
       dispatch(setFavouriteMovies(formattedFavorites));
     }
   }, [formattedFavorites, token, teacherFavoritesData, dispatch]);
 
-  // Handle remove favorite
   const handleRemove = async (movieUuid, movieTitle) => {
     dispatch(removeFromFavourite(movieUuid));
     try {
@@ -121,7 +109,6 @@ export default function FavouritePage() {
     }
   };
 
-  // State 1: Unauthenticated
   if (!token) {
     return (
       <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
@@ -147,7 +134,6 @@ export default function FavouritePage() {
     );
   }
 
-  // State 2: Initial Loading
   const isInitialLoading = isFavoritesLoading && !teacherFavoritesData;
   if (isInitialLoading) {
     return (
@@ -160,10 +146,8 @@ export default function FavouritePage() {
     );
   }
 
-  // Active movies to render (strictly from Teacher's API for the logged in user)
   const displayMovies = formattedFavorites;
 
-  // State 3: Empty State (Logged in user has 0 favourites)
   if (displayMovies.length === 0) {
     return (
       <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
@@ -190,10 +174,8 @@ export default function FavouritePage() {
     );
   }
 
-  // State 4: List of Favourites
   return (
     <div className="w-full space-y-8 pb-10 font-sans">
-      {/* Page Header with Red Bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span
@@ -209,7 +191,6 @@ export default function FavouritePage() {
         </div>
       </div>
 
-      {/* Favourite Movie Cards Grid */}
       <div className="grid grid-cols-1 gap-5">
         {displayMovies.map((movie) => (
           <FavouriteMovieCard

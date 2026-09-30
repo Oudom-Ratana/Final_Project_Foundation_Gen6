@@ -10,7 +10,6 @@ import {
   useGetCinemaMoviesQuery,
 } from "../../services/api/cinemaApi";
 
-// Generate today + next 2 days (3 days total) dynamically
 function generateDates(count = 3) {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = [
@@ -36,7 +35,7 @@ function generateDates(count = 3) {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     result.push({
-      id: `${yyyy}-${mm}-${dd}`, // e.g. "2026-09-23" — used to match showDate
+      id: `${yyyy}-${mm}-${dd}`, 
       month: months[d.getMonth()],
       day: String(d.getDate()),
       weekday: days[d.getDay()],
@@ -47,10 +46,6 @@ function generateDates(count = 3) {
 
 const DYNAMIC_DATES = generateDates(3);
 
-/**
- * ShowtimeSection
- * Displays 3-day Date picker cards (centered) and Live Showtimes strictly from Teacher's API.
- */
 export default function ShowtimeSection({
   movieId,
   isTV = false,
@@ -61,7 +56,6 @@ export default function ShowtimeSection({
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
-  // 1. Live Showtimes, Halls, and Cinema Movies from Teacher's API
   const { data: apiShowtimes = [], isLoading: isShowtimesLoading } =
     useGetAllShowtimesQuery();
   const { data: apiHalls = [] } = useGetAllHallsQuery();
@@ -70,10 +64,9 @@ export default function ShowtimeSection({
     size: 100,
   });
 
-  const [selectedDate, setSelectedDate] = useState(DYNAMIC_DATES[0]); // Default to today
+  const [selectedDate, setSelectedDate] = useState(DYNAMIC_DATES[0]); 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
 
-  // Match current movie in cinema backend catalog (if opened via TMDB ID or title)
   const cinemaMovie = useMemo(() => {
     const list = cinemaMoviesData?.content || [];
     return list.find(
@@ -90,12 +83,10 @@ export default function ShowtimeSection({
     );
   }, [cinemaMoviesData, movieId, movie]);
 
-  // Filter showtimes matching current movie & selected date
   const matchedApiShowtimes = useMemo(() => {
     if (!Array.isArray(apiShowtimes) || apiShowtimes.length === 0) return [];
 
     return apiShowtimes.filter((st) => {
-      // 1. Match by movie UUID, cinemaMovie UUID, or title
       const targetTitle = (movie?.title || movie?.name || "")
         .toLowerCase()
         .trim();
@@ -115,18 +106,16 @@ export default function ShowtimeSection({
 
       if (!movieMatch) return false;
 
-      // 2. Match by selected date — compare YYYY-MM-DD prefix of startTime or showDate
       const stDate =
         st.showDate || (st.startTime ? st.startTime.slice(0, 10) : "");
       if (stDate && selectedDate?.id) {
         return stDate === selectedDate.id;
       }
 
-      return !stDate; // fallback if no date attached
+      return !stDate; 
     });
   }, [apiShowtimes, movieId, movie, cinemaMovie, selectedDate]);
 
-  // Group matched API showtimes by hall
   const liveHalls = useMemo(() => {
     if (matchedApiShowtimes.length === 0) return [];
     const map = {};
@@ -171,7 +160,6 @@ export default function ShowtimeSection({
         };
       }
 
-      // Format time to 12-hour AM/PM
       let timeStr = "02:00 PM";
       if (st.showTime) {
         const parts = st.showTime.split(":");
@@ -216,7 +204,6 @@ export default function ShowtimeSection({
       });
     });
 
-    // Sort time slots chronologically within each hall
     const hallsArray = Object.values(map);
     hallsArray.forEach((hall) => {
       hall.slots.sort((a, b) => {
@@ -229,7 +216,6 @@ export default function ShowtimeSection({
     return hallsArray;
   }, [matchedApiShowtimes, apiHalls]);
 
-  // Glassmorphism design tokens from index.css
   const glassCardStyle = {
     backgroundColor: isDark
       ? "var(--primary-color-30)"
@@ -260,7 +246,7 @@ export default function ShowtimeSection({
       screenType: hall.screenType || (hall.goldClass ? "GOLD" : "2D"),
       time: slot.time,
       branch: "FilmZone Cinema",
-      date: selectedDate.id, // e.g. "2026-09-23"
+      date: selectedDate.id, 
     });
 
     if (slot.uuid) {
@@ -276,12 +262,10 @@ export default function ShowtimeSection({
     navigate(`/booking/seats?${params.toString()}`);
   };
 
-  // Helper: render the screen type header for each hall group
   const renderHallHeader = (hall) => {
     if (hall.screenType === "GOLD") {
       return (
         <div className="flex items-center gap-3">
-          {/* Gold Class Logo */}
           <div className="flex items-baseline gap-0.5">
             <span className="text-[11px] font-black uppercase text-[#FFB800] leading-none tracking-wider">
               GOLD
@@ -312,7 +296,6 @@ export default function ShowtimeSection({
       );
     }
 
-    // Regular / ScreenX / 3D hall
     const screenLabel =
       hall.screenType === "SCREEN X"
         ? { prefix: "SCREEN", accent: "X", size: "text-3xl sm:text-4xl" }
@@ -322,7 +305,6 @@ export default function ShowtimeSection({
 
     return (
       <div className="space-y-1.5">
-        {/* Big screen type text */}
         <div className={`${screenLabel.size} font-black leading-none`}>
           {screenLabel.prefix ? (
             <span className="text-neutral-900 dark:text-white">
@@ -335,7 +317,6 @@ export default function ShowtimeSection({
             </span>
           )}
         </div>
-        {/* Hall name + language tags */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[11px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
             {hall.hallName}
@@ -365,7 +346,6 @@ export default function ShowtimeSection({
 
   return (
     <section className="w-full space-y-8 font-sans select-none pt-4">
-      {/* 1. Section Title: | Showtime */}
       <div className="flex items-center gap-3">
         <span
           className="w-1.5 h-7 rounded-full inline-block"
@@ -376,7 +356,6 @@ export default function ShowtimeSection({
         </h2>
       </div>
 
-      {/* 2. Horizontal Date Selector Cards — strictly 3 days from today, centered */}
       <div className="flex items-center justify-center gap-3 sm:gap-4 overflow-x-auto py-2 scrollbar-hide pb-3">
         {DYNAMIC_DATES.map((d) => {
           const isSelected = selectedDate.id === d.id;
@@ -426,10 +405,8 @@ export default function ShowtimeSection({
         })}
       </div>
 
-      {/* 3. Real-time Showtimes Container strictly from Teacher's API */}
       <div className="space-y-4 sm:space-y-5">
         {isShowtimesLoading ? (
-          /* Loading State */
           <div
             className="w-full rounded-2xl sm:rounded-3xl border p-12 flex flex-col items-center justify-center gap-3 backdrop-blur-md"
             style={glassCardStyle}
@@ -440,12 +417,10 @@ export default function ShowtimeSection({
             </p>
           </div>
         ) : liveHalls && liveHalls.length > 0 ? (
-          /* Live Showtimes from Teacher's Database */
           <div
             className="w-full rounded-2xl sm:rounded-3xl border border-[#B90101]/40 overflow-hidden shadow-md backdrop-blur-md"
             style={glassCardStyle}
           >
-            {/* Header */}
             <div
               className="flex items-center justify-between px-5 sm:px-6 py-4 border-b bg-[#B90101]/10"
               style={borderDividerStyle}
@@ -460,7 +435,6 @@ export default function ShowtimeSection({
               </div>
             </div>
 
-            {/* Halls List */}
             <div className="divide-y" style={borderDividerStyle}>
               {liveHalls.map((hall) => {
                 const isGold = hall.goldClass;
@@ -471,7 +445,6 @@ export default function ShowtimeSection({
                   >
                     {renderHallHeader(hall)}
 
-                    {/* Showtime Pill Buttons */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1">
                       {hall.slots.map((slot) => {
                         const slotKey = `${hall.id}-${slot.time}`;
@@ -523,7 +496,6 @@ export default function ShowtimeSection({
             </div>
           </div>
         ) : (
-          /* Clean Empty State when no showtimes are scheduled */
           <div
             className="w-full rounded-2xl sm:rounded-3xl border p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-3 backdrop-blur-md"
             style={glassCardStyle}

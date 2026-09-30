@@ -1,13 +1,8 @@
-/**
- * seatLayoutData.js
- * Configurations, prices, and constants for cinema seat selection
- */
 
 export const GOLD_PRICE = 11.0;
 export const STANDARD_SINGLE_PRICE = 5.0;
 export const STANDARD_COUPLE_PRICE = 10.0;
 
-// Gold Class Seat Grid Definition: 6 Rows (F down to A), 6 Cols (1-2, 3-4, 5-6)
 export const GOLD_ROWS = ["F", "E", "D", "C", "B", "A"];
 export const GOLD_COL_GROUPS = [
   [1, 2],
@@ -15,7 +10,6 @@ export const GOLD_COL_GROUPS = [
   [5, 6],
 ];
 
-// Standard Hall Seat Grid Definition: 8 Rows (H down to A)
 export const STANDARD_ROWS = ["H", "G", "F", "E", "D", "C", "B", "A"];
 export const STANDARD_COL_GROUPS = [
   [1, 2],
@@ -23,8 +17,6 @@ export const STANDARD_COL_GROUPS = [
   [11, 12],
 ];
 
-// Row A Couple Seat Pairs matching cinema layout:
-// 5 pairs: [1,2], [3,4], [6,7] (center), [9,10], [11,12] (A5 & A8 removed as spacing)
 export const COUPLE_PAIRS = [
   [1, 2],
   [3, 4],
@@ -36,9 +28,7 @@ export const COUPLE_PAIRS = [
 export const getCouplePair = (col) =>
   COUPLE_PAIRS.find((p) => p.includes(col)) || null;
 
-// Realistic default reserved seats matching mockups
 export const DEFAULT_GOLD_RESERVED = new Set([
-  // Cols 1 and 2 (all 6 rows reserved)
   "F1",
   "F2",
   "E1",
@@ -51,7 +41,6 @@ export const DEFAULT_GOLD_RESERVED = new Set([
   "B2",
   "A1",
   "A2",
-  // Cols 3 and 4 (F, E, B, A reserved; D3-D4 and C3-C4 available for selection)
   "F3",
   "F4",
   "E3",
@@ -63,13 +52,10 @@ export const DEFAULT_GOLD_RESERVED = new Set([
 ]);
 
 export const DEFAULT_STANDARD_RESERVED = new Set([
-  // Row H
   "H1",
   "H2",
-  // Row G
   "G1",
   "G2",
-  // Row F
   "F1",
   "F2",
   "F3",
@@ -78,7 +64,6 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "F6",
   "F7",
   "F8",
-  // Row E (all reserved)
   "E1",
   "E2",
   "E3",
@@ -91,7 +76,6 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "E10",
   "E11",
   "E12",
-  // Row D (D1-D2 & D5-D12 reserved; D3-D4 available to select)
   "D1",
   "D2",
   "D5",
@@ -102,7 +86,6 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "D10",
   "D11",
   "D12",
-  // Row C (all reserved)
   "C1",
   "C2",
   "C3",
@@ -115,7 +98,6 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "C10",
   "C11",
   "C12",
-  // Row B (all reserved)
   "B1",
   "B2",
   "B3",
@@ -128,17 +110,12 @@ export const DEFAULT_STANDARD_RESERVED = new Set([
   "B10",
   "B11",
   "B12",
-  // Row A Couple pairs (A1-A2, A3-A4 reserved; A6-A7, A9-A10, A11-A12 available)
   "A1",
   "A2",
   "A3",
   "A4",
 ]);
 
-/**
- * Generates unique, realistic reserved seats for each specific showtime
- * using a deterministic hash of (movieId + date + time + hallType).
- */
 export function getReservedSeatsForShowtime(hallType, movieId, date, time) {
   const seedStr = `${movieId || "m"}-${date || "d"}-${time || "t"}-${hallType}`;
   let hash = 0;

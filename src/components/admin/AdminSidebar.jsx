@@ -49,12 +49,10 @@ export default function AdminSidebar() {
     navigate("/login");
   };
 
-  // Close mobile drawer on route transition
   useEffect(() => {
     setMobileDrawerOpen(false);
   }, [location.pathname]);
 
-  // Load persisted state from localStorage
   const [isCollapsed, setIsCollapsed] = useState(() => {
     try {
       return localStorage.getItem("admin_sidebar_collapsed") === "true";
@@ -76,12 +74,10 @@ export default function AdminSidebar() {
   const dragStartXRef = useRef(0);
   const dragStartWidthRef = useRef(width);
 
-  // Sync to localStorage
   useEffect(() => {
     try {
       localStorage.setItem("admin_sidebar_collapsed", String(isCollapsed));
     } catch {
-      // ignore storage errors
     }
   }, [isCollapsed]);
 
@@ -90,12 +86,10 @@ export default function AdminSidebar() {
       try {
         localStorage.setItem("admin_sidebar_width", String(width));
       } catch {
-        // ignore storage errors
       }
     }
   }, [width, isCollapsed]);
 
-  // Drag-to-resize handlers
   const handleMouseDown = useCallback(
     (e) => {
       e.preventDefault();
@@ -153,7 +147,6 @@ export default function AdminSidebar() {
 
   return (
     <>
-      {/* ── 1. Mobile Top Navigation Bar (< md) ── */}
       <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 w-full shrink-0 z-30">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-[#E50914] rounded-full flex items-center justify-center text-white font-black text-base shadow-xs shrink-0">
@@ -181,7 +174,6 @@ export default function AdminSidebar() {
         </button>
       </div>
 
-      {/* ── 2. Mobile Backdrop Overlay ── */}
       {mobileDrawerOpen && (
         <div
           onClick={() => setMobileDrawerOpen(false)}
@@ -189,7 +181,6 @@ export default function AdminSidebar() {
         />
       )}
 
-      {/* ── 3. Main Admin Sidebar (Slide Drawer on Mobile, Sticky on Desktop) ── */}
       <aside
         style={{
           width:
@@ -204,7 +195,6 @@ export default function AdminSidebar() {
         } ${isDragging ? "" : "md:transition-[width] md:duration-300"}`}
       >
         <div className="flex flex-col flex-1 min-h-0">
-          {/* Top Header: Logo + Toggle Button */}
           <div className="h-16 px-4 border-b border-slate-100 flex items-center justify-between shrink-0 overflow-hidden">
             <Link to="/" className="flex items-center gap-2.5 min-w-0">
               <div className="w-9 h-9 bg-[#E50914] rounded-full flex items-center justify-center text-white font-black text-lg tracking-wider shadow-xs shrink-0">
@@ -223,7 +213,6 @@ export default function AdminSidebar() {
               )}
             </Link>
 
-            {/* Desktop Collapse/Expand button */}
             {!isCollapsed && (
               <button
                 type="button"
@@ -235,7 +224,6 @@ export default function AdminSidebar() {
               </button>
             )}
 
-            {/* Mobile Close Button in Drawer */}
             <button
               type="button"
               onClick={() => setMobileDrawerOpen(false)}
@@ -245,7 +233,6 @@ export default function AdminSidebar() {
             </button>
           </div>
 
-          {/* Floating Expand Toggle when collapsed on Desktop */}
           {isCollapsed && (
             <div className="hidden md:flex px-3 pt-3 justify-center">
               <button
@@ -259,9 +246,7 @@ export default function AdminSidebar() {
             </div>
           )}
 
-          {/* Navigation Links */}
           <nav className="px-3 py-5 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden">
-            {/* Dashboard */}
             <Link
               to="/admin"
               title={isCollapsed ? "Dashboard" : undefined}
@@ -292,7 +277,6 @@ export default function AdminSidebar() {
               )}
             </Link>
 
-            {/* Movie Library */}
             <Link
               to="/admin/movies"
               title={isCollapsed ? "Movie Library" : undefined}
@@ -323,7 +307,6 @@ export default function AdminSidebar() {
               )}
             </Link>
 
-            {/* User Analytics */}
             <Link
               to="/admin/analytics"
               title={isCollapsed ? "User Analytics" : undefined}
@@ -356,9 +339,7 @@ export default function AdminSidebar() {
           </nav>
         </div>
 
-        {/* Bottom Footer Section */}
         <div className="p-3 border-t border-slate-100 space-y-2.5 shrink-0 overflow-hidden">
-          {/* Back to Website */}
           <Link
             to="/"
             title={isCollapsed ? "Back to Website" : undefined}
@@ -374,7 +355,6 @@ export default function AdminSidebar() {
             )}
           </Link>
 
-          {/* Admin Profile */}
           <div
             className={`rounded-2xl bg-slate-50/80 border border-slate-100 flex items-center ${
               isCollapsed && !mobileDrawerOpen
@@ -415,7 +395,6 @@ export default function AdminSidebar() {
           </div>
         </div>
 
-        {/* ── Desktop Draggable Resize Handle ── */}
         <div
           onMouseDown={handleMouseDown}
           title="Drag to resize sidebar"

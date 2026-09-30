@@ -12,7 +12,6 @@ export default function ConcessionHero() {
 
   const { data: apiData, isLoading } = useGetAllConcessionsQuery();
 
-  // ONLY real items from the backend API
   const slides = useMemo(() => {
     if (!apiData || apiData.length === 0) return [];
 
@@ -29,7 +28,6 @@ export default function ConcessionHero() {
 
   const totalSlides = slides.length;
 
-  // Auto slide strictly every 4 seconds (4000ms)
   useEffect(() => {
     if (totalSlides <= 1) return;
 
@@ -76,7 +74,6 @@ export default function ConcessionHero() {
   return (
     <section className="w-full">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
-        {/* Left: copy (synchronized with active promo slide) */}
         <ScrollReveal delay={100} duration={700} distance="translate-y-8">
           <div
             key={`copy-${activePromo.id || currentIndex}`}
@@ -112,10 +109,8 @@ export default function ConcessionHero() {
           </div>
         </ScrollReveal>
 
-        {/* Right: promo banner carousel */}
         <ScrollReveal delay={250} duration={750} distance="translate-y-10">
           <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-xl border border-neutral-200/60 dark:border-white/10 group select-none">
-            {/* Background Slides with Cross-Fade */}
             <div className="absolute inset-0 bg-black">
               {slides.map((slide, index) => {
                 const isActive = index === currentIndex;
@@ -135,7 +130,6 @@ export default function ConcessionHero() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 
-                    {/* Bottom Tag / Title overlay on image */}
                     {slide.offerTag && (
                       <div className="absolute bottom-5 left-5 z-20">
                         <span className="px-3.5 py-1.5 rounded-full bg-[#B90101] text-white font-black italic text-xs tracking-wider uppercase shadow-md">
@@ -148,7 +142,6 @@ export default function ConcessionHero() {
               })}
             </div>
 
-            {/* Left Chevron Button */}
             {totalSlides > 1 && (
               <button
                 type="button"
@@ -161,7 +154,6 @@ export default function ConcessionHero() {
               </button>
             )}
 
-            {/* Right Chevron Button */}
             {totalSlides > 1 && (
               <button
                 type="button"
@@ -174,7 +166,6 @@ export default function ConcessionHero() {
               </button>
             )}
 
-            {/* Bottom-right slide pagination dots */}
             {totalSlides > 1 && (
               <div className="absolute bottom-5 right-5 z-30 flex items-center gap-1.5">
                 {slides.map((_, dotIdx) => (

@@ -1,7 +1,6 @@
 export default function MovieCardSkeleton() {
   return (
     <div className="flex flex-col space-y-3 font-sans animate-pulse">
-      {/* Poster Skeleton with Mixed Corner Radius (Clean, no top-right badge) */}
       <div
         className="relative aspect-[291/386] w-full overflow-hidden bg-neutral-300/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-200/50  rounded-tl-[25px] rounded-br-[25px] rounded-tr-none rounded-bl-none"
         style={{
@@ -12,7 +11,6 @@ export default function MovieCardSkeleton() {
         }}
       />
 
-      {/* Title & Metadata Skeleton */}
       <div className="space-y-1.5 px-0.5 pt-1">
         <div className="h-6 w-3/4 rounded bg-neutral-300  dark:bg-[var(--primary-color-30)]" />
         <div className="flex items-center justify-between pt-0.5">

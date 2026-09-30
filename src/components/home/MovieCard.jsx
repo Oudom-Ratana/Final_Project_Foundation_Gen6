@@ -21,11 +21,9 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
   const favouriteMovies = useSelector((state) => state.favourite?.movies || []);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  // Teacher API mutation for toggling favorite
   const [toggleFavoriteApi, { isLoading: isTogglingFavorite }] =
     useToggleFavoriteMutation();
 
-  // Fetch current user's favorites from Teacher API (auto-cached & tag-invalidated)
   const { data: teacherFavorites } = useGetMyFavoritesQuery(
     { page: 0, size: 50 },
     { skip: !isAuthenticated, refetchOnMountOrArgChange: true },
@@ -63,7 +61,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
     movie.number_of_seasons,
   );
 
-  // Handle genre resolution
   let genreName = "ACTION";
   if (movie.genre) {
     genreName = movie.genre;
@@ -86,7 +83,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
     genreName = genreMap[movie.genre_ids[0]] || "ACTION";
   }
 
-  // Handle poster path (TMDB vs full URL)
   const posterUrl = movie.poster_path
     ? movie.poster_path.startsWith("http")
       ? movie.poster_path
@@ -97,7 +93,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
     movie.overview ||
     "Experience the thrilling adventures, captivating story, and cinematic brilliance of this blockbuster release.";
 
-  // Determine favorite state from Redux state or Teacher API
   const movieUuid = movie.uuid || movie.id;
   const isFavourite =
     favouriteMovies.some(
@@ -113,7 +108,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
       ),
     );
 
-  // Handle Favorite Toggle via Teacher API
   const handleToggleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -123,7 +117,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
       return;
     }
 
-    // 1. Optimistic update in Redux store
     if (isFavourite) {
       dispatch(removeFromFavourite(movieUuid));
     } else {
@@ -142,7 +135,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
       );
     }
 
-    // 2. Sync to Teacher's Cinema Favorite API: PATCH /api/v1/users/me/favorites/{movieUuid}
     try {
       if (
         movieUuid &&
@@ -158,9 +150,7 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
 
   return (
     <div className="group flex flex-col space-y-3 font-sans cursor-pointer">
-      {/* Poster Container with Top-Right Favorite Button */}
       <div className="relative">
-        {/* Poster Container with Mixed Corner Radius and Dark Blur Hover Overlay */}
         <Link
           to={targetUrl}
           className="relative aspect-[291/386] w-full overflow-hidden block shadow-md dark:shadow-2xl bg-neutral-900 border border-neutral-200/80 dark:border-white/10 transition-all duration-300 rounded-tl-[25px] rounded-br-[25px] rounded-tr-none rounded-bl-none"
@@ -178,7 +168,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
             loading="lazy"
           />
 
-          {/* Dark Blur Hover Overlay with Description Pop-up (Active for both Light & Dark modes) */}
           <div className="absolute inset-0 bg-black/75 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-center p-4 sm:p-5 text-center">
             <div className="transform translate-y-3 mx-auto group-hover:translate-y-0 transition-transform duration-300 space-y-2">
               <span
@@ -197,7 +186,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
           </div>
         </Link>
 
-        {/* Favorite Heart Button: Positioned on the Card Top Right */}
         <button
           type="button"
           onClick={handleToggleFavorite}
@@ -224,7 +212,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
         </button>
       </div>
 
-      {/* Title & Metadata */}
       <div className="space-y-1 px-0.5 pt-0.5">
         <Link to={targetUrl}>
           <h3 className="font-black text-[21px] sm:text-[22px] text-neutral-900 dark:text-white leading-tight line-clamp-1 group-hover:text-[#B90101] transition-colors">
@@ -232,13 +219,11 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
           </h3>
         </Link>
 
-        {/* Time and Rating Row */}
         <div className="flex items-center justify-between pt-0.5">
           <p className="text-[18px] text-neutral-500 dark:text-neutral-400 font-semibold tracking-tight">
             {runtime} • {releaseYear}
           </p>
 
-          {/* Right Side: Rating */}
           <div className="flex items-center gap-1 text-[#C8961E]">
             <Star className="w-4 h-4 fill-[#C8961E] text-[#C8961E]" />
             <span className="text-[18px] font-black leading-none">
@@ -248,7 +233,6 @@ export default function MovieCard({ movie, basePath = "/movies" }) {
         </div>
       </div>
 
-      {/* Login Required Popup */}
       {showLoginPrompt &&
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">

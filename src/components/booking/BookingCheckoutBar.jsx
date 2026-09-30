@@ -31,7 +31,6 @@ export default function BookingCheckoutBar({
           : "var(--border-light-mode)",
       }}
     >
-      {/* Left: Seat list and Total (User's own chosen seats) */}
       <div className="space-y-0.5 min-w-0 pr-3">
         <div className="text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-200 truncate">
           {isGroupMode && (
@@ -55,7 +54,6 @@ export default function BookingCheckoutBar({
         </p>
       </div>
 
-      {/* Right: Red Booking Details Button */}
       <button
         type="button"
         onClick={onProceed}

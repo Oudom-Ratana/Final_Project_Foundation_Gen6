@@ -4,15 +4,15 @@ const initialState = {
   movie: null,
   cinema: null,
   showtime: null,
-  selectedSeats: [], // Array of { id, row, number, type, price }
-  concessions: [], // Array of { id, name, price, quantity, image }
+  selectedSeats: [], 
+  concessions: [], 
   customerInfo: {
     name: "",
     email: "",
     phone: "",
   },
-  paymentMethod: "credit_card", // credit_card, aba_khqr, wing, cash
-  step: 1, // 1: Seat Selection, 2: Concessions & Details, 3: Payment/Success
+  paymentMethod: "credit_card", 
+  step: 1, 
   bookingReference: null,
 };
 

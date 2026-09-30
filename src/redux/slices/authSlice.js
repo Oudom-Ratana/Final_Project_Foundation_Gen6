@@ -9,7 +9,7 @@ const initialUser = sessionStorage.getItem("user")
 const initialState = {
   user: initialUser,
   accessToken: initialAccessToken,
-  token: initialAccessToken, // Backwards-compatible alias for existing components
+  token: initialAccessToken, 
   refreshToken: initialRefreshToken,
   isAuthenticated: !!initialAccessToken,
   loading: false,
@@ -20,7 +20,6 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    // Teacher's exact action: setAccessToken
     setAccessToken: (state, action) => {
       state.accessToken = action.payload;
       state.token = action.payload;
@@ -66,7 +65,6 @@ const authSlice = createSlice({
       sessionStorage.removeItem("accessToken");
       sessionStorage.removeItem("refreshToken");
       sessionStorage.removeItem("user");
-      // Clean up legacy localStorage if any
       localStorage.removeItem("cinema_token");
       localStorage.removeItem("cinema_refresh_token");
       localStorage.removeItem("cinema_user");

@@ -27,7 +27,6 @@ export default function GroupInviteJoinPage() {
 
   const [joinGroup, { isLoading: isJoining }] = useJoinGroupBookingMutation();
 
-  // Fetch showtime & movie details if invite is loaded
   const showtimeUuid = invite?.showtimeUuid;
   const { data: showtime } = useGetShowtimeByUuidQuery(showtimeUuid, {
     skip: !showtimeUuid,
@@ -67,7 +66,6 @@ export default function GroupInviteJoinPage() {
     }
   };
 
-  // If user is not logged in, prompt them to login to view and join the group
   if (!isAuthenticated) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
@@ -163,7 +161,6 @@ export default function GroupInviteJoinPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 shadow-2xl p-6 sm:p-8 space-y-6">
-        {/* Header Icon */}
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="w-16 h-16 rounded-2xl bg-[#B90101]/10 dark:bg-[#FFD700]/10 text-[#B90101] dark:text-[#FFD700] flex items-center justify-center shadow-inner">
             <Users className="w-8 h-8" />
@@ -179,7 +176,6 @@ export default function GroupInviteJoinPage() {
           </p>
         </div>
 
-        {/* Movie & Showtime Card */}
         <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200/60 dark:border-white/5 p-4 flex gap-4 items-center">
           {movie?.posterUrl ? (
             <img
@@ -212,7 +208,6 @@ export default function GroupInviteJoinPage() {
           </div>
         </div>
 
-        {/* Status & Member Count info */}
         <div className="grid grid-cols-2 gap-3 text-center">
           <div className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200/60 dark:border-white/5">
             <p className="text-[10px] uppercase font-bold text-neutral-400">Members</p>
@@ -228,7 +223,6 @@ export default function GroupInviteJoinPage() {
           </div>
         </div>
 
-        {/* Action Button */}
         {isExpired ? (
           <div className="p-3 rounded-xl bg-red-500/10 text-red-600 text-xs font-bold text-center">
             This group booking has expired.

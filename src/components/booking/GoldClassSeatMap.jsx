@@ -8,7 +8,6 @@ export default function GoldClassSeatMap({
 }) {
   return (
     <div className="min-w-[420px] max-w-lg mx-auto space-y-3.5 sm:space-y-4 select-none">
-      {/* Column Numbers Header: 1-2, 3-4, 5-6 (Aligned with seats) */}
       <div className="flex items-center justify-between gap-2 text-xs font-bold text-neutral-600 dark:text-neutral-400">
         <span className="w-6 sm:w-8" />
         <div className="flex items-center gap-8 sm:gap-14">
@@ -29,19 +28,16 @@ export default function GoldClassSeatMap({
         <span className="w-6 sm:w-8" />
       </div>
 
-      {/* Rows F down to A */}
       <div className="space-y-3 sm:space-y-3.5">
         {GOLD_ROWS.map((rowLetter) => (
           <div
             key={rowLetter}
             className="flex items-center justify-between gap-2"
           >
-            {/* Left Row Letter */}
             <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
               {rowLetter}
             </span>
 
-            {/* 3 Blocks of 2 VIP Recliners with wide aisles */}
             <div className="flex items-center gap-8 sm:gap-14">
               {GOLD_COL_GROUPS.map((group, gIdx) => (
                 <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
@@ -77,7 +73,6 @@ export default function GoldClassSeatMap({
               ))}
             </div>
 
-            {/* Right Row Letter */}
             <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
               {rowLetter}
             </span>

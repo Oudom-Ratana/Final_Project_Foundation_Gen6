@@ -43,7 +43,6 @@ const LoginComponent = () => {
     setErrorMsg("");
 
     try {
-      // 1. Authenticate with Teacher's Cinema API
       const authResponse = await loginMutation({
         identifier: data.email.trim(),
         password: data.password,
@@ -52,12 +51,10 @@ const LoginComponent = () => {
       const accessToken = authResponse.accessToken;
       const refreshToken = authResponse.refreshToken;
 
-      // Store refreshToken in sessionStorage (Teacher's pattern)
       if (refreshToken) {
         sessionStorage.setItem("refreshToken", refreshToken);
       }
 
-      // 2. Fetch user profile from Teacher's API (/api/v1/users/me)
       let userProfile = {
         email: data.email,
         username: data.email.split("@")[0],
@@ -105,7 +102,6 @@ const LoginComponent = () => {
 
         return (
     <div className="relative flex h-full w-full">
-      {/* Back to Home - top-left corner on the image side (like the Stream Movie Detail page) */}
       <Link
         to="/"
         aria-label="Back to Home"
@@ -114,7 +110,6 @@ const LoginComponent = () => {
         <ArrowLeft className="w-5 h-5" />
       </Link>
 
-      {/* Left Hero Section */}
       <div className="relative hidden w-1/2 md:block h-full">
         <img
           src={heroImage}
@@ -136,10 +131,8 @@ const LoginComponent = () => {
         </div>
       </div>
 
-      {/* Right Form Section */}
       <div className="flex w-full md:w-1/2 items-center justify-center px-4 sm:px-6 lg:px-8 py-2 sm:py-4 h-full overflow-y-auto">
         <div className="w-full max-w-md sm:max-w-lg my-auto py-1 sm:py-2">
-          {/* Tabs */}
           <div className="mb-5 sm:mb-6 flex items-center gap-3 sm:gap-4">
             <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-primary-red tracking-tight">
               Log In

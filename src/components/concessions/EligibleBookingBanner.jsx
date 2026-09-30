@@ -20,7 +20,6 @@ export default function EligibleBookingBanner({ selectedBookingUuid, onSelectBoo
     return eligibleBookings.find((b) => b.bookingUuid === selectedBookingUuid) ?? eligibleBookings[0] ?? null;
   }, [eligibleBookings, selectedBookingUuid]);
 
-  // If user is not authenticated, show invite to log in
   if (!isAuthenticated) {
     return (
       <div className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-md ${
@@ -49,7 +48,6 @@ export default function EligibleBookingBanner({ selectedBookingUuid, onSelectBoo
     );
   }
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border animate-pulse bg-neutral-200/50 dark:bg-neutral-800/40 border-neutral-300 dark:border-neutral-800">
@@ -59,7 +57,6 @@ export default function EligibleBookingBanner({ selectedBookingUuid, onSelectBoo
     );
   }
 
-  // No eligible tickets found
   if (eligibleBookings.length === 0) {
     return (
       <div className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-md ${
@@ -89,7 +86,6 @@ export default function EligibleBookingBanner({ selectedBookingUuid, onSelectBoo
     );
   }
 
-  // Active confirmed tickets found
   return (
     <div className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border space-y-3.5 backdrop-blur-md transition ${
       isDark ? "bg-gradient-to-r from-[#B90101]/10 to-neutral-900/60 border-white/15" : "bg-gradient-to-r from-[#B90101]/5 to-neutral-50 border-neutral-300"
@@ -104,7 +100,6 @@ export default function EligibleBookingBanner({ selectedBookingUuid, onSelectBoo
         </span>
       </div>
 
-      {/* Ticket Selector Dropdown or Cards */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="flex-1">
           <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 mb-1">

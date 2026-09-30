@@ -36,7 +36,6 @@ import {
 } from "../../../services/api/cinemaApi";
 
 export function useMovieLibraryData() {
-  // 1. Teacher's Backend Cinema Catalog Query & Mutations
   const {
     data: cinemaBackendData,
     isLoading: isBackendLoading,
@@ -50,22 +49,18 @@ export function useMovieLibraryData() {
   const [deleteMovieMutation] = useDeleteMovieMutation();
   const [updateMovieStatusMutation] = useUpdateMovieStatusMutation();
 
-  // Managed Cinema Local Catalog (Fallback)
   const managedMovies = useActiveMovies();
 
-  // 2. Active Panel & Category Navigation State
   const [activePanelId, setActivePanelId] = useState("MANAGED");
-  const [activeGroupTab, setActiveGroupTab] = useState("MANAGED"); // 'MANAGED' | 'MOVIES' | 'TV'
-  const [activeCatalogFilter, setActiveCatalogFilter] = useState("ALL"); // 'ALL' | 'LIVE' | 'UPCOMING'
+  const [activeGroupTab, setActiveGroupTab] = useState("MANAGED"); 
+  const [activeCatalogFilter, setActiveCatalogFilter] = useState("ALL"); 
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // TMDB Discover & Extra Filter States
   const [selectedGenreId, setSelectedGenreId] = useState("");
   const [selectedSortBy, setSelectedSortBy] = useState("popularity.desc");
-  const [trendingTimeWindow, setTrendingTimeWindow] = useState("day"); // 'day' | 'week'
+  const [trendingTimeWindow, setTrendingTimeWindow] = useState("day"); 
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
 
@@ -74,11 +69,9 @@ export function useMovieLibraryData() {
     [activePanelId],
   );
 
-  // Fetch Genre Lists from TMDB
   const { data: movieGenresList = [] } = useGetMovieGenresQuery();
   const { data: tvGenresList = [] } = useGetTVGenresQuery();
 
-  // Create unified Genre ID -> Genre Name Lookup Map
   const genreLookup = useMemo(() => {
     const map = {};
     movieGenresList.forEach((g) => {
@@ -90,7 +83,6 @@ export function useMovieLibraryData() {
     return map;
   }, [movieGenresList, tvGenresList]);
 
-  // Set of TMDB IDs already in the Cinema Database for quick lookup
   const catalogTmdbIdSet = useMemo(() => {
     const set = new Set();
     if (cinemaBackendData?.content) {
@@ -101,12 +93,10 @@ export function useMovieLibraryData() {
     return set;
   }, [cinemaBackendData]);
 
-  // Query Triggers for each endpoint
   const hasSearch = searchQuery.trim().length > 0;
   const isMovieGroup = activePanel.mediaType === "movie";
   const isTvGroup = activePanel.mediaType === "tv";
 
-  // TMDB Movie Queries
   const {
     data: upcomingData,
     isLoading: isUpcomingLoading,
@@ -162,7 +152,6 @@ export function useMovieLibraryData() {
     },
   );
 
-  // TMDB TV Queries
   const {
     data: trendingTvData,
     isLoading: isTrendingTvLoading,
@@ -210,7 +199,6 @@ export function useMovieLibraryData() {
     },
   );
 
-  // TMDB Live Search Queries
   const {
     data: searchMoviesResult,
     isLoading: isSearchMoviesLoading,
@@ -229,9 +217,7 @@ export function useMovieLibraryData() {
     { skip: !hasSearch || activePanel.group === "MANAGED" || !isTvGroup },
   );
 
-  // Determine Current Display List & Total Pages
   const { displayItems, totalPages, isLoading, isFetching } = useMemo(() => {
-    // A. MANAGED CINEMA CATALOG PANEL
     if (activePanelId === "MANAGED") {
       const backendMovies = (cinemaBackendData?.content || []).map((m) => ({
         id: m.uuid,
@@ -262,7 +248,6 @@ export function useMovieLibraryData() {
         isBackendMovie: true,
       }));
 
-      // Show ONLY movies from Teacher's database in Cinema Catalog
       let items = backendMovies;
 
       if (activeCatalogFilter === "LIVE") {
@@ -294,7 +279,6 @@ export function useMovieLibraryData() {
       };
     }
 
-    // B. TMDB SEARCH ACTIVE
     if (hasSearch) {
       if (isMovieGroup) {
         const raw = searchMoviesResult?.results || [];
@@ -317,7 +301,6 @@ export function useMovieLibraryData() {
       }
     }
 
-    // C. TMDB SPECIFIC ENDPOINTS
     let rawList = [];
     let calcTotalPages = 20;
     let loading = false;
@@ -461,7 +444,6 @@ export function useMovieLibraryData() {
     isSearchTvFetching,
   ]);
 
-  // Handle Switching Panels
   const handleSelectPanel = (panelId) => {
     setActivePanelId(panelId);
     const target = PANELS.find((p) => p.id === panelId);
@@ -472,7 +454,6 @@ export function useMovieLibraryData() {
     setSearchQuery("");
   };
 
-  // Helper to extract genre string
   const formatGenres = (item) => {
     if (item.genres && typeof item.genres === "string") return item.genres;
     if (
@@ -489,7 +470,6 @@ export function useMovieLibraryData() {
     return "Action, Drama";
   };
 
-  // Action Handlers
   const handleOpenAddCustom = () => {
     setEditingMovie(null);
     setIsModalOpen(true);
@@ -501,7 +481,6 @@ export function useMovieLibraryData() {
   };
 
   const handleDelete = async (id) => {
-    // Check if it's a backend UUID or in backend movies
     const backendMatch = cinemaBackendData?.content?.find(
       (m) => m.uuid === id || m.id === id || String(m.tmdbId) === String(id),
     );
@@ -534,7 +513,6 @@ export function useMovieLibraryData() {
     toast.warn("Cinema catalog cleared and reset");
   };
 
-  // Quick One-Click Import from TMDB to Cinema Catalog & Database
   const handleQuickImportTmdb = async (item) => {
     const isTv = !!item.first_air_date || activePanel.mediaType === "tv";
     const releaseDate =
@@ -571,7 +549,6 @@ export function useMovieLibraryData() {
       media_type: isTv ? "tv" : "movie",
     };
 
-    // If it has a TMDB ID and is a movie, import to Teacher's Cinema API (POST /movies/import/{tmdbId})
     if (item.id && !isTv) {
       try {
         await importMovieFromTmdbMutation(item.id).unwrap();
@@ -589,7 +566,6 @@ export function useMovieLibraryData() {
     }
   };
 
-  // Open MovieModal pre-filled with TMDB details
   const handleCustomizeTmdbSchedule = (item) => {
     const isTv = !!item.first_air_date || activePanel.mediaType === "tv";
     const releaseDate =

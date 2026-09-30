@@ -69,7 +69,6 @@ export default function ContactForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Name & Email Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-semibold text-neutral-900 dark:text-white mb-2">
@@ -102,7 +101,6 @@ export default function ContactForm() {
           </div>
         </div>
 
-        {/* Phone & Subject Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-semibold text-neutral-900 dark:text-white mb-2">
@@ -133,7 +131,6 @@ export default function ContactForm() {
           </div>
         </div>
 
-        {/* Message Textarea */}
         <div>
           <label className="block text-sm font-semibold text-neutral-900 dark:text-white mb-2">
             Message <span className="text-[var(--primary-red)]">*</span>
@@ -149,7 +146,6 @@ export default function ContactForm() {
           />
         </div>
 
-        {/* Consent Checkbox */}
         <div className="flex items-center gap-3 pt-1">
           <input
             type="checkbox"
@@ -168,7 +164,6 @@ export default function ContactForm() {
           </label>
         </div>
 
-        {/* Submit Button */}
         <div className="pt-2">
           <button
             type="submit"

@@ -3,7 +3,6 @@ import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import mapImg from '../../assets/others/map.png';
 
 export default function ContactInfo({ mapImage }) {
-  // Replace this link with your actual Google Maps URL
   const googleMapsUrl = "https://maps.google.com/?q=ISTAD+Phnom+Penh";
 
   return (
@@ -16,7 +15,6 @@ export default function ContactInfo({ mapImage }) {
         </div>
 
         <div className="space-y-5">
-          {/* Address */}
           <div className="flex items-start gap-3.5">
             <MapPin className="w-5 h-5 text-[var(--primary-red)] shrink-0 mt-0.5" />
             <div>
@@ -27,7 +25,6 @@ export default function ContactInfo({ mapImage }) {
             </div>
           </div>
 
-          {/* Phone */}
           <div className="flex items-start gap-3.5">
             <Phone className="w-5 h-5 text-[var(--primary-red)] shrink-0 mt-0.5" />
             <div>
@@ -38,7 +35,6 @@ export default function ContactInfo({ mapImage }) {
             </div>
           </div>
 
-          {/* Email */}
           <div className="flex items-start gap-3.5">
             <Mail className="w-5 h-5 text-[var(--primary-red)] shrink-0 mt-0.5" />
             <div>
@@ -49,7 +45,6 @@ export default function ContactInfo({ mapImage }) {
             </div>
           </div>
 
-          {/* Working Hour */}
           <div className="flex items-start gap-3.5">
             <Clock className="w-5 h-5 text-[var(--primary-red)] shrink-0 mt-0.5" />
             <div>
@@ -61,7 +56,6 @@ export default function ContactInfo({ mapImage }) {
           </div>
         </div>
 
-        {/* Clickable Map Image Container */}
         <a
           href={googleMapsUrl}
           target="_blank"
@@ -73,7 +67,6 @@ export default function ContactInfo({ mapImage }) {
             alt="ISTAD AngkorCine Location Map"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          {/* Subtle Hover Overlay */}
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">
             Open in Google Maps
           </div>

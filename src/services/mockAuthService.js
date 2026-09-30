@@ -1,33 +1,7 @@
-// Mock Authentication & User Profile Service for FilmZone
-// Simulates user registration, login, and profile persistence via localStorage
 
 const MOCK_STORAGE_KEY = "filmzone_mock_users";
 
-// Default accounts available right out of the box
-// const DEFAULT_ACCOUNTS = [
-//   {
-//     id: "user_demo_1",
-//     name: "Oudom Ratana",
-//     email: "user@filmzone.com",
-//     password: "password123",
-//     role: "user",
-//     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Oudom",
-//     createdAt: "2025-01-15T08:00:00.000Z",
-//   },
-//   {
-//     id: "admin_demo_1",
-//     name: "Cinema Admin",
-//     email: "admin@filmzone.com",
-//     password: "admin123",
-//     role: "admin",
-//     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
-//     createdAt: "2025-01-01T08:00:00.000Z",
-//   },
-// ];
 
-/**
- * Retrieve all registered users (defaults + localStorage)
- */
 export const getStoredUsers = () => {
   try {
     const local = localStorage.getItem(MOCK_STORAGE_KEY);
@@ -42,14 +16,10 @@ export const getStoredUsers = () => {
   }
 };
 
-/**
- * Register a new user account and save to localStorage
- */
 export const registerUser = ({ fullName, email, password }) => {
   const users = getStoredUsers();
   const normalizedEmail = email.trim().toLowerCase();
 
-  // Check if user already exists
   const existingUser = users.find(
     (u) => u.email.toLowerCase() === normalizedEmail,
   );
@@ -57,7 +27,6 @@ export const registerUser = ({ fullName, email, password }) => {
     throw new Error("This email is already registered. Please log in.");
   }
 
-  // Create new profile object
   const newUser = {
     id: `user_${Date.now()}`,
     name: fullName.trim(),
@@ -73,25 +42,20 @@ export const registerUser = ({ fullName, email, password }) => {
   users.push(newUser);
   localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(users));
 
-  // Generate mock JWT session token
   const token = `mock_token_${newUser.id}_${Date.now()}`;
 
-  // Safe profile copy (without password)
   const { password: _, ...userProfile } = newUser;
 
   return { token, user: userProfile };
 };
 
-/**
- * Log in an existing user
- */
+
 export const loginUser = ({ email, password }) => {
   const users = getStoredUsers();
   const normalizedEmail = email.trim().toLowerCase();
 
   const user = users.find(
-    (u) =>
-      u.email.toLowerCase() === normalizedEmail && u.password === password,
+    (u) => u.email.toLowerCase() === normalizedEmail && u.password === password,
   );
 
   if (!user) {
@@ -104,9 +68,6 @@ export const loginUser = ({ email, password }) => {
   return { token, user: userProfile };
 };
 
-/**
- * Quick Google Login Simulation
- */
 export const googleLogin = () => {
   const users = getStoredUsers();
   const googleEmail = "google.user@filmzone.com";
@@ -131,9 +92,6 @@ export const googleLogin = () => {
   return { token, user: userProfile };
 };
 
-/**
- * Update stored user profile
- */
 export const updateStoredUser = (userId, data) => {
   const users = getStoredUsers();
   const index = users.findIndex((u) => u.id === userId);
@@ -146,13 +104,8 @@ export const updateStoredUser = (userId, data) => {
   return data;
 };
 
-/**
- * Delete a user from storage
- */
 export const deleteStoredUser = (userId) => {
   const users = getStoredUsers();
   const filtered = users.filter((u) => u.id !== userId);
   localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(filtered));
 };
-
-
