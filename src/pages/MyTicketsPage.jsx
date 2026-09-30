@@ -7,6 +7,7 @@ import { TICKETS_PER_PAGE } from "../data/ticketData";
 import { useGetMyBookingsQuery, useGetCinemaMoviesQuery } from "../services/api/cinemaApi";
 import TicketCard from "../components/tickets/TicketCard";
 import TicketDetailModal from "../components/tickets/TicketDetailModal";
+import AddSnacksModal from "../components/tickets/AddSnacksModal";
 import { getSafePosterUrl } from "../utils/downloadTicketPdf";
 import ScrollReveal from "../components/common/ScrollReveal";
 
@@ -43,6 +44,7 @@ export default function MyTicketsPage() {
   );
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [snackTicket, setSnackTicket] = useState(null);
 
   const [currentTime, setCurrentTime] = useState(Date.now());
   useEffect(() => {
@@ -67,6 +69,7 @@ export default function MyTicketsPage() {
     data: apiBookingsData,
     isLoading: isBookingsLoading,
     isFetching: isBookingsFetching,
+    refetch: refetchBookings,
   } = useGetMyBookingsQuery(
     { page: 0, size: 50 },
     { skip: !token, refetchOnMountOrArgChange: true },
@@ -308,7 +311,11 @@ export default function MyTicketsPage() {
                 duration={600}
                 distance="translate-y-6"
               >
-                <TicketCard ticket={ticket} onViewTicket={setSelectedTicket} />
+                <TicketCard
+                  ticket={ticket}
+                  onViewTicket={setSelectedTicket}
+                  onAddSnacks={setSnackTicket}
+                />
               </ScrollReveal>
             ))
           )}
@@ -381,6 +388,17 @@ export default function MyTicketsPage() {
         <TicketDetailModal
           ticket={selectedTicket}
           onClose={() => setSelectedTicket(null)}
+        />
+      )}
+
+      {snackTicket && (
+        <AddSnacksModal
+          isOpen={Boolean(snackTicket)}
+          ticket={snackTicket}
+          onClose={() => setSnackTicket(null)}
+          onOrderSuccess={() => {
+            if (refetchBookings) refetchBookings();
+          }}
         />
       )}
     </div>

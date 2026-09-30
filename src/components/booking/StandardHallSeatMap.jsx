@@ -19,12 +19,12 @@ export default function StandardHallSeatMap({
   const [hoveredCouple, setHoveredCouple] = useState(null);
 
   return (
-    <div className="min-w-[660px] max-w-3xl mx-auto space-y-3 sm:space-y-3.5 select-none">
-      <div className="flex items-center justify-between gap-2 text-xs font-bold text-neutral-600 dark:text-neutral-400">
-        <span className="w-6 sm:w-8" />
-        <div className="flex items-center gap-3.5 sm:gap-6">
+    <div className="w-full max-w-3xl mx-auto space-y-2 sm:space-y-3.5 select-none overflow-x-auto">
+      <div className="flex items-center justify-between gap-1 sm:gap-4 text-xs font-bold text-neutral-600 dark:text-neutral-400 mx-auto">
+        <span className="w-4 sm:w-8" />
+        <div className="flex items-center gap-1.5 sm:gap-6">
           {STANDARD_COL_GROUPS.map((group, gIdx) => (
-            <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
+            <div key={gIdx} className="flex items-center gap-0.5 sm:gap-2">
               {group.map((col) => (
                 <div
                   key={col}
@@ -37,7 +37,7 @@ export default function StandardHallSeatMap({
             </div>
           ))}
         </div>
-        <span className="w-6 sm:w-8" />
+        <span className="w-4 sm:w-8" />
       </div>
 
       <div className="space-y-3 sm:space-y-3.5">
@@ -46,13 +46,13 @@ export default function StandardHallSeatMap({
             key={rowLetter}
             className="flex items-center justify-between gap-2"
           >
-            <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
+            <span className="w-4 sm:w-8 text-center font-bold text-xs sm:text-base text-neutral-900 dark:text-neutral-100">
               {rowLetter}
             </span>
 
-            <div className="flex items-center gap-3.5 sm:gap-6">
+            <div className="flex items-center gap-1.5 sm:gap-6">
               {STANDARD_COL_GROUPS.map((group, gIdx) => (
-                <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
+                <div key={gIdx} className="flex items-center gap-0.5 sm:gap-2">
                   {group.map((col) => {
                     const seatId = `${rowLetter}${col}`;
                     const isReserved = isSeatReserved(seatId);
@@ -116,7 +116,7 @@ export default function StandardHallSeatMap({
                         aria-label={`Seat ${seatId} ${status}`}
                         title={`Seat ${seatId} (${status})`}
                       >
-                        <SeatIcon status={status} size={30} />
+                        <SeatIcon status={status} className="w-[18px] h-[18px] sm:w-[26px] sm:h-[26px]" />
                       </button>
                     );
                   })}
@@ -124,7 +124,7 @@ export default function StandardHallSeatMap({
               ))}
             </div>
 
-            <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
+            <span className="w-4 sm:w-8 text-center font-bold text-xs sm:text-base text-neutral-900 dark:text-neutral-100">
               {rowLetter}
             </span>
           </div>
@@ -133,13 +133,13 @@ export default function StandardHallSeatMap({
 
       <div className="pt-5 sm:pt-6">
         <div className="flex items-center justify-between gap-2">
-          <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
+          <span className="w-4 sm:w-8 text-center font-bold text-xs sm:text-base text-neutral-900 dark:text-neutral-100">
             A
           </span>
 
-          <div className="flex items-center gap-3.5 sm:gap-6">
+          <div className="flex items-center gap-1.5 sm:gap-6">
             {STANDARD_COL_GROUPS.map((group, gIdx) => (
-              <div key={gIdx} className="flex items-center gap-1.5 sm:gap-2">
+              <div key={gIdx} className="flex items-center gap-0.5 sm:gap-2">
                 {group.map((col) => {
                   if (col === 5 || col === 8) {
                     return (
@@ -222,7 +222,7 @@ export default function StandardHallSeatMap({
                           : ""
                       }
                     >
-                      <SeatIcon status={status} size={30} />
+                      <SeatIcon status={status} className="w-[18px] h-[18px] sm:w-[26px] sm:h-[26px]" />
                     </button>
                   );
                 })}
@@ -230,7 +230,7 @@ export default function StandardHallSeatMap({
             ))}
           </div>
 
-          <span className="w-6 sm:w-8 text-center font-bold text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
+          <span className="w-4 sm:w-8 text-center font-bold text-xs sm:text-base text-neutral-900 dark:text-neutral-100">
             A
           </span>
         </div>

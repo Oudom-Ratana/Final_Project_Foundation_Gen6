@@ -187,7 +187,14 @@ export const cinemaApi = baseApi.injectEndpoints({
         url: `/concession-payments/${paymentUuid}/verify`,
         method: "POST",
       }),
-      invalidatesTags: ["ConcessionPayment", "ConcessionInvoice"],
+      invalidatesTags: [
+        "ConcessionPayment",
+        "ConcessionInvoice",
+        "Concession",
+        "ConcessionOrder",
+        "Booking",
+        "Ticket",
+      ],
     }),
 
     getConcessionInvoice: builder.query({

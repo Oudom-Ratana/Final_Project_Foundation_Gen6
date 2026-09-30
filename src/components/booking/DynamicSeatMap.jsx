@@ -160,25 +160,25 @@ export default function DynamicSeatMap({
   }
 
   return (
-    <div className="w-full flex flex-col items-center justify-center space-y-3 sm:space-y-4 select-none overflow-x-auto py-2">
-      <div className="flex items-center justify-between gap-2 sm:gap-4 text-xs font-bold text-neutral-500 dark:text-neutral-400 w-fit">
-        <span className="w-6 sm:w-8" />
-        <div className="flex items-center gap-3.5 sm:gap-6">
+    <div className="w-full flex flex-col items-center justify-center space-y-2 sm:space-y-4 select-none overflow-x-auto py-1 sm:py-2">
+      <div className="flex items-center justify-between gap-1 sm:gap-4 text-xs font-bold text-neutral-500 dark:text-neutral-400 mx-auto">
+        <span className="w-4 sm:w-8" />
+        <div className="flex items-center gap-1.5 sm:gap-6">
           {colGroups.map((group, gIdx) => (
             <div
               key={gIdx}
               className={`flex items-center ${
-                isGold ? "gap-2.5 sm:gap-4" : "gap-1.5 sm:gap-2"
+                isGold ? "gap-1.5 sm:gap-4" : "gap-0.5 sm:gap-2"
               }`}
             >
               {group.map((col) => (
                 <div
                   key={col}
-                  className="p-0.5 flex items-center justify-center text-center font-bold text-xs sm:text-sm text-neutral-700 dark:text-neutral-300"
-                  style={{
-                    width: isGold ? 40 : 32,
-                    minWidth: isGold ? 40 : 32,
-                  }}
+                  className={`p-0 flex items-center justify-center text-center font-bold text-[10px] sm:text-xs text-neutral-700 dark:text-neutral-300 ${
+                    isGold
+                      ? "w-7 min-w-7 sm:w-10 sm:min-w-10"
+                      : "w-[20px] min-w-[20px] sm:w-8 sm:min-w-8"
+                  }`}
                 >
                   <span>{col}</span>
                 </div>
@@ -186,10 +186,10 @@ export default function DynamicSeatMap({
             </div>
           ))}
         </div>
-        <span className="w-6 sm:w-8" />
+        <span className="w-4 sm:w-8" />
       </div>
 
-      <div className="space-y-2.5 sm:space-y-3.5 w-fit">
+      <div className="space-y-1.5 sm:space-y-3.5 mx-auto">
         {sortedRows.map((rowLetter) => {
           const rowSeats = seatsByRow[rowLetter] ?? [];
           const isRowA = rowLetter === "A";
@@ -197,20 +197,20 @@ export default function DynamicSeatMap({
           return (
             <div
               key={rowLetter}
-              className={`flex items-center justify-between gap-2 sm:gap-4 ${
-                isRowA ? "pt-3 sm:pt-4" : ""
+              className={`flex items-center justify-between gap-1 sm:gap-4 ${
+                isRowA ? "pt-2 sm:pt-4" : ""
               }`}
             >
-              <span className="w-6 sm:w-8 text-center font-black text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
+              <span className="w-4 sm:w-8 text-center font-black text-xs sm:text-base text-neutral-900 dark:text-neutral-100">
                 {rowLetter}
               </span>
 
-              <div className="flex items-center gap-3.5 sm:gap-6">
+              <div className="flex items-center gap-1.5 sm:gap-6">
                 {colGroups.map((group, gIdx) => (
                   <div
                     key={gIdx}
                     className={`flex items-center ${
-                      isGold ? "gap-2.5 sm:gap-4" : "gap-1.5 sm:gap-2"
+                      isGold ? "gap-1.5 sm:gap-4" : "gap-0.5 sm:gap-2"
                     }`}
                   >
                     {group.map((col) => {
@@ -218,11 +218,11 @@ export default function DynamicSeatMap({
                         return (
                           <div
                             key={`spacer-${rowLetter}-${col}`}
-                            style={{
-                              width: isGold ? 40 : 32,
-                              minWidth: isGold ? 40 : 32,
-                            }}
-                            className="p-0.5"
+                            className={`p-0 ${
+                              isGold
+                                ? "w-7 min-w-7 sm:w-10 sm:min-w-10"
+                                : "w-[20px] min-w-[20px] sm:w-8 sm:min-w-8"
+                            }`}
                             aria-hidden="true"
                           />
                         );
@@ -234,11 +234,11 @@ export default function DynamicSeatMap({
                         return (
                           <div
                             key={`empty-${rowLetter}-${col}`}
-                            style={{
-                              width: isGold ? 40 : 32,
-                              minWidth: isGold ? 40 : 32,
-                            }}
-                            className="p-0.5"
+                            className={`p-0 ${
+                              isGold
+                                ? "w-7 min-w-7 sm:w-10 sm:min-w-10"
+                                : "w-[20px] min-w-[20px] sm:w-8 sm:min-w-8"
+                            }`}
                             aria-hidden="true"
                           />
                         );
@@ -277,20 +277,20 @@ export default function DynamicSeatMap({
                                 handleSeatClick(seat, rowLetter, col);
                               }
                             }}
-                            className={`p-0.5 rounded-lg transition-transform ${
+                            className={`p-0 rounded-lg transition-transform flex items-center justify-center ${
+                              isGold
+                                ? "w-7 min-w-7 sm:w-10 sm:min-w-10"
+                                : "w-[20px] min-w-[20px] sm:w-8 sm:min-w-8"
+                            } ${
                               avatarInfo.isLocked
                                 ? "cursor-default opacity-95"
                                 : "hover:scale-110 active:scale-95 cursor-pointer"
                             }`}
                             aria-label={`Seat ${seatId} (${avatarInfo.name})`}
                             title={`Seat ${seatId} • ${avatarInfo.name}`}
-                            style={{
-                              width: isGold ? 40 : 32,
-                              minWidth: isGold ? 40 : 32,
-                            }}
                           >
                             <div
-                              className="w-[28px] h-[28px] sm:w-[30px] sm:h-[30px] mx-auto rounded-full overflow-hidden border-2 shadow-sm flex items-center justify-center bg-neutral-800"
+                              className="w-[18px] h-[18px] sm:w-[28px] sm:h-[28px] mx-auto rounded-full overflow-hidden border sm:border-2 shadow-sm flex items-center justify-center bg-neutral-800"
                               style={{ borderColor: avatarInfo.color }}
                             >
                               <img
@@ -319,17 +319,17 @@ export default function DynamicSeatMap({
                             coupleKey && setHoveredCoupleKey(coupleKey)
                           }
                           onMouseLeave={() => setHoveredCoupleKey(null)}
-                          className={`relative p-0.5 rounded-lg transition-all flex items-center justify-center ${
+                          className={`relative p-0 rounded-lg transition-all flex items-center justify-center ${
+                            isGold
+                              ? "w-7 min-w-7 sm:w-10 sm:min-w-10"
+                              : "w-[20px] min-w-[20px] sm:w-8 sm:min-w-8"
+                          } ${
                             reserved
                               ? "cursor-not-allowed opacity-90"
                               : isCoupleHovered
                                 ? "scale-110 active:scale-95 cursor-pointer"
                                 : "hover:scale-110 active:scale-95 cursor-pointer"
                           }`}
-                          style={{
-                            width: isGold ? 40 : 32,
-                            minWidth: isGold ? 40 : 32,
-                          }}
                           aria-label={`Seat ${seatId} ${status}`}
                           title={
                             isCouple && couplePair
@@ -337,7 +337,14 @@ export default function DynamicSeatMap({
                               : `Seat ${seatId} (${status})`
                           }
                         >
-                          <SeatIcon status={status} size={isGold ? 36 : 28} />
+                          <SeatIcon
+                            status={status}
+                            className={
+                              isGold
+                                ? "w-6 h-6 sm:w-9 sm:h-9"
+                                : "w-[18px] h-[18px] sm:w-[26px] sm:h-[26px]"
+                            }
+                          />
                         </button>
                       );
                     })}
@@ -345,7 +352,7 @@ export default function DynamicSeatMap({
                 ))}
               </div>
 
-              <span className="w-6 sm:w-8 text-center font-black text-sm sm:text-base text-neutral-900 dark:text-neutral-100">
+              <span className="w-4 sm:w-8 text-center font-black text-xs sm:text-base text-neutral-900 dark:text-neutral-100">
                 {rowLetter}
               </span>
             </div>

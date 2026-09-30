@@ -5,13 +5,9 @@ import {
   ChevronRight,
   Calendar,
   Sparkles,
-  Maximize2,
-  Share2,
-  Clock,
   Flame,
 } from "lucide-react";
 import { useGetUpcomingMoviesQuery } from "../../services/api/movieApi";
-import ScrollReveal from "../common/ScrollReveal";
 
 export default function ComingSoonSection() {
   const { data: upcomingData, isLoading } = useGetUpcomingMoviesQuery(1);
@@ -94,9 +90,12 @@ export default function ComingSoonSection() {
 
   const activeMovie = movies[activeIndex];
 
-  const cardWidth = Math.min(340, Math.round(containerWidth * 0.7));
-  const cardHeight = Math.round(cardWidth * 1.48);
-  const spacing = Math.round(cardWidth * 0.58);
+  const isMobile = containerWidth < 640;
+  const cardWidth = isMobile
+    ? Math.min(235, Math.max(195, Math.round(containerWidth * 0.62)))
+    : Math.min(340, Math.round(containerWidth * 0.7));
+  const cardHeight = Math.round(cardWidth * (isMobile ? 1.42 : 1.48));
+  const spacing = Math.round(cardWidth * (isMobile ? 0.62 : 0.58));
 
   const formatReleaseDate = (dateStr) => {
     if (!dateStr) return "Coming Soon";
@@ -112,7 +111,7 @@ export default function ComingSoonSection() {
 
   return (
     <section
-      className="space-y-8 font-sans select-none relative"
+      className="space-y-6 sm:space-y-8 font-sans select-none relative"
       ref={containerRef}
     >
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -137,12 +136,12 @@ export default function ComingSoonSection() {
       </div>
 
       <div
-        className="relative w-full py-8 overflow-hidden rounded-[36px] bg-gradient-to-b from-white/80 via-white/70 to-white/60 dark:from-[var(--primary-color-20)] dark:via-[var(--primary-color-30)] dark:to-[var(--primary-color-40)] border border-neutral-200/70 dark:border-(--border-dark-mode) shadow-xs dark:shadow-none backdrop-blur-xl flex flex-col items-center justify-center min-h-[580px] sm:min-h-[640px]"
+        className="relative w-full py-5 sm:py-8 overflow-hidden rounded-[28px] sm:rounded-[36px] bg-gradient-to-b from-white/80 via-white/70 to-white/60 dark:from-[var(--primary-color-20)] dark:via-[var(--primary-color-30)] dark:to-[var(--primary-color-40)] border border-neutral-200/70 dark:border-(--border-dark-mode) shadow-xs dark:shadow-none backdrop-blur-xl flex flex-col items-center justify-center min-h-[470px] sm:min-h-[640px]"
         style={{ perspective: "1400px" }}
       >
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[340px] bg-gradient-to-r from-[#B90101]/10 via-[#FFD700]/5 to-[#B90101]/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] sm:w-[520px] h-[240px] sm:h-[340px] bg-gradient-to-r from-[#B90101]/10 via-[#FFD700]/5 to-[#B90101]/10 rounded-full blur-[80px] sm:blur-[100px] pointer-events-none" />
 
-        <div className="relative w-full h-[460px] sm:h-[500px] flex items-center justify-center">
+        <div className="relative w-full h-[360px] sm:h-[500px] flex items-center justify-center">
           <AnimatePresence initial={false}>
             {movies.map((movie, idx) => {
               let diff = idx - activeIndex;
@@ -155,17 +154,17 @@ export default function ComingSoonSection() {
               const isActive = diff === 0;
               const isEdgeBuffer = absDiff === 3;
 
-              const rotateY = diff * -20; 
+              const rotateY = diff * (isMobile ? -16 : -20); 
               const translateX = diff * spacing;
               const translateZ = isEdgeBuffer
-                ? -360
+                ? (isMobile ? -200 : -360)
                 : isActive
-                  ? 120
-                  : -absDiff * 130;
+                  ? (isMobile ? 35 : 120)
+                  : -absDiff * (isMobile ? 70 : 130);
               const scale = isEdgeBuffer
                 ? 0.76
                 : isActive
-                  ? 1.05
+                  ? (isMobile ? 1.0 : 1.05)
                   : 0.88 - absDiff * 0.05;
               const opacity = isEdgeBuffer
                 ? 0
@@ -184,7 +183,7 @@ export default function ComingSoonSection() {
                 <motion.div
                   key={movie.id}
                   onClick={() => setActiveIndex(idx)}
-                  className={`absolute rounded-[28px] overflow-hidden cursor-pointer will-change-transform ${
+                  className={`absolute rounded-[22px] sm:rounded-[28px] overflow-hidden cursor-pointer will-change-transform ${
                     isActive
                       ? "ring-2 ring-white/60 dark:ring-white/40 shadow-[0_8px_20px_-4px_rgba(0,0,0,0.14)]"
                       : "ring-1 ring-white/20 dark:ring-white/10 shadow-xs"
@@ -219,33 +218,33 @@ export default function ComingSoonSection() {
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent pointer-events-none" />
 
-                  <div className="absolute top-3.5 inset-x-3.5 flex items-center justify-between z-20">
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/60 backdrop-blur-md text-white border border-white/15">
+                  <div className="absolute top-2.5 sm:top-3.5 inset-x-2.5 sm:inset-x-3.5 flex items-center justify-between z-20">
+                    <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-black/60 backdrop-blur-md text-white border border-white/15">
                       {formatReleaseDate(movie.release_date)}
                     </span>
 
                     {isActive && (
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-[#B90101] text-white shadow-md flex items-center gap-1">
-                        <Flame className="w-3 h-3" />
+                      <span className="px-1.5 sm:px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider bg-[#B90101] text-white shadow-md flex items-center gap-1">
+                        <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         Next Up
                       </span>
                     )}
                   </div>
 
-                  <div className="absolute bottom-0 inset-x-0 p-5 z-20 flex flex-col justify-end text-white">
-                    <h3 className="text-lg sm:text-xl font-black tracking-tight line-clamp-1 drop-shadow-md">
+                  <div className="absolute bottom-0 inset-x-0 p-3.5 sm:p-5 z-20 flex flex-col justify-end text-white">
+                    <h3 className="text-base sm:text-xl font-black tracking-tight line-clamp-1 drop-shadow-md">
                       {movie.title}
                     </h3>
 
-                    <div className="mt-1 flex items-center">
+                    <div className="mt-0.5 sm:mt-1 flex items-center">
                       <span
-                        className={`text-[11px] flex items-center gap-1 ${
+                        className={`text-[10px] sm:text-[11px] flex items-center gap-1 ${
                           isActive
                             ? "font-bold text-[#FFD700]"
                             : "text-neutral-400"
                         }`}
                       >
-                        <Calendar className="w-3.5 h-3.5" />
+                        <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         {formatReleaseDate(movie.release_date)}
                       </span>
                     </div>
@@ -256,18 +255,18 @@ export default function ComingSoonSection() {
           </AnimatePresence>
         </div>
 
-        <div className="relative z-30 mt-4 sm:mt-6 flex items-center justify-center">
-          <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-black/60 dark:bg-[var(--primary-color-30)] backdrop-blur-xl border border-white/20 shadow-sm text-white">
+        <div className="relative z-30 mt-2 sm:mt-6 flex items-center justify-center">
+          <div className="inline-flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full bg-black/60 dark:bg-[var(--primary-color-30)] backdrop-blur-xl border border-white/20 shadow-sm text-white">
             <button
               onClick={prev}
               type="button"
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/25 active:scale-90 transition text-white cursor-pointer"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/25 active:scale-90 transition text-white cursor-pointer"
               aria-label="Previous movie"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 shrink-0 bg-neutral-800 relative">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-white/30 shrink-0 bg-neutral-800 relative">
               <img
                 key={activeMovie?.id}
                 src={
@@ -280,16 +279,16 @@ export default function ComingSoonSection() {
               />
             </div>
 
-            <div className="text-left max-w-[140px] sm:max-w-[200px]">
+            <div className="text-left max-w-[110px] sm:max-w-[200px]">
               <p
                 key={`title-${activeMovie?.id}`}
-                className="text-xs font-black truncate leading-tight transition-all duration-300"
+                className="text-[11px] sm:text-xs font-black truncate leading-tight transition-all duration-300"
               >
                 {activeMovie?.title}
               </p>
               <p
                 key={`date-${activeMovie?.id}`}
-                className="text-[10px] text-neutral-400 font-medium truncate"
+                className="text-[9px] sm:text-[10px] text-neutral-400 font-medium truncate"
               >
                 {formatReleaseDate(activeMovie?.release_date)}
               </p>
@@ -298,10 +297,10 @@ export default function ComingSoonSection() {
             <button
               onClick={next}
               type="button"
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/25 active:scale-90 transition text-white cursor-pointer"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/25 active:scale-90 transition text-white cursor-pointer"
               aria-label="Next movie"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>

@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
+import { Popcorn } from "lucide-react";
 import { selectTheme } from "../../redux/slices/uiSlice";
 
-export default function TicketCard({ ticket, onViewTicket }) {
+export default function TicketCard({ ticket, onViewTicket, onAddSnacks }) {
   const navigate = useNavigate();
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
@@ -236,13 +237,27 @@ export default function TicketCard({ ticket, onViewTicket }) {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleViewTicket}
-            className="w-full sm:w-auto shrink-0 py-2 sm:py-0 px-4 sm:px-0 rounded-xl sm:rounded-none bg-[#B90101]/10 sm:bg-transparent text-center text-xs sm:text-[14px] font-black text-[#B90101] hover:opacity-80 active:scale-95 transition cursor-pointer"
-          >
-            View Ticket &rarr;
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
+            {isUpcoming && (
+              <button
+                type="button"
+                onClick={() => onAddSnacks && onAddSnacks(ticket)}
+                className="flex-1 sm:flex-initial py-2 sm:py-1.5 px-3.5 sm:px-4 rounded-xl sm:rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-500 dark:text-amber-400 text-center text-xs sm:text-[13px] font-black tracking-wide flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
+                title="Add Popcorn & Drinks to this movie ticket"
+              >
+                <Popcorn className="w-3.5 h-3.5" />
+                <span>Add Snacks</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleViewTicket}
+              className="flex-1 sm:flex-initial py-2 sm:py-1.5 px-3.5 sm:px-0 rounded-xl sm:rounded-none bg-[#B90101]/10 sm:bg-transparent text-center text-xs sm:text-[14px] font-black text-[#B90101] hover:opacity-80 active:scale-95 transition cursor-pointer whitespace-nowrap"
+            >
+              View Ticket &rarr;
+            </button>
+          </div>
         </div>
       </div>
     </div>

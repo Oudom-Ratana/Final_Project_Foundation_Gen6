@@ -3,7 +3,10 @@ import { ArrowLeft, Ticket, Download, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { downloadTicketPdf, getSafePosterUrl, DEFAULT_POSTER_FALLBACK } from "../../utils/downloadTicketPdf";
 import { useSelector } from "react-redux";
-import { useGetBookingQrCodeQuery } from "../../services/api/cinemaApi";
+import {
+  useGetBookingQrCodeQuery,
+  useGetBookingConcessionOrderQuery,
+} from "../../services/api/cinemaApi";
 import { selectTheme } from "../../redux/slices/uiSlice";
 
 export default function TicketDetailModal({ ticket, onClose }) {
@@ -38,6 +41,10 @@ export default function TicketDetailModal({ ticket, onClose }) {
     skip: !bookingUuid || !ticket,
   });
 
+  const { data: serverConcessionOrder } = useGetBookingConcessionOrderQuery(bookingUuid, {
+    skip: !bookingUuid || !ticket,
+  });
+
   if (!ticket) return null;
 
   const {
@@ -60,11 +67,35 @@ export default function TicketDetailModal({ ticket, onClose }) {
   const seatCount = totalSeats || (Array.isArray(seats) ? seats.length : 1);
 
 
+  const rawServerItems =
+    serverConcessionOrder?.items ||
+    serverConcessionOrder?.data?.items ||
+    (Array.isArray(serverConcessionOrder) ? serverConcessionOrder : []);
+
+  const normalizedServerItems = rawServerItems.map((item) => ({
+    id: item.concessionUuid || item.uuid || item.id,
+    name: item.concessionName || item.name || "Cinema Snack",
+    quantity: item.quantity || 1,
+    price: Number(item.unitPrice || item.price || 0),
+  }));
+
+  const activeConcessions =
+    normalizedServerItems.length > 0
+      ? normalizedServerItems
+      : Array.isArray(concessions)
+        ? concessions
+        : [];
+
   const hallNumberOnly =
     (showtime.hall || "3").replace(/hall\s*/i, "").trim() || "3";
   const formatBadge = showtime.format || "SCREEN X";
-  const hasConcessions = Array.isArray(concessions) && concessions.length > 0;
+  const hasConcessions = activeConcessions.length > 0;
   const ticketCostOnly = Number(pricePerSeat * seatCount);
+  const concessionsTotalCost = activeConcessions.reduce(
+    (sum, c) => sum + (Number(c.price) || 0) * (c.quantity || 1),
+    0
+  );
+  const finalDisplayTotal = ticketCostOnly + concessionsTotalCost;
 
   const handleDownloadPdf = async () => {
     if (!ticketRef.current) return;
@@ -240,7 +271,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
                     <span className="font-bold text-[#B90101] uppercase tracking-wider text-[9px] block">
                       Food & Drinks
                     </span>
-                    {concessions.map((c, idx) => (
+                    {activeConcessions.map((c, idx) => (
                       <div
                         key={c.id || idx}
                         className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 font-semibold text-[10px]"
@@ -249,14 +280,14 @@ export default function TicketDetailModal({ ticket, onClose }) {
                           {c.name} x{c.quantity}
                         </span>
                         <span className="font-bold">
-                          ${((c.price || 0) * (c.quantity || 1)).toFixed(2)}
+                          ${((Number(c.price) || 0) * (c.quantity || 1)).toFixed(2)}
                         </span>
                       </div>
                     ))}
                     <div className="flex items-center justify-between pt-0.5 font-black text-neutral-900 dark:text-white text-[10px]">
                       <span>Total Paid</span>
                       <span className="text-[#B90101]">
-                        ${Number(totalPrice).toFixed(2)}
+                        ${finalDisplayTotal.toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -419,7 +450,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
                 Total Amount
               </span>
               <span className="text-xs sm:text-sm font-black tracking-wide text-white">
-                ${Number(totalPrice).toFixed(2)}
+                ${finalDisplayTotal.toFixed(2)}
               </span>
             </div>
           </div>

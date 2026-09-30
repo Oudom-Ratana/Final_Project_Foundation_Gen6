@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { X, CheckCircle2, ShieldCheck } from "lucide-react";
 import {
@@ -7,6 +7,7 @@ import {
   useGetPaymentByUuidQuery,
   useGetGroupPaymentByUuidQuery,
   useMarkPaymentSuccessMutation,
+  useVerifyConcessionPaymentMutation,
 } from "../../services/api/cinemaApi";
 
 export default function PaymentKhqrModal({
@@ -21,33 +22,60 @@ export default function PaymentKhqrModal({
   seats,
   onPaymentSuccess,
   isGroupPayment = false,
+  isConcessionPayment = false,
+  qrPayload = null,
 }) {
   const [isPaid, setIsPaid] = useState(false);
 
   const { data: standardQrBlob, isLoading: isStdQrLoading } = useGetPaymentQrQuery(paymentUuid, {
-    skip: !paymentUuid || !isOpen || isGroupPayment,
+    skip: !paymentUuid || !isOpen || isGroupPayment || isConcessionPayment,
   });
 
   const { data: groupQrBlob, isLoading: isGrpQrLoading } = useGetGroupPaymentQrQuery(paymentUuid, {
-    skip: !paymentUuid || !isOpen || !isGroupPayment,
+    skip: !paymentUuid || !isOpen || !isGroupPayment || isConcessionPayment,
   });
 
-  const qrBlobUrl = isGroupPayment ? groupQrBlob : standardQrBlob;
-  const isQrLoading = isGroupPayment ? isGrpQrLoading : isStdQrLoading;
+  let qrDisplayUrl = null;
+  if (isConcessionPayment) {
+    if (qrPayload && typeof qrPayload === "string" && (qrPayload.startsWith("http") || qrPayload.startsWith("data:"))) {
+      qrDisplayUrl = qrPayload;
+    } else if (qrPayload) {
+      qrDisplayUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrPayload)}`;
+    } else {
+      qrDisplayUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+        `BAKONG-KHQR:${bookingRef ?? "FZ-SNACKS"}:${amount}`
+      )}`;
+    }
+  } else if (isGroupPayment) {
+    qrDisplayUrl = groupQrBlob;
+  } else {
+    qrDisplayUrl = standardQrBlob;
+  }
+
+  const isQrLoading = isConcessionPayment
+    ? false
+    : isGroupPayment
+      ? isGrpQrLoading
+      : isStdQrLoading;
 
   const { data: standardPayment } = useGetPaymentByUuidQuery(paymentUuid, {
-    skip: !paymentUuid || !isOpen || isGroupPayment || isPaid,
+    skip: !paymentUuid || !isOpen || isGroupPayment || isPaid || isConcessionPayment,
     pollingInterval: 2500,
   });
 
   const { data: groupPayment } = useGetGroupPaymentByUuidQuery(paymentUuid, {
-    skip: !paymentUuid || !isOpen || !isGroupPayment || isPaid,
+    skip: !paymentUuid || !isOpen || !isGroupPayment || isPaid || isConcessionPayment,
     pollingInterval: 2500,
   });
 
   const activePayment = isGroupPayment ? groupPayment : standardPayment;
 
+  const [verifyConcessionPayment] = useVerifyConcessionPaymentMutation();
+  const [markSuccess, { isLoading: isSimulating }] = useMarkPaymentSuccessMutation();
+
+  // Auto-verify standard or group payment via polling
   useEffect(() => {
+    if (isConcessionPayment) return;
     const rawStatus = activePayment?.status ?? activePayment?.data?.status ?? activePayment?.paymentStatus;
     const status = typeof rawStatus === "string" ? rawStatus.toUpperCase() : "";
 
@@ -59,18 +87,53 @@ export default function PaymentKhqrModal({
       }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [activePayment, onPaymentSuccess]);
+  }, [activePayment, isConcessionPayment, onPaymentSuccess]);
 
-  const [markSuccess, { isLoading: isSimulating }] = useMarkPaymentSuccessMutation();
+  // Auto-verify concession payment via polling
+  useEffect(() => {
+    if (!isOpen || !isConcessionPayment || !paymentUuid || isPaid) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await verifyConcessionPayment(paymentUuid).unwrap();
+        const rawStatus = res?.status ?? res?.data?.status ?? res?.paymentStatus;
+        const status = typeof rawStatus === "string" ? rawStatus.toUpperCase() : "";
+        if (status === "PAID" || status === "SUCCESS" || status === "COMPLETED") {
+          setIsPaid(true);
+          toast.success("Payment verified successfully with Bakong!");
+          setTimeout(() => {
+            onPaymentSuccess(res);
+          }, 1200);
+        }
+      } catch {
+        // Ignored while waiting for user to pay
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isOpen, isConcessionPayment, paymentUuid, isPaid, verifyConcessionPayment, onPaymentSuccess]);
 
   if (!isOpen) return null;
 
   const handleDone = async () => {
     if (paymentUuid) {
       try {
-        await markSuccess(paymentUuid).unwrap();
+        if (isConcessionPayment) {
+          try {
+            await verifyConcessionPayment(paymentUuid).unwrap();
+          } catch (vErr) {
+            console.warn("Concession verify note:", vErr);
+          }
+          try {
+            await markSuccess(paymentUuid).unwrap();
+          } catch (mErr) {
+            console.warn("Payment mark success note:", mErr);
+          }
+        } else {
+          await markSuccess(paymentUuid).unwrap();
+        }
       } catch (err) {
-        console.warn("Simulation note:", err);
+        console.warn("Payment simulation note:", err);
       }
     }
     setIsPaid(true);
@@ -99,10 +162,12 @@ export default function PaymentKhqrModal({
         <div className="p-6 space-y-4 text-center">
           <div className="space-y-1">
             <h3 className="font-extrabold text-base text-neutral-900 dark:text-white truncate">
-              {movieTitle ?? "FilmZone Cinema"}
+              {isConcessionPayment ? "Popcorn & Drinks Payment" : (movieTitle ?? "FilmZone Cinema")}
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-              {hallName ? `${hallName} • ` : ""}Seats: {formattedSeats}
+              {isConcessionPayment
+                ? `Booking Ref: ${bookingRef || "Snack Order"}`
+                : `${hallName ? `${hallName} • ` : ""}Seats: ${formattedSeats}`}
             </p>
           </div>
 
@@ -126,8 +191,8 @@ export default function PaymentKhqrModal({
                 <div className="w-8 h-8 rounded-full border-3 border-[#B90101] border-t-transparent animate-spin" />
                 <span className="text-xs font-bold">Generating KHQR...</span>
               </div>
-            ) : qrBlobUrl ? (
-              <img src={qrBlobUrl} alt="Bakong KHQR Payment Code" className="w-full h-full object-contain" />
+            ) : qrDisplayUrl ? (
+              <img src={qrDisplayUrl} alt="Bakong KHQR Payment Code" className="w-full h-full object-contain" />
             ) : (
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(

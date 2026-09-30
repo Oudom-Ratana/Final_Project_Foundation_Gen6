@@ -458,7 +458,7 @@ export default function SeatSelectionPage() {
         <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[750px] bg-[radial-gradient(circle_at_center,rgba(185,1,1,0.22)_0%,rgba(8,2,3,0)_70%)]" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 space-y-8 pt-2">
+      <div className="relative z-10 max-w-5xl mx-auto px-2 sm:px-6 space-y-6 sm:space-y-8 pt-2">
         <SeatSelectionHeader
           onBack={handleBackToMovie}
           movieTitle={movie?.title}
@@ -473,7 +473,7 @@ export default function SeatSelectionPage() {
         <ScreenCurve />
 
         <div
-          className="w-full rounded-2xl sm:rounded-3xl border p-6 sm:p-10 shadow-sm overflow-x-auto backdrop-blur-md min-h-[350px] flex items-center justify-center"
+          className="w-full rounded-2xl sm:rounded-3xl border px-2 py-4 sm:p-10 shadow-sm overflow-x-auto backdrop-blur-md min-h-[300px] sm:min-h-[350px] flex items-center justify-center"
           style={{
             backgroundColor: isDark ? "var(--primary-color-30)" : "white",
             borderColor: isDark ? "var(--border-dark-mode)" : "var(--border-light-mode)",
