@@ -123,28 +123,28 @@ const router = createBrowserRouter([
       },
     ],
   },
-  {
-    path: "/admin",
-    element: <AdminLayout />,
-    children: [
-      {
-        index: true,
-        element: <AdminDashboardPage />,
-      },
-      {
-        path: "dashboard",
-        element: <AdminDashboardPage />,
-      },
-      {
-        path: "movies",
-        element: <AdminMovieLibraryPage />,
-      },
-      {
-        path: "analytics",
-        element: <AdminUserAnalyticsPage />,
-      },
-    ],
-  },
+  // {
+  //   path: "/admin",
+  //   element: <AdminLayout />,
+  //   children: [
+  //     {
+  //       index: true,
+  //       element: <AdminDashboardPage />,
+  //     },
+  //     {
+  //       path: "dashboard",
+  //       element: <AdminDashboardPage />,
+  //     },
+  //     {
+  //       path: "movies",
+  //       element: <AdminMovieLibraryPage />,
+  //     },
+  //     {
+  //       path: "analytics",
+  //       element: <AdminUserAnalyticsPage />,
+  //     },
+  //   ],
+  // },
   {
     path: "*",
     element: <NotFoundPage />,
