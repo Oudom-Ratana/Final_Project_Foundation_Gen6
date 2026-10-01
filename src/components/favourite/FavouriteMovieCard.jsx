@@ -61,10 +61,10 @@ export default function FavouriteMovieCard({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row w-full gap-5 border border-[var(--border-light-mode)] rounded-2xl bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-5 transition-all duration-300 hover:border-[#B90101]/40">
+    <div className="flex flex-col sm:flex-row w-full gap-5 border border-[var(--border-light-mode)] rounded-2xl bg-white dark:bg-[var(--primary-color-30)] dark:border-[var(--border-dark-mode)] p-5 transition-all duration-300 hover:border-[#B90101]/40">
       <Link
         to={detailUrl}
-        className="h-64 sm:h-56 w-full sm:w-40 shrink-0 overflow-hidden rounded-xl block cursor-pointer bg-neutral-900/40 relative group"
+        className="h-64 sm:h-56 w-full sm:w-40 shrink-0 overflow-hidden rounded-xl block cursor-pointer bg-white relative group"
         aria-label={`View ${title}`}
       >
         {posterUrl ? (

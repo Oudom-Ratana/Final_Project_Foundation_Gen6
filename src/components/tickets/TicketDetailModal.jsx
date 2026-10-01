@@ -113,13 +113,13 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 dark:bg-(--primary-color-30) backdrop-blur-md animate-fadeIn select-none overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-white dark:bg-[var(--primary-color-30)] backdrop-blur-md animate-fadeIn select-none overflow-y-auto"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`relative w-full max-w-[800px] max-h-[96vh] overflow-y-auto rounded-3xl p-3.5 sm:p-4 shadow-2xl backdrop-blur-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] transition-all ${
+        className={`relative w-full max-w-[800px] max-h-[96vh] overflow-y-auto rounded-3xl p-3.5 sm:p-4 shadow-2xl backdrop-blur-2xl border border-(--border-light-mode) dark:border-(--border-dark-mode) transition-all ${
           isDark ? "text-white" : "text-neutral-900"
         }`}
         style={{
@@ -145,11 +145,11 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
         <div ref={ticketRef} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 items-stretch justify-center max-w-[580px] mx-auto">
           <div
-            className="w-full rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md shadow-md overflow-hidden flex flex-col justify-between"
+            className="w-full rounded-2xl border border-(--border-light-mode) dark:border-(--border-dark-mode) bg-white dark:bg-[var(--primary-color-30)] backdrop-blur-md shadow-md overflow-hidden flex flex-col justify-between"
             style={{
               backgroundColor: isDark
                 ? "var(--primary-color-30)"
-                : "var(--primary-color-5)",
+                : "white",
               borderColor: isDark
                 ? "var(--border-dark-mode)"
                 : "var(--border-light-mode)",
@@ -192,16 +192,16 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
                 <div className="relative flex items-center justify-center my-2">
                   <div
-                    className="absolute -left-5 sm:-left-5.5 w-4 h-4 rounded-full border-r border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
+                    className="absolute -left-5 sm:-left-5.5 w-4 h-4 rounded-full border-r border-(--border-light-mode) dark:border-(--border-dark-mode)"
                     style={{
                       backgroundColor: isDark
                         ? "var(--primary-color-30)"
                         : "white",
                     }}
                   />
-                  <div className="w-full border-b border-dashed border-neutral-300 dark:border-neutral-700" />
+                  <div className="w-full border-b border-dashed border-(--border-light-mode) dark:border-(--border-dark-mode)" />
                   <div
-                    className="absolute -right-5 sm:-right-5.5 w-4 h-4 rounded-full border-l border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
+                    className="absolute -right-5 sm:-right-5.5 w-4 h-4 rounded-full border-l border-(--border-light-mode) dark:border-(--border-dark-mode)"
                     style={{
                       backgroundColor: isDark
                         ? "var(--primary-color-30)"
@@ -355,11 +355,11 @@ export default function TicketDetailModal({ ticket, onClose }) {
           </div>
 
           <div
-            className="w-full rounded-2xl border border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)] bg-[var(--primary-color-5)] dark:bg-[var(--primary-color-30)] backdrop-blur-md shadow-md overflow-hidden flex flex-col justify-between"
+            className="w-full rounded-2xl border border-(--border-light-mode) dark:border-(--border-dark-mode) bg-white dark:bg-[var(--primary-color-30)] backdrop-blur-md shadow-md overflow-hidden flex flex-col justify-between"
             style={{
               backgroundColor: isDark
                 ? "var(--primary-color-30)"
-                : "var(--primary-color-5)",
+                : "white",
               borderColor: isDark
                 ? "var(--border-dark-mode)"
                 : "var(--border-light-mode)",
@@ -398,16 +398,16 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
             <div className="relative flex items-center justify-center my-1.5 shrink-0">
               <div
-                className="absolute -left-2 w-4 h-4 rounded-full border-r border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
+                className="absolute -left-2 w-4 h-4 rounded-full border-r border-(--border-light-mode) dark:border-(--border-dark-mode)"
                 style={{
                   backgroundColor: isDark
                     ? "var(--primary-color-30)"
                     : "rgba(255, 255, 255, 0.8)",
                 }}
               />
-              <div className="w-full border-b border-dashed border-neutral-300 dark:border-neutral-700" />
+              <div className="w-full border-b border-dashed border-(--border-light-mode) dark:border-(--border-dark-mode)" />
               <div
-                className="absolute -right-2 w-4 h-4 rounded-full border-l border-[var(--border-light-mode)] dark:border-[var(--border-dark-mode)]"
+                className="absolute -right-2 w-4 h-4 rounded-full border-l border-(--border-light-mode) dark:border-(--border-dark-mode)"
                 style={{
                   backgroundColor: isDark
                     ? "var(--primary-color-30)"
@@ -421,7 +421,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
                 Scan at the cinema entrance
               </span>
 
-              <div className="p-2 sm:p-2.5 bg-white rounded-2xl shadow-xs border border-[var(--border-light-mode)] text-neutral-900 flex items-center justify-center min-h-[120px] min-w-[120px]">
+              <div className="p-2 sm:p-2.5 bg-white rounded-2xl shadow-xs border border-(--border-light-mode) text-neutral-900 flex items-center justify-center min-h-[120px] min-w-[120px]">
                 {isTicketQrLoading ? (
                   <div className="flex flex-col items-center justify-center space-y-1 text-neutral-400">
                     <div className="w-6 h-6 rounded-full border-2 border-[#B90101] border-t-transparent animate-spin" />

@@ -49,15 +49,15 @@ export default function PopcornBarSection() {
           Array.from({ length: 4 }).map((_, idx) => (
             <div
               key={idx}
-              className="rounded-3xl bg-neutral-100 dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 p-4 sm:p-5 animate-pulse flex flex-col justify-between h-full space-y-3"
+              className="rounded-3xl bg-neutral-100 dark:bg-[var(--primary-color-30)] border border-neutral-200/80 dark:border-(--border-dark-mode) p-4 sm:p-5 animate-pulse flex flex-col justify-between h-full space-y-3"
             >
-              <div className="w-full aspect-[16/10] bg-neutral-200 dark:bg-white/10 rounded-2xl" />
+              <div className="w-full aspect-[16/10] bg-neutral-200 dark:bg-[var(--primary-color-30)] rounded-2xl" />
               <div className="space-y-2 flex-1 flex flex-col justify-end">
                 <div className="flex items-center justify-between">
-                  <div className="h-5 w-2/3 bg-neutral-200 dark:bg-white/10 rounded" />
-                  <div className="h-5 w-14 bg-neutral-200 dark:bg-white/10 rounded" />
+                  <div className="h-5 w-2/3 bg-neutral-200 dark:bg-[var(--primary-color-30)] rounded" />
+                  <div className="h-5 w-14 bg-neutral-200 dark:bg-[var(--primary-color-30)] rounded" />
                 </div>
-                <div className="h-8 w-full bg-neutral-200 dark:bg-white/10 rounded" />
+                <div className="h-8 w-full bg-neutral-200 dark:bg-[var(--primary-color-30)] rounded" />
               </div>
             </div>
           ))
@@ -77,11 +77,11 @@ export default function PopcornBarSection() {
               >
                 <Link
                   to={`/deals/${item.uuid}`}
-                  className="group relative rounded-3xl bg-white dark:bg-[#12161C] border border-neutral-200/80 dark:border-white/10 hover:border-[#B90101]/60 p-4 sm:p-5 shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col justify-between overflow-hidden block hover:-translate-y-1"
+                  className="group relative rounded-3xl bg-white dark:bg-[var(--primary-color-30)] border border-neutral-200/80 dark:border-(--border-dark-mode) hover:border-[#B90101]/60 p-4 sm:p-5 shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col justify-between overflow-hidden block hover:-translate-y-1"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500 pointer-events-none" />
 
-                  <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-800/60 shadow-inner mb-3 shrink-0">
+                  <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-neutral-100 dark:bg-[var(--primary-color-30)] shadow-inner mb-3 shrink-0">
                     <img
                       src={item.imageUrl || popcornImg}
                       alt={item.name}

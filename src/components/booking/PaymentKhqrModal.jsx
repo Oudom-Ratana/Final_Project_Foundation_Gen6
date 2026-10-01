@@ -149,7 +149,7 @@ export default function PaymentKhqrModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-sans">
-      <div className="relative w-full max-w-sm rounded-[2rem] overflow-hidden bg-white dark:bg-[#161A20] border border-neutral-200 dark:border-white/10 shadow-2xl transition-all">
+      <div className="relative w-full max-w-sm rounded-[2rem] overflow-hidden bg-white dark:bg-[var(--primary-color-30)] border border-neutral-200 dark:border-(--border-dark-mode) shadow-2xl transition-all">
         <div className="bg-[#B90101] text-white p-5 text-center relative shrink-0">
           <button
             type="button"
@@ -175,7 +175,7 @@ export default function PaymentKhqrModal({
             </p>
           </div>
 
-          <div className="py-2 px-4 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 w-fit mx-auto">
+          <div className="py-2 px-4 rounded-xl bg-neutral-100 dark:bg-[var(--primary-color-30)] border border-neutral-200 dark:border-(--border-dark-mode) w-fit mx-auto">
             <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400 mr-1.5 uppercase tracking-wider">
               Total Amount
             </span>

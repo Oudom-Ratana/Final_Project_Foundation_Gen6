@@ -238,7 +238,7 @@ export default function TicketCard({ ticket, onViewTicket, onAddSnacks }) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
-            {isUpcoming && (
+            {/* {isUpcoming && (
               <button
                 type="button"
                 onClick={() => onAddSnacks && onAddSnacks(ticket)}
@@ -248,7 +248,7 @@ export default function TicketCard({ ticket, onViewTicket, onAddSnacks }) {
                 <Popcorn className="w-3.5 h-3.5" />
                 <span>Add Snacks</span>
               </button>
-            )}
+            )} */}
 
             <button
               type="button"

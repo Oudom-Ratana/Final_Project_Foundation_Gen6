@@ -123,7 +123,7 @@ export default function FavouritePage() {
       <>
         {seoEl}
         <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
-        <div className="w-16 h-16 rounded-full bg-[#B90101]/10 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
           <Heart className="w-8 h-8 text-[#B90101]" />
         </div>
         <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white">
@@ -168,7 +168,7 @@ export default function FavouritePage() {
       <>
         {seoEl}
         <div className="w-full py-24 flex flex-col items-center justify-center text-center space-y-4 font-sans">
-        <div className="w-16 h-16 rounded-full bg-[#B90101]/10 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
           <Heart className="w-8 h-8 text-[#B90101]" />
         </div>
         <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white">

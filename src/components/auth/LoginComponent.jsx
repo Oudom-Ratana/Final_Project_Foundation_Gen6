@@ -229,14 +229,14 @@ const LoginComponent = () => {
                 </p>
               )}
 
-              <div className="mt-1.5 text-right">
+              {/* <div className="mt-1.5 text-right">
                 <Link
                   to="/forgot-password"
                   className="text-xs text-primary-red hover:underline font-medium"
                 >
                   Forgot password?
                 </Link>
-              </div>
+              </div> */}
             </div>
 
             <button

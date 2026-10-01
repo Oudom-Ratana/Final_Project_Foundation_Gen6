@@ -607,7 +607,7 @@ export default function BookingConfirmedPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <Link
               to="/my-tickets"
-              className="w-full sm:w-auto min-w-[200px] py-3.5 px-8 rounded-full bg-neutral-800 hover:bg-neutral-900 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-white font-extrabold text-sm text-center uppercase tracking-wider transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto min-w-[200px] py-3.5 px-8 rounded-full bg-white hover:bg-neutral-900/10 dark:bg-[var(--primary-color-30)]  dark:hover:bg-neutral-600/50 text-[#b90101] font-extrabold text-sm text-center uppercase tracking-wider transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <Ticket className="w-4 h-4" />
               <span>Go to My Tickets</span>

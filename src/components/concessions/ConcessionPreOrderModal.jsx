@@ -117,8 +117,8 @@ export default function ConcessionPreOrderModal({
     : null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#12161A] border border-neutral-200 dark:border-white/10 shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-white backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[var(--primary-color-30)] border border-(--border-light-mode) dark:border-(--border-dark-mode) shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#B90101]" />
@@ -153,7 +153,7 @@ export default function ConcessionPreOrderModal({
               ))}
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-dashed border-neutral-300 dark:border-white/10 text-sm font-black">
+            <div className="flex items-center justify-between pt-2 border-t border-dashed border-neutral-300 dark:border-(--border-dark-mode) text-sm font-black">
               <span className="text-neutral-600 dark:text-neutral-400">Total to Pay</span>
               <span className="text-xl text-[#B90101]">${cartTotal.toFixed(2)}</span>
             </div>
@@ -177,11 +177,11 @@ export default function ConcessionPreOrderModal({
 
         {step === "paying" && (
           <div className="space-y-4 text-center">
-            <div className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 inline-block shadow-inner mx-auto">
+            <div className="p-4 rounded-2xl bg-white dark:bg-[var(--primary-color-30)] border border-neutral-200 dark:border-(--border-dark-mode) inline-block shadow-inner mx-auto">
               {qrImageSrc ? (
                 <img src={qrImageSrc} alt="Bakong KHQR" className="w-48 h-48 mx-auto object-contain rounded-lg" />
               ) : (
-                <div className="w-48 h-48 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded-lg animate-pulse">
+                <div className="w-48 h-48 flex items-center justify-center bg-neutral-100 dark:bg-[var(--primary-color-30)] rounded-lg animate-pulse">
                   <QrCode className="w-12 h-12 text-neutral-400" />
                 </div>
               )}
@@ -200,7 +200,7 @@ export default function ConcessionPreOrderModal({
             <button
               onClick={handleManualVerify}
               disabled={isVerifying}
-              className="w-full py-2.5 rounded-full border border-neutral-300 dark:border-white/20 text-xs font-bold hover:bg-neutral-100 dark:hover:bg-white/5 transition"
+              className="w-full py-2.5 rounded-full border border-neutral-300 dark:border-(--border-dark-mode) text-xs font-bold hover:bg-neutral-100 dark:hover:bg-white/5 transition"
             >
               {isVerifying ? "Verifying..." : "I Have Paid (Verify Manually)"}
             </button>
@@ -220,7 +220,7 @@ export default function ConcessionPreOrderModal({
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 inline-block shadow-lg mx-auto">
+            <div className="p-4 rounded-2xl bg-white dark:bg-[var(--primary-color-30)] border border-neutral-200 dark:border-(--border-dark-mode) inline-block shadow-lg mx-auto">
               {qrImageSrc && (
                 <img src={qrImageSrc} alt="Pickup Pass QR" className="w-52 h-52 mx-auto object-contain rounded-lg" />
               )}

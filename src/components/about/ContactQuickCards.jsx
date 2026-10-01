@@ -49,7 +49,7 @@ export default function ContactQuickCards() {
       <div
         key={key}
         onClick={() => handleCardClick(card.title)}
-        className="group p-6 rounded-3xl bg-white/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] backdrop-blur-md hover:bg-white dark:hover:bg-[#1A1F25]/80 border border-neutral-200/90 hover:border-[var(--primary-red)] dark:hover:border-[var(--primary-red)] transition-all duration-300 cursor-pointer flex flex-col justify-between h-[190px] w-[280px] sm:w-[320px] shrink-0 select-none hover:-translate-y-1 shadow-md hover:shadow-xl dark:shadow-2xl"
+        className="group p-6 rounded-3xl bg-white/80 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] backdrop-blur-md hover:bg-white dark:hover:bg-[#1A1F25]/50 border border-neutral-200/90 hover:border-[var(--primary-red)] dark:hover:border-[var(--primary-red)] transition-all duration-300 cursor-pointer flex flex-col justify-between h-[190px] w-[280px] sm:w-[320px] shrink-0 select-none hover:-translate-y-1 shadow-md hover:shadow-xl dark:shadow-2xl"
       >
         <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-200  group-hover:bg-[var(--primary-red)] group-hover:border-[var(--primary-red)] flex items-center justify-center transition-colors shadow-xs">
           <Icon className="w-5 h-5 text-[var(--primary-red)] dark:text-white group-hover:text-white transition-colors" />
@@ -71,8 +71,8 @@ export default function ContactQuickCards() {
 
   return (
     <div className="relative w-full overflow-hidden py-4 font-sans">
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-10 sm:w-20 bg-gradient-to-r from-bg-light dark:from-black to-transparent z-20" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-10 sm:w-20 bg-gradient-to-l from-bg-light dark:from-black to-transparent z-20" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-10 sm:w-20 bg-gradient-to-r from-bg-light dark:from-black/50 to-transparent z-20" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-10 sm:w-20 bg-gradient-to-l from-bg-light dark:from-black/50 to-transparent z-20" />
 
       <div className="flex w-max animate-scroll-ltr">
         <div className="flex items-center gap-5 shrink-0 pr-5">

@@ -25,7 +25,7 @@
             className="w-13 h-18 sm:w-14 sm:h-20 rounded-xl object-cover shadow-sm shrink-0"
           />
         ) : (
-          <div className="w-13 h-18 sm:w-14 sm:h-20 rounded-xl bg-neutral-200 dark:bg-neutral-800 shrink-0 flex items-center justify-center text-xs font-bold text-neutral-400">
+          <div className="w-13 h-18 sm:w-14 sm:h-20 rounded-xl bg-neutral-200 dark:bg-[var(--primary-color-30)] shrink-0 flex items-center justify-center text-xs font-bold text-neutral-400">
             FilmZone
           </div>
         )}

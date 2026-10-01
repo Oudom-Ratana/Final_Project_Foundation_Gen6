@@ -211,7 +211,7 @@ export default function MyTicketsPage() {
     return (
       <div className="min-h-[70vh] flex items-center justify-center px-4 py-12 font-sans select-none">
         <ScrollReveal delay={0} duration={600} distance="translate-y-4">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#161A20] border border-neutral-200 dark:border-white/10 shadow-2xl p-8 text-center space-y-5">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[var(--primary-color-30)] border border-neutral-200 dark:border-(--border-dark-mode) shadow-2xl p-8 text-center space-y-5">
             <div className="w-20 h-20 rounded-2xl bg-[#B90101]/10 text-[#B90101] flex items-center justify-center mx-auto shadow-inner">
               <Ticket className="w-10 h-10 stroke-[2.2]" />
             </div>

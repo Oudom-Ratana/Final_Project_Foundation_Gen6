@@ -219,7 +219,7 @@ export default function ShowtimeSection({
   const glassCardStyle = {
     backgroundColor: isDark
       ? "var(--primary-color-30)"
-      : "var(--primary-color-5)",
+      : "white",
     borderColor: isDark
       ? "var(--border-dark-mode)"
       : "var(--border-light-mode)",
@@ -468,7 +468,7 @@ export default function ShowtimeSection({
                                 : {
                                     backgroundColor: isDark
                                       ? "var(--primary-color-30)"
-                                      : "var(--primary-color-5)",
+                                      : "white",
                                     borderColor: isGold
                                       ? "#FFB800"
                                       : isDark

@@ -88,7 +88,7 @@ export default function StreamPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get("q") || "";
   const pageParam = parseInt(searchParams.get("page") || "1", 10);
-  const categoryParam = searchParams.get("category") || "tv"; 
+  const categoryParam = searchParams.get("category") || "tv";
   const genreParam = searchParams.get("genre") || "all";
   const sortParam = searchParams.get("sort") || "popularity.desc";
 
@@ -349,11 +349,10 @@ export default function StreamPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => handleSortChange(opt.value)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-[18px] font-bold transition-all whitespace-nowrap ${
-                        isSortActive
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-[18px] font-bold transition-all whitespace-nowrap ${isSortActive
                           ? "bg-[#B90101] text-white shadow-sm"
                           : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-                      }`}
+                        }`}
                     >
                       <IconComp className="w-4 h-4" />
                       <span className="hidden sm:inline">{opt.label}</span>
@@ -367,11 +366,10 @@ export default function StreamPage() {
               <button
                 type="button"
                 onClick={() => handleCategoryChange("tv")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[18px] font-bold transition-all ${
-                  isTV
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[18px] font-bold transition-all ${isTV
                     ? "bg-[#B90101] text-white shadow-sm"
                     : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-                }`}
+                  }`}
               >
                 <Tv className="w-4 h-4" />
                 <span>Series</span>
@@ -380,11 +378,10 @@ export default function StreamPage() {
               <button
                 type="button"
                 onClick={() => handleCategoryChange("movie")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[18px] font-bold transition-all ${
-                  !isTV
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[18px] font-bold transition-all ${!isTV
                     ? "bg-[#B90101] text-white shadow-sm"
                     : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-                }`}
+                  }`}
               >
                 <Film className="w-4 h-4" />
                 <span>Movies</span>
@@ -394,25 +391,29 @@ export default function StreamPage() {
         </div>
 
         {!queryParam && (
-          <div className="overflow-x-auto pb-2 pt-1 select-none scrollbar-none">
-            <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80  text-[18px] font-bold shadow-xs">
-              {activeGenreList.map((g) => {
-                const isGenreActive = selectedGenre === g.id;
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => handleGenreChange(g.id)}
-                    className={`px-4.5 py-2 rounded-full text-[18px] font-bold tracking-wide whitespace-nowrap transition-all shrink-0 cursor-pointer ${
-                      isGenreActive
-                        ? "bg-[#B90101] text-white shadow-sm"
-                        : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-                    }`}
-                  >
-                    {g.label}
-                  </button>
-                );
-              })}
+          <div className="w-full pt-1 select-none">
+            <div className="w-full overflow-hidden rounded-full bg-white dark:border-(--border-dark-mode) dark:bg-[var(--primary-color-30)] border border-neutral-300/80 shadow-xs">
+              <div className="overflow-x-auto scrollbar-none">
+                <div className="inline-flex min-w-full items-center gap-1 p-1 text-[18px] font-bold">
+                  {activeGenreList.map((g) => {
+                    const isGenreActive = selectedGenre === g.id;
+
+                    return (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => handleGenreChange(g.id)}
+                        className={`px-3 py-2 rounded-full text-[18px] font-bold tracking-wide whitespace-nowrap transition-all shrink-0 cursor-pointer ${isGenreActive
+                            ? "bg-[#B90101] text-white shadow-sm"
+                            : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                          }`}
+                      >
+                        {g.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -488,11 +489,10 @@ export default function StreamPage() {
                   key={`page-${pageNumber}`}
                   type="button"
                   onClick={() => handlePageChange(pageNumber)}
-                  className={`w-11 h-11 rounded-full font-black text-[18px] flex items-center justify-center transition-all ${
-                    currentPage === pageNumber
+                  className={`w-11 h-11 rounded-full font-black text-[18px] flex items-center justify-center transition-all ${currentPage === pageNumber
                       ? "bg-[#B90101] text-white shadow-md"
                       : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
-                  }`}
+                    }`}
                 >
                   {pageNumber}
                 </button>

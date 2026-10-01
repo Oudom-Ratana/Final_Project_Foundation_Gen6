@@ -23,9 +23,6 @@ export default function RootLayout() {
     location.pathname.startsWith("/deals/") ||
     location.pathname.startsWith("/promo/");
 
-  // Hide the Navbar on the booking checkout/payment page (where the KHQR scan-to-pay modal appears)
-  const isBookingDetailsPage = location.pathname.startsWith("/booking/details");
-
   return (
     <div
       className={`min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden flex flex-col font-sans antialiased transition-colors duration-300 selection:bg-[#B90101] selection:text-white ${
@@ -46,7 +43,7 @@ export default function RootLayout() {
         </div>
       )}
 
-      {!isAuthPage && !isConcessionDetail && !isBookingDetailsPage && <Navbar />}
+      {!isAuthPage && !isConcessionDetail && <Navbar />}
 
       <main
         className={`flex-1 w-full relative z-10 transition-all duration-200 ${

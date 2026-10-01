@@ -23,7 +23,7 @@ export default function ConcessionCard({ item }) {
       style={{
         backgroundColor: isDark
           ? "var(--primary-color-30)"
-          : "var(--primary-color-5)",
+          : "white",
       }}
     >
       <div className="relative">

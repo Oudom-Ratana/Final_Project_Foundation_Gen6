@@ -56,7 +56,7 @@ export default function ConcessionDetailPage() {
 
       <div
         className={`relative w-full max-w-3xl rounded-[28px] p-6 sm:p-8 shadow-2xl ${
-          isDark ? "bg-neutral-900 border border-white/10" : "bg-white"
+          isDark ? "bg-[var(--primary-color-30)] border-white/10" : "bg-white"
         }`}
       >
         <button
